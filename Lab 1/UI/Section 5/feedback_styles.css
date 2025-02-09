@@ -1,0 +1,91 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
+.container {
+    width: 50%;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    border-radius: 5px;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin: 10px 0 5px;
+}
+
+input, textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+.review-card {
+    background: #f0f0f0;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.review-card span {
+    display: block;
+    text-align: right;
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.approve {
+    background-color: #007bff;
+}
+
+.delete {
+    background-color: #dc3545;
+}
+
+.approve:hover {
+    background-color: #0056b3;
+}
+
+.delete:hover {
+    background-color: #c82333;
+}

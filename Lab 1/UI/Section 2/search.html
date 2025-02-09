@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Car Parks</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>Search for Car Parks</h1>
+        <button onclick="history.back()">← Back</button>
+    </header>
+
+    <main>
+        <div class="search-container">
+            <input type="text" id="searchQuery" placeholder="Enter location...">
+            
+            <div class="filter-options">
+                <label><input type="checkbox"> EV Charging</label>
+                <label><input type="checkbox"> Covered Parking</label>
+            </div>
+
+            <button class="search-btn">Search</button>
+        </div>
+
+        <div class="search-results">
+            <h2>Results:</h2>
+
+            <div class="car-park-card">
+                <h3>Downtown Parking</h3>
+                <p>EV Charging: Yes</p>
+                <p>Covered Parking: Yes</p>
+                <button>View Details</button>
+            </div>
+
+            <div class="car-park-card">
+                <h3>Westside Parking</h3>
+                <p>EV Charging: No</p>
+                <p>Covered Parking: Yes</p>
+                <button>View Details</button>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
+
+<!--
+Design Adjustments:
+- Search bar placed at the top for easy access.
+- Checkbox filters for features like EV charging.
+- Results displayed below dynamically (currently static).
+
+Key Features & Explanation
+- Search bar + filters for detailed searching.
+- Dynamically generated results (currently static).
+- Buttons to view details of search results.
+-->

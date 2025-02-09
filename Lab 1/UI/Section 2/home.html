@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Park Availability - Home</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>Car Park Availability</h1>
+        <input type="text" placeholder="Search for a car park..." id="searchBar">
+    </header>
+
+    <main>
+        <h2>Available Parking Spots</h2>
+        <div class="car-park-container">
+            <div class="car-park-card available">
+                <h3>City Center Parking</h3>
+                <p>Location: Downtown</p>
+                <p>Price: $5/hr</p>
+                <p><span class="status">✔ Available (10 spots)</span></p>
+                <button>View Details</button>
+            </div>
+
+            <div class="car-park-card full">
+                <h3>Westside Mall Parking</h3>
+                <p>Location: Westside</p>
+                <p>Price: $3/hr</p>
+                <p><span class="status">✖ Full</span></p>
+                <button disabled>View Details</button>
+            </div>
+
+            <div class="car-park-card available">
+                <h3>Airport Parking</h3>
+                <p>Location: Near Airport</p>
+                <p>Price: $7/hr</p>
+                <p><span class="status">✔ Available (5 spots)</span></p>
+                <button>View Details</button>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
+
+<!--
+Design Adjustments:
+- Modern UI with a card-based layout instead of a simple list.
+- A search bar at the top for quick access.
+- Dynamic parking spot display using flexbox for better responsiveness.
+- Color-coded indicators (Green = Available, Red = Full).
+
+Key Features & Explanation
+- Responsive layout using flexbox to display car parks in a row.
+- Search bar at the top (future enhancement: real search functionality).
+- Parking spot cards show name, location, price, and availability.
+- Buttons to view details (inactive when full).
+-->
+
+
