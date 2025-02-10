@@ -33,3 +33,14 @@ Key Features & Explanation
 - Standardized form structure for better user experience.
 - Review cards for user feedback instead of simple lists.
 - Admin table layout for easy review moderation.
+
+-----Section 6-----
+Design Adjustments:
+- Dropdown menus for integration options (e.g., Waze, Google Maps).
+- Toggle switches for user settings (e.g., notifications, dark mode).
+- Clean settings page layout with sections.
+
+Key Features & Explanation
+- Dropdowns for integration & language selection to ensure flexibility.
+- Toggle switches for key app settings like notifications & dark mode.
+- Consistent layout across settings pages.
