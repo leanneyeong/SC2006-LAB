@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Park Availability - Home</title>
     <link rel="stylesheet" href="main_app_styles.css">
+    <script>
+        // Function to capture the selected filters and sort options and redirect to search.html
+        function searchFunction() {
+            const searchQuery = document.getElementById('searchBar').value;
+            const evCharging = document.getElementById('evCharging').checked;
+            const coveredCarpark = document.getElementById('coveredCarpark').checked;
+            const sortOption = document.getElementById('sortOptions').value;
+
+            // Construct the URL with query parameters
+            let url = `search.html?query=${encodeURIComponent(searchQuery)}&evCharging=${evCharging}&coveredCarpark=${coveredCarpark}&sort=${sortOption}`;
+
+            // Redirect to the search page with the query parameters
+            window.location.href = url;
+        }
+    </script>
 </head>
 <body>
 
@@ -14,14 +29,21 @@
             <input type="text" placeholder="Search for a car park..." id="searchBar">
             <button class="search-btn" onclick="searchFunction()">Search</button>
     
-            <!-- Filter section that moves to the right -->
+            <!-- Filter section with checkboxes and sort dropdown -->
             <div class="filters-container">
-                <select id="filterOptions">
-                    <option value="filter">Filter By</option>
-                    <option value="nearby">Filter by Nearby</option>
-                    <option value="alphabetical">Filter Alphabetically</option>
+                <div class="filter-options">
+                    <label><input type="checkbox" id="evCharging"> EV Charging</label>
+                    <label><input type="checkbox" id="coveredCarpark"> Covered Carpark</label>
+                </div>
+                <!-- Dropdown for sorting results -->
+                <select id="sortOptions">
+                    <option value="sort">Sort By</option>
+                    <option value="alphabetical">Sort By Alphabetical Order</option>
+                    <option value="distance">Sort by Distance</option>
+                    <option value="price">Sort by Price</option>
+                    <option value="availableLots">Sort by No. of Available Lots</option>
                 </select>
-                <button onclick="applyFilter()">Apply Filter</button>
+                <button onclick="searchFunction()">Apply Filter</button>
             </div>
         </div>
     </header>
@@ -31,7 +53,7 @@
         <h2>Available Parking Spots</h2>
     
         <div class="car-park-container">
-            <!-- First Row -->
+            <!-- Example cards for available parking spots -->
             <div class="car-park-card available">
                 <h3>City Center Parking</h3>
                 <p>Location: Downtown</p>
