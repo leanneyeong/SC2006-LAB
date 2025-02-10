@@ -7,17 +7,84 @@ body {
 }
 
 header {
-    background-color: #007bff;
+    background-color: #007bff; /* Background color for the header */
     color: white;
     padding: 15px;
 }
 
+/* Style for the h1 element to create a rectangular box */
+header h1 {
+    display: inline-block;  /* Makes the background color fit the text */
+    background-color: #0056b3;  /* Background color for the box */
+    padding: 10px 20px;  /* Adds padding around the text */
+    border-radius: 5px;  /* Optional: rounds the corners of the box */
+}
+
+.search-container {
+    display: flex;
+    justify-content: center; /* Center search bar and search button */
+    align-items: center; /* Center vertically */
+    width: 100%; /* Ensure it takes full width of the container */
+    position: relative;
+}
+
 #searchBar {
-    width: 80%;
+    width: 500px; /* Make the search bar smaller */
     padding: 10px;
-    margin-top: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+}
+
+.search-btn {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.filters-container {
+    display: flex;
+    gap: 10px; /* Space between filter dropdown and button */
+    position: absolute;
+    right: 0; /* Align filters container to the right */
+    top: 50%;
+    transform: translateY(-50%); /* Center filter vertically */
+}
+
+/* Style for search button */
+.search-btn {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transition for size and color */
+}
+
+/* Hover effect for the search button */
+.search-btn:hover {
+    background-color: #0056b3; /* Change color on hover */
+    transform: scale(1.1); /* Make the button slightly larger */
+}
+
+/* Style for buttons */
+button {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transition for size and color */
+}
+
+/* Hover effect for the apply filter button */
+button:hover {
+    background-color: #0056b3; /* Change color on hover */
+    transform: scale(1.1); /* Make the button slightly larger */
 }
 
 h2 {
@@ -37,7 +104,7 @@ h2 {
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    width: 300px;
+    width: 300px; /* Ensures 3 cards fit in one row */
     text-align: left;
 }
 
@@ -57,128 +124,3 @@ h2 {
     color: red;
 }
 
-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px;
-    width: 100%;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-button:disabled {
-    background-color: gray;
-    cursor: not-allowed;
-}
-
-.filters {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.filters select {
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-.details-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 20px;
-}
-
-.details-info {
-    max-width: 400px;
-    text-align: left;
-}
-
-.navigate-btn, .review-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px;
-    width: 100%;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.map-placeholder {
-    width: 400px;
-    height: 300px;
-    background: lightgray;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.search-container {
-    text-align: center;
-    padding: 20px;
-}
-
-.search-container input {
-    padding: 10px;
-    width: 60%;
-    margin: 10px 0;
-}
-
-.filter-options {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
-
-.search-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.search-results {
-    margin-top: 20px;
-    text-align: left;
-}
-
-.navigation-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 20px;
-}
-
-.nav-info {
-    max-width: 400px;
-    text-align: left;
-}
-
-.maps-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px;
-    width: 100%;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.map-placeholder {
-    width: 400px;
-    height: 300px;
-    background: lightgray;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
