@@ -37,7 +37,15 @@ body {
     text-decoration: none;
     display: block;
     padding: 10px;
+    transition: font-size 0.3s ease; /* Smooth transition for font-size */
 }
+
+/* Hover effect to increase font size */
+.sidebar ul li a:hover {
+    font-size: 18px; /* Increase font size when hovered */
+    background-color: #0056b3; /* Optional: change background color on hover */
+}
+
 
 .sidebar ul li a.active {
     background-color: #007bff;
@@ -80,4 +88,9 @@ table, th, td {
     border: none;
     cursor: pointer;
     margin-bottom: 10px;
+}
+
+.add-btn:hover{
+    font-size: 18px; /* Increase font size when hovered */
+    background-color: #19c742; /* Optional: change background color on hover */
 }
