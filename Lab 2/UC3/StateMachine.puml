@@ -1,0 +1,8 @@
+@startuml
+[*] --> LoginScreen
+LoginScreen --> ValidatingCredentials: User submits login
+ValidatingCredentials --> HomeScreen: Credentials Valid
+ValidatingCredentials --> LoginScreen: Invalid Credentials
+LoginScreen --> ForgotPassword: User selects password reset
+LoginScreen --> AccountLocked: Too many failed attempts
+@enduml

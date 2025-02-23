@@ -1,0 +1,12 @@
+@startuml
+[*] --> HomeScreen
+HomeScreen --> SearchInterface: User starts search
+SearchInterface --> FetchGPSLocation: Use GPS
+SearchInterface --> FetchCarParkData: Manual location input
+FetchGPSLocation --> FetchCarParkData: GPS found
+FetchCarParkData --> DisplayResults: Car parks found
+DisplayResults --> CarParkDetails: User selects car park
+DisplayResults --> ExpandSearchRadius: No results found
+ExpandSearchRadius --> FetchCarParkData: Increase search range
+CarParkDetails --> [*]: User selects car park or exits
+@enduml

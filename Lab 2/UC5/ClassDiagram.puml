@@ -1,0 +1,34 @@
+@startuml
+class User {
+  + searchCarParks(location: String)
+}
+
+class SearchInterface {
+  + enterLocation()
+  + displayResults()
+}
+
+class SearchController {
+  + processSearch(location: String)
+}
+
+class GPSService {
+  + getUserLocation(): Location
+}
+
+class CarPark {
+  + name: String
+  + location: String
+  + availability: int
+}
+
+class CarParkAvailabilityAPI {
+  + fetchCarParks(location: String): List<CarPark>
+}
+
+User -- SearchInterface
+SearchInterface --> SearchController
+SearchController --> GPSService
+SearchController --> CarParkAvailabilityAPI
+CarParkAvailabilityAPI --> CarPark
+@enduml
