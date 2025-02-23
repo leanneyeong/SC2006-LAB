@@ -1,0 +1,49 @@
+@startuml
+[*] --> WaitingForCurrentPassword
+
+state WaitingForCurrentPassword {
+  [*] --> PromptForCurrentPassword
+  PromptForCurrentPassword --> WaitingForCurrentPassword : "User enters current password"
+}
+
+WaitingForCurrentPassword --> ValidateCurrentPassword : "System validates"
+ValidateCurrentPassword --> InvalidCurrentPassword : "Invalid password"
+ValidateCurrentPassword --> WaitingForNewPassword : "Valid password"
+
+state InvalidCurrentPassword {
+  [*] --> ShowErrorInvalidPassword
+  ShowErrorInvalidPassword --> WaitingForCurrentPassword : "User retries"
+}
+
+WaitingForNewPassword --> PromptForNewPassword : "System prompts for new password"
+PromptForNewPassword --> WaitingForNewPassword : "User enters new password"
+
+WaitingForNewPassword --> ValidateNewPassword : "System validates new password"
+ValidateNewPassword --> InvalidNewPassword : "Invalid password"
+ValidateNewPassword --> PasswordUpdated : "Valid password"
+
+state InvalidNewPassword {
+  [*] --> ShowErrorInvalidNewPassword
+  ShowErrorInvalidNewPassword --> WaitingForNewPassword : "User retries"
+}
+
+PasswordUpdated --> ShowConfirmation : "Password updated successfully"
+ShowConfirmation --> [*] : "End process"
+
+WaitingForCurrentPassword --> WaitingForEmail : "User selects 'Forgot Password'"
+state WaitingForEmail {
+  [*] --> ShowEmailPrompt
+  ShowEmailPrompt --> WaitingForEmail : "User enters email"
+}
+WaitingForEmail --> ValidateEmail : "System validates email"
+ValidateEmail --> InvalidEmail : "Invalid email"
+ValidateEmail --> WaitingForNewPassword : "Valid email"
+
+state InvalidEmail {
+  [*] --> ShowErrorInvalidEmail
+  ShowErrorInvalidEmail --> WaitingForEmail : "User retries"
+}
+
+WaitingForNewPassword --> PromptForNewPassword : "System prompts for new password"
+@enduml
+
