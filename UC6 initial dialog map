@@ -1,0 +1,53 @@
+@startuml
+[*] --> WaitingForAction
+
+state WaitingForAction {
+  [*] --> ShowCarParkOptions
+  ShowCarParkOptions --> WaitingForAction : "Admin selects action (Add/Update/Remove)"
+}
+
+WaitingForAction --> AddingCarPark : "Admin selects Add Car Park"
+WaitingForAction --> UpdatingCarPark : "Admin selects Update Car Park"
+WaitingForAction --> RemovingCarPark : "Admin selects Remove Car Park"
+
+state AddingCarPark {
+  [*] --> PromptForCarParkDetails
+  PromptForCarParkDetails --> AddingCarPark : "Admin enters car park details"
+  AddingCarPark --> ValidateCarParkData : "System validates data"
+  ValidateCarParkData --> InvalidCarParkData : "Invalid data"
+  ValidateCarParkData --> CarParkAdded : "Valid data"
+}
+
+state InvalidCarParkData {
+  [*] --> ShowErrorInvalidCarParkData
+  ShowErrorInvalidCarParkData --> AddingCarPark : "Admin corrects data"
+}
+
+CarParkAdded --> ShowConfirmation : "Car park added successfully"
+ShowConfirmation --> WaitingForAction : "Back to options"
+
+state UpdatingCarPark {
+  [*] --> SelectCarParkToUpdate
+  SelectCarParkToUpdate --> PromptForUpdatedDetails : "Admin selects car park to update"
+  PromptForUpdatedDetails --> UpdatingCarPark : "Admin updates car park details"
+  UpdatingCarPark --> ValidateCarParkData : "System validates updated data"
+  ValidateCarParkData --> InvalidCarParkData : "Invalid data"
+  ValidateCarParkData --> CarParkUpdated : "Valid data"
+}
+
+CarParkUpdated --> ShowConfirmation : "Car park updated successfully"
+ShowConfirmation --> WaitingForAction : "Back to options"
+
+state RemovingCarPark {
+  [*] --> SelectCarParkToRemove
+  SelectCarParkToRemove --> RemovingCarPark : "Admin selects car park to remove"
+  RemovingCarPark --> ConfirmRemoval : "Admin confirms removal"
+  ConfirmRemoval --> CarParkRemoved : "Car park removed successfully"
+}
+
+CarParkRemoved --> ShowConfirmation : "Car park removed successfully"
+ShowConfirmation --> WaitingForAction : "Back to options"
+
+@enduml
+
+
