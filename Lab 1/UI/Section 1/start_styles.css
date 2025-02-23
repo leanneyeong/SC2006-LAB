@@ -1,0 +1,47 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+    margin: 0;
+    flex-direction: column;
+}
+
+.title {
+    font-size: 100px;
+    margin-bottom: 20px;
+    color: blue;
+    border: 2px solid black; /* Adds a black border */
+    padding: 20px; /* Adds space between text and border */
+    display: inline-block; /* Ensures border wraps around text */
+    border-radius: 10px; /* Optional: Rounds the corners */
+}
+
+
+.container {
+    text-align: center;
+}
+
+.role-selection, .auth-buttons {
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    margin: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.user-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.admin-btn {
+    background-color: #f44336;
+    color: white;
+}
