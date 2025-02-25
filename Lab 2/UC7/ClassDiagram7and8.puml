@@ -1,0 +1,15 @@
+@startuml
+[*] --> FetchCarParkData : Car parks found
+FetchCarParkData --> DisplayResults : User selects a car park
+DisplayResults --> DisplayCarParkDetails : User selects detailed view
+DisplayCarParkDetails --> GettingDirections : User clicks "Detailed View"
+DisplayCarParkDetails --> AddingFavourite : User clicks "Favourite"
+DisplayCarParkDetails --> AddingBookmark : User clicks "Bookmark"
+AddingFavourite --> FavouriteAdded : System adds car park to favourites
+AddingBookmark --> BookmarkAdded : System adds car park to bookmarks
+FavouriteAdded --> [*] : User notified "Car Park added to Favourites"
+BookmarkAdded --> [*] : User notified "Car Park added to Bookmarks"
+GettingDirections --> DisplayCarParkDetails: User exits navigation page
+DisplayCarParkDetails --> [*] : User exits detailed view page
+
+@enduml
