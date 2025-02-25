@@ -1,0 +1,15 @@
+@startuml
+
+[*] --> Idle
+
+Idle --> LoginRequested : User clicks 'Login'
+LoginRequested --> LoggingIn : Validate credentials
+LoggingIn --> LoginFailed : Invalid credentials
+LoggingIn --> LoggedIn : Successful login
+LoginFailed --> Idle : Retry login
+LoggedIn --> CarParkSelection : Select car park
+CarParkSelection --> ViewingReviews : View reviews for car park
+ViewingReviews --> ReviewsDisplayed : Display reviews
+ReviewsDisplayed --> Idle : Back to idle state
+
+@enduml
