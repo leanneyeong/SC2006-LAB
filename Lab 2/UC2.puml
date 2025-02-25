@@ -1,0 +1,18 @@
+@startuml
+[*] --> AdminAccess : Admin logs in with special access
+
+AdminAccess --> CreateAdminAccount : Admin selects "Create Admin Account"
+
+CreateAdminAccount --> EnterAdminDetails : Admin enters username, password, retype password, and email
+EnterAdminDetails --> ValidatingAdminInput : Admin submits form
+
+ValidatingAdminInput --> AdminAccountCreated : Valid input
+ValidatingAdminInput --> CreateAdminAccount : Invalid username or email
+ValidatingAdminInput --> CreateAdminAccount : Password mismatch
+ValidatingAdminInput --> UsernameExists : Username already in use
+
+AdminAccountCreated --> LoginScreen : Admin receives confirmation of account creation
+LoginScreen --> [*] : Process complete
+
+UsernameExists --> CreateAdminAccount : Admin retries with a different username
+@enduml
