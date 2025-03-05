@@ -7,5 +7,18 @@ database used: Turso
 Steps:
 1. create a database in Turso and obtain URL and Token created, change .env file using ur token and url
 2. go to VSC Terminal and type npx drizzle-kit push (posts and users table should appear in Turso)
-3. in terminal, npx ts-node src/db/insertData.ts to test whether it works, do the same thing for updataData.ts and deleteData.ts
-4. npx ts-node src/db/app.ts    (will compare user's input (name and password), if match, login successfully
+
+
+
+services:
+1. signup:
+write npx ts-node src/db/service/signupapp.ts into termimal
+system would prompt user to key in username, password and email and add the data into the database
+
+2. login:
+write npx ts-node src/db/service/loginapp.ts into terminal
+system would verify username and password
+
+3. change password:
+write npx ts-node src/db/service/resetpwapp.ts into terminal
+system would ask for username, password and new password. If old password is wrong, system would ask for email, if email verified, password would be updated.
