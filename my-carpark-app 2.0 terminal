@@ -10,15 +10,20 @@ Steps:
 
 
 
-services:
+userservices:
 1. signup:
-write npx ts-node src/db/service/signupapp.ts into termimal
+write npx ts-node src/db/userservice/signupapp.ts into termimal
 system would prompt user to key in username, password and email and add the data into the database
 
 2. login:
-write npx ts-node src/db/service/loginapp.ts into terminal
+write npx ts-node src/db/userservice/loginapp.ts into terminal
 system would verify username and password
 
 3. change password:
-write npx ts-node src/db/service/resetpwapp.ts into terminal
+write npx ts-node src/db/userservice/resetpwapp.ts into terminal
 system would ask for username, password and new password. If old password is wrong, system would ask for email, if email verified, password would be updated.
+
+
+adminservices:
+
+
