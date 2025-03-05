@@ -1,0 +1,11 @@
+npx drizzle-kit push (to make changes to database and schema.ts)
+npx ts-node src/db/insertData.ts (to insert new data into data base)
+npx ts-node src/db/updateData.ts (to update password using correct name and email verification)
+npx ts-node src/db/deleteData.ts (to remove a user from database)
+database used: Turso
+
+Steps:
+1. create a database in Turso and obtain URL and Token created
+2. go to VSC Terminal and type npx drizzle-kit push (posts and users table should appear in Turso)
+3. in terminal, npx ts-node src/db/insertData.ts to test whether it works, do the same thing for updataData.ts and deleteData.ts
+4. npx ts-node src/auth/login.ts (will compare user's input (name and password), if match, login successfully
