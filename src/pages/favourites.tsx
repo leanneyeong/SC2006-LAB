@@ -8,6 +8,7 @@ import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
 import { Navigation } from '~/components/global/navigation';
+import { TopBar } from '~/components/global/top-bar-others';
 
 interface ParkingLocation {
   name: string;
@@ -102,9 +103,7 @@ const ParkSMART: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-blue-500 p-4 text-white">
-          <h1 className="text-2xl font-bold">ParkSMART</h1>
-        </header>
+        <TopBar />
         
         {/* Content */}
         <main className="p-6 flex-1">

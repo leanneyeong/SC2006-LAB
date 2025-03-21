@@ -6,34 +6,7 @@ import { Navigation } from '~/components/global/navigation';
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-
-// Define TypeScript interface for TopBar
-interface TopBarProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  evCharging: boolean;
-  setEvCharging: (checked: boolean) => void;
-  shelteredCarpark: boolean;
-  setShelteredCarpark: (checked: boolean) => void;
-}
-
-// TopBar Component
-export const TopBar: React.FC<TopBarProps> = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  evCharging, 
-  setEvCharging, 
-  shelteredCarpark, 
-  setShelteredCarpark 
-}) => {
-  return (
-    <header className="bg-blue-500 text-white p-4">
-      <div className="container mx-auto">
-        <h1 className="text-3xl font-bold">ParkSMART</h1>
-      </div>
-    </header>
-  );
-};
+import { TopBar } from '~/components/global/top-bar-others'; // Updated import path
 
 const LeaveReviewPage: React.FC = () => {
   // State for TopBar component
@@ -108,14 +81,7 @@ const LeaveReviewPage: React.FC = () => {
     <Navigation>
       <div className="flex flex-col min-h-screen">
         {/* Top Navigation Bar */}
-        <TopBar 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          evCharging={evCharging}
-          setEvCharging={setEvCharging}
-          shelteredCarpark={shelteredCarpark}
-          setShelteredCarpark={setShelteredCarpark}
-        />
+        <TopBar />
 
         {/* Content */}
         <main className="flex-grow p-4 bg-gray-50">

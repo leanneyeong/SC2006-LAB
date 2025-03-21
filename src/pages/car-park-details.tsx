@@ -64,14 +64,7 @@ const CarParkDetailPage: React.FC = () => {
     <Navigation>
       <div className="flex flex-col min-h-screen">
         {/* Top Navigation Bar */}
-        <TopBar 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          evCharging={evCharging}
-          setEvCharging={setEvCharging}
-          shelteredCarpark={shelteredCarpark}
-          setShelteredCarpark={setShelteredCarpark}
-        />
+        <TopBar />
 
         {/* Details Content */}
         <main className="flex-grow p-4">

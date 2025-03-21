@@ -9,6 +9,7 @@ import { Label } from '~/components/ui/label';
 import { Switch } from '~/components/ui/switch';
 import { Eye, EyeOff, User, Lock, Moon, Sun, Check, Loader2 } from 'lucide-react';
 import { api } from '~/utils/api';
+import { TopBar } from '~/components/global/top-bar-others';
 
 const ProfileSettings: React.FC = () => {
   const router = useRouter();
@@ -110,6 +111,7 @@ const ProfileSettings: React.FC = () => {
     e.preventDefault();
     
     // Validation
+
     
     if (passwordForm.newPassword.length < 8) {
       toast.error('New password must be at least 8 characters');
@@ -166,9 +168,7 @@ const ProfileSettings: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-blue-500 p-4 text-white">
-          <h1 className="text-2xl font-bold">ParkSMART</h1>
-        </header>
+        <TopBar />
         
         {/* Content */}
         <main className="p-6 flex-1 bg-gray-50 dark:bg-gray-800">
@@ -242,6 +242,29 @@ const ProfileSettings: React.FC = () => {
               <CardContent>
                 <form onSubmit={handlePasswordUpdate}>
                   <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="current-password">Current Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="current-password"
+                          type={passwordForm.showCurrent ? "text" : "password"}
+                          value={passwordForm.currentPassword}
+                          onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                          className="pr-10 dark:bg-gray-600 dark:text-white dark:border-gray-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => togglePasswordVisibility('showCurrent')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-300"
+                        >
+                          {passwordForm.showCurrent ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="new-password">New Password</Label>
