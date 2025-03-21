@@ -47,14 +47,8 @@ export class UserRepository {
             .select()
             .from(userSchema)
             .where(eq(userSchema.id, userId))
-            .execute();
+            .limit(1)
 
-            if(user.length === 0){
-                throw new TRPCError({
-                    code:"NOT_FOUND",
-                    message:"User not found"
-                })
-            }
             if(!user[0]){
                 throw new TRPCError({
                     code:"NOT_FOUND",
