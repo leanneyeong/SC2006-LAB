@@ -23,10 +23,8 @@ const ProfileSettings: React.FC = () => {
 
   // Define types for form states
   interface PasswordFormState {
-    currentPassword: string;
     newPassword: string;
     confirmPassword: string;
-    showCurrent: boolean;
     showNew: boolean;
     showConfirm: boolean;
   }
@@ -38,10 +36,8 @@ const ProfileSettings: React.FC = () => {
   });
   
   const [passwordForm, setPasswordForm] = useState<PasswordFormState>({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    showCurrent: false,
     showNew: false,
     showConfirm: false
   });
@@ -91,12 +87,12 @@ const ProfileSettings: React.FC = () => {
   };
 
   // Handle form password field changes
-  const handlePasswordChange = (field: keyof Pick<PasswordFormState, 'currentPassword' | 'newPassword' | 'confirmPassword'>, value: string): void => {
+  const handlePasswordChange = (field: keyof Pick<PasswordFormState, 'newPassword' | 'confirmPassword'>, value: string): void => {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
   };
 
   // Handle visibility toggle for password fields
-  const togglePasswordVisibility = (field: keyof Pick<PasswordFormState, 'showCurrent' | 'showNew' | 'showConfirm'>): void => {
+  const togglePasswordVisibility = (field: keyof Pick<PasswordFormState, 'showNew' | 'showConfirm'>): void => {
     setPasswordForm(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
@@ -156,10 +152,8 @@ const ProfileSettings: React.FC = () => {
       
       // Reset form
       setPasswordForm({
-        currentPassword: '',
         newPassword: '',
         confirmPassword: '',
-        showCurrent: false,
         showNew: false,
         showConfirm: false
       });
@@ -262,30 +256,6 @@ const ProfileSettings: React.FC = () => {
               <CardContent>
                 <form onSubmit={handlePasswordUpdate}>
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="current-password">Current Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="current-password"
-                          type={passwordForm.showCurrent ? "text" : "password"}
-                          value={passwordForm.currentPassword}
-                          onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-                          className="pr-10 dark:bg-gray-600 dark:text-white dark:border-gray-500"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => togglePasswordVisibility('showCurrent')}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-300"
-                        >
-                          {passwordForm.showCurrent ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                    
                     <div className="space-y-2">
                       <Label htmlFor="new-password">New Password</Label>
                       <div className="relative">
