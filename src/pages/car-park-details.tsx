@@ -67,25 +67,25 @@ const CarParkDetailPage: React.FC = () => {
         <TopBar />
 
         {/* Details Content */}
-        <main className="flex-grow p-4">
+        <main className="flex-grow p-4 bg-gray-50 dark:bg-gray-800">
           {/* Title Bar */}
-          <div className="bg-white p-3 mb-6 rounded-lg shadow-sm border border-gray-200 text-center">
-            <h2 className="text-xl font-bold">{carParkDetail.name}</h2>
+          <div className="bg-white dark:bg-gray-700 p-3 mb-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 text-center">
+            <h2 className="text-xl font-bold dark:text-white">{carParkDetail.name}</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column - Details */}
             <div className="space-y-6">
               {/* Car Park Details */}
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h3 className="text-xl font-bold mb-4">Car Park Details:</h3>
-                <p className="mb-2">
+              <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
+                <h3 className="text-xl font-bold mb-4 dark:text-white">Car Park Details:</h3>
+                <p className="mb-2 dark:text-white">
                   <span className="font-medium">Location:</span> {carParkDetail.location}
                 </p>
-                <p className="mb-2">
+                <p className="mb-2 dark:text-white">
                   <span className="font-medium">Price:</span> {carParkDetail.price}
                 </p>
-                <p className="mb-4">
+                <p className="mb-4 dark:text-white">
                   <span className="font-medium">Availability:</span>{' '}
                   <span className="text-green-600">{carParkDetail.availability}</span>
                 </p>
@@ -97,7 +97,7 @@ const CarParkDetailPage: React.FC = () => {
                       readOnly 
                       className="form-checkbox h-4 w-4 text-blue-500 mr-2"
                     />
-                    <span>Sheltered</span>
+                    <span className="dark:text-white">Sheltered</span>
                   </div>
                   <div className="flex items-center">
                     <input 
@@ -106,18 +106,18 @@ const CarParkDetailPage: React.FC = () => {
                       readOnly 
                       className="form-checkbox h-4 w-4 text-blue-500 mr-2"
                     />
-                    <span>EV Parking</span>
+                    <span className="dark:text-white">EV Parking</span>
                   </div>
                 </div>
               </div>
               
               {/* Reviews */}
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
                 <div className="flex mb-4">
                   {renderStars(carParkDetail.rating)}
                 </div>
-                <p className="font-bold mb-2">Convenient but PRICEY</p>
-                <p className="text-sm mb-4">
+                <p className="font-bold mb-2 dark:text-white">Convenient but PRICEY</p>
+                <p className="text-sm mb-4 dark:text-gray-200">
                   {carParkDetail.review.text}
                 </p>
                 <div className="flex items-center">
@@ -125,15 +125,15 @@ const CarParkDetailPage: React.FC = () => {
                     <img src={carParkDetail.review.reviewer.image} alt="Reviewer" className="h-full w-full object-cover" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{carParkDetail.review.reviewer.name}</p>
-                    <p className="text-gray-500 text-xs">{carParkDetail.review.reviewer.date}</p>
+                    <p className="font-medium text-sm dark:text-white">{carParkDetail.review.reviewer.name}</p>
+                    <p className="text-gray-500 dark:text-gray-300 text-xs">{carParkDetail.review.reviewer.date}</p>
                   </div>
                 </div>
               </div>
             </div>
             
             {/* Right Column - Map */}
-            <div className="bg-white p-1 rounded-lg shadow-sm border border-gray-200 overflow-hidden relative min-h-96">
+            <div className="bg-white dark:bg-gray-700 p-1 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 overflow-hidden relative min-h-96">
               <img 
                 src="/api/placeholder/800/600"
                 alt="Google Map" 

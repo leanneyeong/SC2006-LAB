@@ -1,9 +1,9 @@
 // Function to determine availability color based on number of lots
 const getAvailabilityColor = (availability: string): string => {
-    const lots = parseInt(availability);
-    if (isNaN(lots)) return 'text-green-600';
-    return lots <= 5 ? 'text-red-600' : 'text-green-600';
-  };import React, { useState, useEffect } from 'react';
+  const lots = parseInt(availability);
+  if (isNaN(lots)) return 'text-green-600';
+  return lots <= 5 ? 'text-red-600' : 'text-green-600';
+};import React, { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
@@ -106,18 +106,18 @@ const ParkSMART: React.FC = () => {
         <TopBar />
         
         {/* Content */}
-        <main className="p-6 flex-1">
+        <main className="p-6 flex-1 bg-gray-50 dark:bg-gray-800">
           <div className="max-w-4xl mx-auto">
-            <Card className="mb-6">
+            <Card className="mb-6 dark:bg-gray-700 dark:border-gray-600">
               <CardContent className="py-0.5 px-6 flex justify-center">
-                <h2 className="text-xl font-semibold">Favourited Car Parks</h2>
+                <h2 className="text-xl font-semibold dark:text-white">Favourited Car Parks</h2>
               </CardContent>
             </Card>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {favoriteLocations.map((parking, index) => (
-                <Card key={index} className="overflow-hidden border border-gray-200">
-                  <CardContent className="p-4">
+                <Card key={index} className="overflow-hidden border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
+                  <CardContent className="p-4 dark:text-white">
                     <h3 className="text-lg font-bold mb-1">{parking.name}</h3>
                     <p className="text-sm mb-1"><span className="font-medium">Location:</span> {parking.location}</p>
                     <p className="text-sm mb-1"><span className="font-medium">Price:</span> {parking.price}</p>
@@ -132,8 +132,9 @@ const ParkSMART: React.FC = () => {
                         id={`sheltered-${index}`} 
                         checked={checkboxStates[`sheltered-${index}`] || false}
                         onCheckedChange={(checked) => handleCheckboxChange(`sheltered-${index}`, checked as boolean)}
+                        className="dark:border-gray-400"
                       />
-                      <label htmlFor={`sheltered-${index}`} className="ml-2 text-sm">
+                      <label htmlFor={`sheltered-${index}`} className="ml-2 text-sm dark:text-gray-200">
                         Sheltered
                       </label>
                     </div>
@@ -142,8 +143,9 @@ const ParkSMART: React.FC = () => {
                         id={`ev-${index}`} 
                         checked={checkboxStates[`ev-${index}`] || false}
                         onCheckedChange={(checked) => handleCheckboxChange(`ev-${index}`, checked as boolean)}
+                        className="dark:border-gray-400"
                       />
-                      <label htmlFor={`ev-${index}`} className="ml-2 text-sm">
+                      <label htmlFor={`ev-${index}`} className="ml-2 text-sm dark:text-gray-200">
                         EV Parking
                       </label>
                     </div>

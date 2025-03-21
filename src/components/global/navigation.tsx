@@ -36,17 +36,17 @@ export function Navigation({ children }: NavigationProps) {
       {/* Sidebar */}
       <div 
         className={cn(
-          "flex flex-col h-screen  border-r border-gray-200 transition-all duration-300",
+          "flex flex-col h-screen border-r transition-all duration-300 bg-sidebar-background text-sidebar-foreground border-sidebar-border",
           isLoaded ? (collapsed ? "w-16" : "w-48") : "w-48"
         )}
       >
         <div className="flex items-center p-4 justify-between">
           {(!isLoaded || !collapsed) ? (
-            <div className="flex items-center gap-2 font-bold text-2xl text-blue-500">
+            <div className="flex items-center gap-2 font-bold text-2xl text-sidebar-primary">
               ParkSMART
             </div>
           ) : (
-            <div className="mx-auto font-bold text-blue-500">
+            <div className="mx-auto font-bold text-sidebar-primary">
               P
             </div>
           )}
@@ -55,7 +55,7 @@ export function Navigation({ children }: NavigationProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-8 w-8 rounded-full text-gray-500 hover:bg-gray-200"
+            className="h-8 w-8 rounded-full text-sidebar-foreground hover:bg-sidebar-accent"
             onClick={toggleSidebar}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -132,8 +132,8 @@ function NavItem({ href, icon, label, collapsed, pathname, isActive = false }: N
         "flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 transition-colors",
         collapsed ? "justify-center" : "",
         active 
-          ? "bg-blue-50 text-blue-500 font-medium" 
-          : "hover:bg-gray-100"
+          ? "bg-sidebar-accent text-sidebar-primary font-medium" 
+          : "hover:bg-sidebar-accent/50"
       )}
     >
       {icon}

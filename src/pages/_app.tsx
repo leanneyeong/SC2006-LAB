@@ -1,6 +1,7 @@
 import { type AppType } from "next/app";
 import { ClerkProvider } from "@clerk/nextjs";
 import Head from "next/head";
+import { useEffect } from "react";
 
 import { api } from "~/utils/api";
 import { ThemeProvider } from "~/components/theme-provider";
@@ -9,6 +10,16 @@ import { Toaster } from "~/components/ui/sonner";
 import "~/styles/globals.css";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
+  // Initialize dark mode from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (savedTheme === "light") {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
   return (
     <ClerkProvider>
       <Head>
@@ -20,6 +31,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         defaultTheme="system"
         enableSystem
         disableTransitionOnChange
+        storageKey="theme"
       >
         <Component {...pageProps} />
         <Toaster />
