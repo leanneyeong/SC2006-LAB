@@ -13,4 +13,15 @@ export class User{
     public getValue(): UserProps{
         return this.props;
     }
+
+    public setNames(
+        firstName: string,
+        lastName: string
+    ) {
+        return new User({
+            ...this.props,
+            firstName,
+            lastName
+        })
+    }
 }
