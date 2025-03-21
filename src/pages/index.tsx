@@ -80,7 +80,7 @@ const ParkSMART: React.FC = () => {
 
         {/* Results Area */}
         <main className="flex-grow p-4 bg-gray-50 dark:bg-gray-800">
-          <h2 className="text-2xl font-bold mb-6 dark:text-white">Showing results for "input text"</h2>
+          <h2 className="text-2xl font-bold mb-6 dark:text-white">Showing results for &ldquo;input text&ldquo;</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {parkingLocations.map((parking, index) => (

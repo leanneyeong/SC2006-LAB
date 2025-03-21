@@ -196,7 +196,7 @@ const ProfileSettings: React.FC = () => {
                         <Label htmlFor="first-name">First Name</Label>
                         <Input
                           id="first-name"
-                          value={userData?.firstName || ''}
+                          value={userData?.firstName ?? ''}
                           className="dark:bg-gray-600 dark:text-white dark:border-gray-500"
                         />
                       </div>
@@ -204,7 +204,7 @@ const ProfileSettings: React.FC = () => {
                         <Label htmlFor="last-name">Last Name</Label>
                         <Input
                           id="last-name"
-                          value={userData?.lastName || ''}
+                          value={userData?.lastName ?? ''}
                           className="dark:bg-gray-600 dark:text-white dark:border-gray-500"
                         />
                       </div>

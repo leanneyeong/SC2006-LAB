@@ -156,7 +156,7 @@ const LeaveReviewPage: React.FC = () => {
                       <p className="font-bold mb-1">Convenient but PRICEY</p>
                       <p className="text-sm mb-3 dark:text-gray-200">
                         The car park is well-maintained with plenty of available spaces, even during peak hours. 
-                        It's well-lit and safe, but the hourly rates are quite high compared to nearby options. 
+                        It&lsquo;s well-lit and safe, but the hourly rates are quite high compared to nearby options. 
                         Great for short stays but might not be the best for long-term parking.
                       </p>
                       <div className="flex items-center">
