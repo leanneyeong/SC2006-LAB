@@ -31,7 +31,12 @@ const ProfileSettings: React.FC = () => {
     showConfirm: boolean;
   }
 
-  // Form states - only keeping what's necessary
+  // Form states - now including name fields
+  const [nameForm, setNameForm] = useState({
+    firstName: '',
+    lastName: ''
+  });
+  
   const [passwordForm, setPasswordForm] = useState<PasswordFormState>({
     currentPassword: '',
     newPassword: '',
@@ -44,6 +49,16 @@ const ProfileSettings: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isNameSubmitting, setIsNameSubmitting] = useState(false);
   const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
+
+  // Initialize name form state with user data when it becomes available
+  useEffect(() => {
+    if (userData) {
+      setNameForm({
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || ''
+      });
+    }
+  }, [userData]);
 
   // Load dark mode preference from localStorage on initial render
   useEffect(() => {
@@ -70,6 +85,11 @@ const ProfileSettings: React.FC = () => {
     toast.success('Theme preference saved');
   };
 
+  // Handle name field changes
+  const handleNameChange = (field: keyof typeof nameForm, value: string): void => {
+    setNameForm(prev => ({ ...prev, [field]: value }));
+  };
+
   // Handle form password field changes
   const handlePasswordChange = (field: keyof Pick<PasswordFormState, 'currentPassword' | 'newPassword' | 'confirmPassword'>, value: string): void => {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
@@ -80,7 +100,7 @@ const ProfileSettings: React.FC = () => {
     setPasswordForm(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
-  // Handle name update
+  // Handle name update - now uses the nameForm state
   const handleNameUpdate = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
@@ -92,8 +112,8 @@ const ProfileSettings: React.FC = () => {
     
     try {
       await updateNameDetailsMutation({
-        firstName: userData.firstName,
-        lastName: userData.lastName
+        firstName: nameForm.firstName,
+        lastName: nameForm.lastName
       });
       
       toast.dismiss(loadingToast);
@@ -111,8 +131,6 @@ const ProfileSettings: React.FC = () => {
     e.preventDefault();
     
     // Validation
-
-    
     if (passwordForm.newPassword.length < 8) {
       toast.error('New password must be at least 8 characters');
       return;
@@ -196,7 +214,8 @@ const ProfileSettings: React.FC = () => {
                         <Label htmlFor="first-name">First Name</Label>
                         <Input
                           id="first-name"
-                          value={userData?.firstName ?? ''}
+                          value={nameForm.firstName}
+                          onChange={(e) => handleNameChange('firstName', e.target.value)}
                           className="dark:bg-gray-600 dark:text-white dark:border-gray-500"
                         />
                       </div>
@@ -204,7 +223,8 @@ const ProfileSettings: React.FC = () => {
                         <Label htmlFor="last-name">Last Name</Label>
                         <Input
                           id="last-name"
-                          value={userData?.lastName ?? ''}
+                          value={nameForm.lastName}
+                          onChange={(e) => handleNameChange('lastName', e.target.value)}
                           className="dark:bg-gray-600 dark:text-white dark:border-gray-500"
                         />
                       </div>
