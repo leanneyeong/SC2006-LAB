@@ -35,7 +35,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="container mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Add ParkSMART logo and UserButton */}
         <div className="flex justify-between items-center w-full md:w-auto">
-          <h1 className="text-2xl font-bold">ParkSMART</h1>
+          <h1 className="text-2xl font-bold">Parking made Smarter</h1>
           <div className="md:hidden">
             <UserButton />
           </div>
