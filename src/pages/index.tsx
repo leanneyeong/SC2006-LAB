@@ -4,6 +4,7 @@ import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { TopBar } from '~/components/global/top-bar-home'
 import { Navigation } from '~/components/global/navigation';
+import MapView from '~/components/map/map-view';
 
 interface ParkingLocation {
   name: string;
@@ -77,6 +78,9 @@ const ParkSMART: React.FC = () => {
           shelteredCarpark={shelteredCarpark}
           setShelteredCarpark={setShelteredCarpark}
         />
+
+        {/* Map */}
+        <MapView/>
 
         {/* Results Area */}
         <main className="flex-grow p-4 bg-gray-50 dark:bg-gray-800">
