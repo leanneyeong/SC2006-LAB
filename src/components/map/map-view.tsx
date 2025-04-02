@@ -35,7 +35,6 @@ export default function MapView() {
             defaultCenter={origin}
             mapId={process.env.NEXT_PUBLIC_MAP_ID}
           >
-
             {/* Origin Marker Component */}
             <OriginMarker
               position={origin}
@@ -53,6 +52,10 @@ export default function MapView() {
               onSelectCarpark={setSelectedCarpark}
               onShowDirection={setShowDirection}
             />
+
+            {showDirection && selectedCarpark && (
+              <Directions origin={origin} destination={selectedCarpark} />
+            )}
           </Map>
         </div>
       </APIProvider>
@@ -64,7 +67,7 @@ export default function MapView() {
           onClose={() => {
             setSelectedCarpark(null);
             setShowDirection(false);
-            console.log('showDirection: false')
+            console.log("showDirection: false");
           }}
           onShowDirection={setShowDirection}
         />
@@ -72,6 +75,36 @@ export default function MapView() {
     </div>
   );
 }
+
+const Directions = ({ origin, destination }) => {
+  const map = useMap();
+  const maps = useMapsLibrary("routes");
+  const [directionsRenderer, setDirectionsRenderer] = useState(null);
+
+  useEffect(() => {
+    if (!maps || !map || !destination) return;
+    const directionsService = new maps.DirectionsService();
+    const renderer = new maps.DirectionsRenderer({ map });
+    setDirectionsRenderer(renderer);
+
+    directionsService.route(
+      {
+        origin,
+        destination: { lat: destination.lat, lng: destination.lng },
+        travelMode: "DRIVING",
+      },
+      (result, status) => {
+        if (status === "OK") {
+          renderer.setDirections(result);
+        }
+      },
+    );
+
+    return () => renderer.setMap(null);
+  }, [maps, map, destination]);
+
+  return null;
+};
 
 // 🆕 OriginMarker Component
 const OriginMarker = ({ position, openWindow, onClick, onClose }) => {
@@ -91,7 +124,12 @@ const OriginMarker = ({ position, openWindow, onClick, onClose }) => {
 };
 
 // 🆕 CarparksMarker Component
-const CarparksMarker = ({ carparks, selectedCarpark, onSelectCarpark, onShowDirection }) => {
+const CarparksMarker = ({
+  carparks,
+  selectedCarpark,
+  onSelectCarpark,
+  onShowDirection,
+}) => {
   return (
     <>
       {carparks.map((carpark) => (
@@ -106,9 +144,9 @@ const CarparksMarker = ({ carparks, selectedCarpark, onSelectCarpark, onShowDire
               <InfoWindow
                 position={{ lat: carpark.lat, lng: carpark.lng }}
                 onCloseClick={() => {
-                  onSelectCarpark(null)
-                  onShowDirection(false)
-                  console.log('showDirection: false')
+                  onSelectCarpark(null);
+                  onShowDirection(false);
+                  console.log("showDirection: false");
                 }}
               >
                 <div style={{ color: "black" }}>
@@ -196,8 +234,8 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection }) => {
             fontSize: "14px",
           }}
           onClick={() => {
-            onShowDirection(true)
-            console.log('showDirection: true')
+            onShowDirection(true);
+            console.log("showDirection: true");
           }}
         >
           Show Direction
