@@ -63,6 +63,7 @@ export default function MapView() {
                 destination={selectedCarpark}
                 setRoutes={setRoutes}
                 setRouteIndex={setRouteIndex}
+                routeIndex={routeIndex}
               />
             )}
           </Map>
@@ -98,7 +99,7 @@ export default function MapView() {
 
         {/* Directions or Map Panel */}
         {showDirection && (
-          <DirectionDetailsCard routes={routes} routeIndex={routeIndex}/>
+          <DirectionDetailsCard routes={routes} routeIndex={routeIndex} setRouteIndex={setRouteIndex}/>
         )}
       </div>
     </div>
@@ -110,6 +111,7 @@ const Directions = ({
   destination,
   setRoutes,
   setRouteIndex,
+  routeIndex,
 }) => {
   // https://www.youtube.com/watch?v=tFjOIZGCvuQ&list=PL2rFahu9sLJ2QuJaKKYDaJp0YqjFCDCtN&index=3
   const map = useMap();
@@ -142,10 +144,15 @@ const Directions = ({
     return () => directionsRenderer.setMap(null);
   }, [directionsService, directionsRenderer]);
 
+  useEffect(() => {
+    if (!directionsRenderer) return;
+    directionsRenderer.setRouteIndex(routeIndex);
+  })
+
   return null;
 };
 
-const DirectionDetailsCard = ({ routes, routeIndex }) => {
+const DirectionDetailsCard = ({ routes, routeIndex, setRouteIndex }) => {
   console.log(routes);
   console.log(routeIndex);
   const selectedRoute = routes[routeIndex];
@@ -185,7 +192,7 @@ const DirectionDetailsCard = ({ routes, routeIndex }) => {
             <li>
               <a
                 href="#"
-                // onClick={() => setRouteIndex(index)}
+                onClick={() => setRouteIndex(index)}
                 className="font-medium text-blue-600 hover:underline dark:text-blue-500"
               >
                 {route.summary}
