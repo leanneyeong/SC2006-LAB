@@ -1,6 +1,11 @@
-import { sql } from "drizzle-orm";
+import { users } from "@clerk/clerk-sdk-node";
+import { InferInsertModel, sql } from "drizzle-orm";
 import {
+  char,
+  doublePrecision,
+  integer,
   pgTable,
+  serial,
   text,
   timestamp,
   uuid,
@@ -21,3 +26,38 @@ export const userSchema = pgTable(
     .notNull(),
   }
 );
+
+// Carpark Info Table
+export const carparkInfoSchema = pgTable(
+  "carparkInfo", 
+  {
+    CarParkID: text("CarParkID").primaryKey(),
+    Development: text("Development").notNull(),
+    Area: text("Area").notNull(),
+    Agency: text("Agency").notNull(),
+    lat: doublePrecision("lat").notNull(),
+    lng: doublePrecision("lng").notNull(),
+  }
+);
+
+// Availability Lot Table
+export const availabilityLotSchema = pgTable(
+  "availabilityLot", 
+  {
+    id: serial("id").primaryKey(),
+    CarParkID: text("CarParkID").notNull()
+    .references(() => carparkInfoSchema.CarParkID),
+    AvailableLots: integer("AvailableLots").notNull(),
+    LotType: char("LotType").notNull(),
+  }
+);
+
+export const favouritesSchema = pgTable(
+  "favourites",
+  {
+    id: serial("id").primaryKey(),
+    userID: text("userID").notNull().references(() => userSchema.id),
+    CarParkID: text("CarParkID").notNull()
+    .references(() => carparkInfoSchema.CarParkID),
+  }
+)

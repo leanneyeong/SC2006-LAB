@@ -20,6 +20,17 @@ export const getCarparkAvailability = async () => {
   }
 };
 
+export const getUpdatedAvailabilityLot = () => {
+  // const carparkData = await getCarparkAvailability();
+  return carparkData.value.map(carpark => {
+    return {
+      CarParkID: carpark.CarParkID,
+      LotType: carpark.LotType,
+      AvailableLots: carpark.AvailableLots,
+    }
+  })
+}
+
 export const formatCarparkData = (carparkData) => {
   // carpark location given in api is string
   // need to split into lat/lng and change type to float
