@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Star, User } from 'lucide-react';
@@ -6,9 +6,32 @@ import { Navigation } from '~/components/global/navigation';
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { TopBar } from '~/components/global/top-bar-others'; // Updated import path
+import { TopBar } from '~/components/global/top-bar-others';
+import { useRouter } from 'next/router';
+import { ScrollArea } from '~/components/ui/scroll-area';
+
+// Define the CarPark interface
+interface CarParkProps {
+  name: string;
+  location: string;
+  price: string;
+  availability: string;
+  sheltered: boolean;
+  evCharging: boolean;
+}
+
+// Define Review interface
+interface ReviewProps {
+  rating: number;
+  title: string;
+  content: string;
+  author: string;
+  date: string;
+}
 
 const LeaveReviewPage: React.FC = () => {
+  const router = useRouter();
+  
   // State for TopBar component
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [evCharging, setEvCharging] = useState<boolean>(false);
@@ -22,19 +45,95 @@ const LeaveReviewPage: React.FC = () => {
   // Current user information (in a real app, this would come from authentication)
   const currentUser = {
     name: 'Jeremy Lim',
-    date: '05/03/25',
+    date: new Date().toLocaleDateString('en-GB'), // Current date in DD/MM/YY format
     image: '/images/avatar.jpg'
   };
   
-  // Car park information (in a real app, this would be fetched from an API)
-  const carPark = {
-    name: 'Takashimaya Parking',
-    location: 'Orchard',
-    price: '$12/hr',
-    availability: '27 Lots',
+  // State for car park information (will be updated from query params)
+  const [carPark, setCarPark] = useState<CarParkProps>({
+    name: 'Loading...',
+    location: '',
+    price: '',
+    availability: '',
     sheltered: true,
     evCharging: true
-  };
+  });
+
+  // Sample previous reviews data
+  const previousReviews: ReviewProps[] = [
+    {
+      rating: 4,
+      title: "Convenient but PRICEY",
+      content: "The car park is well-maintained with plenty of available spaces, even during peak hours. It's well-lit and safe, but the hourly rates are quite high compared to nearby options. Great for short stays but might not be the best for long-term parking.",
+      author: "Rachel Tan",
+      date: "27/01/23"
+    },
+    {
+      rating: 5,
+      title: "Best parking in Marina area",
+      content: "Absolutely worth every dollar! Clean, spacious parking spots and the EV charging stations are always well-maintained. Security is visible and I've never had any issues leaving my car here even overnight.",
+      author: "Michael Chen",
+      date: "15/02/23"
+    },
+    {
+      rating: 3,
+      title: "Decent but expensive",
+      content: "The location is perfect if you're visiting Suntec City Mall. Sheltered parking is a plus during rainy days. However, weekend rates are excessive. Consider public transport if staying more than 2 hours.",
+      author: "Sarah Wong",
+      date: "03/03/23"
+    },
+    {
+      rating: 5,
+      title: "EV charging is excellent",
+      content: "As an electric vehicle owner, I appreciate the number of charging stations available. Never had to wait for a spot, even on weekends. The app integration with payment makes the experience seamless.",
+      author: "Lim Teck Wee",
+      date: "19/04/23"
+    },
+    {
+      rating: 2,
+      title: "Narrow parking spaces",
+      content: "While the location is convenient, the parking spaces are too narrow for larger vehicles. Had a difficult time maneuvering my SUV. The price doesn't justify the stress of parking here. Will avoid in future.",
+      author: "Jason Koh",
+      date: "08/06/23"
+    },
+    {
+      rating: 4,
+      title: "Good for weekend shopping",
+      content: "I regularly park here when shopping at Suntec. The rates are reasonable on weekends if you get the mall discount. The sheltered parking means your car doesn't turn into an oven during hot days. Recommended!",
+      author: "Priya Sharma",
+      date: "27/09/23"
+    },
+    {
+      rating: 3,
+      title: "Hit or miss during events",
+      content: "Normal days it's fine, but during events at Suntec Convention Centre it becomes a nightmare to find a spot. If there's an exhibition, come early or use alternative transport. Otherwise, it's a decent car park with good security.",
+      author: "David Lau",
+      date: "14/11/23"
+    }
+  ];
+
+  // Fetch car park details from query parameters when the component mounts
+  useEffect(() => {
+    if (router.isReady) {
+      const { carparkName, carparkLocation, lots, type } = router.query;
+      
+      // Get carpark details from query params or use default values
+      setCarPark(prevState => ({
+        ...prevState,
+        name: carparkName as string || 'Unknown Carpark',
+        location: carparkLocation as string || 'Unknown Location',
+        // If lots and type are provided, use them, otherwise use a default value
+        availability: lots && type ? `${lots} ${type}` : (
+          lots ? `${lots} Lots` : (
+            carparkLocation === 'Orchard' ? '27 Lots' : '15 Lots'
+          )
+        ),
+        // Determine price based on location (can be enhanced with actual pricing data)
+        price: carparkLocation === 'Orchard' ? '$12/hr' : 
+               carparkLocation === 'Downtown' ? '$10/hr' : '$5/hr',
+      }));
+    }
+  }, [router.isReady, router.query]);
 
   // Function to handle star rating
   const handleRatingClick = (selectedRating: number) => {
@@ -50,6 +149,20 @@ const LeaveReviewPage: React.FC = () => {
           key={i} 
           className={`w-6 h-6 cursor-pointer ${i <= currentRating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300'}`}
           onClick={() => handleRatingClick(i)}
+        />
+      );
+    }
+    return stars;
+  };
+
+  // Render stars for display only (not clickable)
+  const renderDisplayStars = (starRating: number) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star 
+          key={i} 
+          className={`w-5 h-5 ${i <= starRating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300 dark:text-gray-500'}`}
         />
       );
     }
@@ -75,6 +188,14 @@ const LeaveReviewPage: React.FC = () => {
     
     // Show success message (in a real app, this would be a toast)
     alert('Review submitted successfully!');
+    
+    // Navigate back to the carpark details page
+    router.back();
+  };
+
+  // Function to handle cancellation
+  const handleCancel = () => {
+    router.back();
   };
 
   return (
@@ -86,8 +207,15 @@ const LeaveReviewPage: React.FC = () => {
         {/* Content */}
         <main className="flex-grow p-4 bg-gray-50 dark:bg-gray-800">
           {/* Title Bar */}
-          <div className="bg-white dark:bg-gray-700 p-3 mb-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 text-center">
+          <div className="bg-white dark:bg-gray-700 p-3 mb-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 flex items-center justify-between">
+            <button 
+              onClick={handleCancel}
+              className="rounded-md bg-gray-100 px-3 py-1 text-sm dark:bg-gray-600 dark:text-white"
+            >
+              Back
+            </button>
             <h2 className="text-xl font-bold dark:text-white">Leave A Review</h2>
+            <div className="w-16"></div> {/* Spacer for centering */}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -143,33 +271,31 @@ const LeaveReviewPage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="dark:text-white">Previous Reviews</CardTitle>
                 </CardHeader>
-                <CardContent className="dark:text-white">
-                  <div className="space-y-4">
-                    <div className="border-b dark:border-gray-600 pb-4">
-                      <div className="flex mb-2">
-                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <Star className="w-5 h-5 fill-none text-gray-300 dark:text-gray-500" />
-                      </div>
-                      <p className="font-bold mb-1">Convenient but PRICEY</p>
-                      <p className="text-sm mb-3 dark:text-gray-200">
-                        The car park is well-maintained with plenty of available spaces, even during peak hours. 
-                        It&lsquo;s well-lit and safe, but the hourly rates are quite high compared to nearby options. 
-                        Great for short stays but might not be the best for long-term parking.
-                      </p>
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden mr-3">
-                          <User className="h-full w-full p-1" />
+                <CardContent className="dark:text-white p-0">
+                  <ScrollArea className="h-80 px-4">
+                    <div className="space-y-4 py-4">
+                      {previousReviews.map((review, index) => (
+                        <div key={index} className="border-b dark:border-gray-600 pb-4 last:border-b-0">
+                          <div className="flex mb-2">
+                            {renderDisplayStars(review.rating)}
+                          </div>
+                          <p className="font-bold mb-1">{review.title}</p>
+                          <p className="text-sm mb-3 dark:text-gray-200">
+                            {review.content}
+                          </p>
+                          <div className="flex items-center">
+                            <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden mr-3">
+                              <User className="h-full w-full p-1" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{review.author}</p>
+                              <p className="text-gray-500 dark:text-gray-300 text-xs">{review.date}</p>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">Rachel Tan</p>
-                          <p className="text-gray-500 dark:text-gray-300 text-xs">27/01/23</p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
             </div>
@@ -222,13 +348,21 @@ const LeaveReviewPage: React.FC = () => {
                     />
                   </div>
                   
-                  <Button 
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={handleSubmitReview}
-                    disabled={!reviewText || rating === 0}
-                  >
-                    Submit Review
-                  </Button>
+                  <div className="flex space-x-3">
+                    <Button 
+                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800"
+                      onClick={handleCancel}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                      onClick={handleSubmitReview}
+                      disabled={!reviewText || rating === 0}
+                    >
+                      Submit Review
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

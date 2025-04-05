@@ -92,7 +92,7 @@ const CarparkManagement: React.FC = () => {
         {/* Top Header Bar */}
         <header className="bg-blue-500 p-4">
           <div className="container mx-auto flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white">Parking made Smarter</h1>
+            <h1 className="text-3xl font-bold text-white">Car Park Management</h1>
             
             <div className="flex items-center gap-2">
               <div className="relative">

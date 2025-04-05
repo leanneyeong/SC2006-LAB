@@ -121,7 +121,7 @@ const ParkSMART: React.FC = () => {
         <main className="flex-grow bg-gray-50 p-4 dark:bg-gray-800">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-2xl font-bold dark:text-white">
-              Showing results for &ldquo;{searchQuery || "all locations"}&ldquo;
+              Showing results for
             </h2>
             
             {/* Refresh Button */}

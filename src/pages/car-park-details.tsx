@@ -87,6 +87,24 @@ const CarParkDetailPage: React.FC = () => {
     router.back();
   };
 
+  // Handle leave review button click - Navigate to reviews page
+  const handleLeaveReviewClick = () => {
+    // Pass the carpark name as a query parameter to identify which carpark is being reviewed
+    router.push({
+      pathname: '/reviews',
+      query: { 
+        carparkName: carParkDetail.name,
+        carparkLocation: carParkDetail.location
+      }
+    });
+  };
+
+  // Handle get directions button click
+  const handleGetDirectionsClick = () => {
+    // You can implement navigation to a directions page or open a map app
+    window.open(`https://maps.google.com/?q=${encodeURIComponent(carParkDetail.location)}`, '_blank');
+  };
+
   return (
     <Navigation>
       <div className="flex min-h-screen flex-col">
@@ -174,8 +192,18 @@ const CarParkDetailPage: React.FC = () => {
                 className="h-full w-full object-cover"
               />
               <div className="absolute bottom-4 right-4 flex space-x-2">
-                <Button className="bg-blue-500 text-white hover:bg-blue-600">Leave Review</Button>
-                <Button className="bg-blue-500 text-white hover:bg-blue-600">Get Directions</Button>
+                <Button 
+                  className="bg-blue-500 text-white hover:bg-blue-600"
+                  onClick={handleLeaveReviewClick}
+                >
+                  Leave Review
+                </Button>
+                <Button 
+                  className="bg-blue-500 text-white hover:bg-blue-600"
+                  onClick={handleGetDirectionsClick}
+                >
+                  Get Directions
+                </Button>
               </div>
             </div>
           </div>
