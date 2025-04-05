@@ -1,0 +1,204 @@
+{
+    "odata.metadata": "http://datamall2.mytransport.sg/ltaodataservice/$metadata#CarParkAvailability",
+    "value": [
+        {
+            "CarParkID": "1",
+            "Area": "Marina",
+            "Development": "Suntec City",
+            "Location": "1.29375 103.85718",
+            "AvailableLots": 516,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+
+        {
+            "CarParkID": "3",
+            "Area": "Marina",
+            "Development": "Raffles City",
+            "Location": "1.29382 103.85319",
+            "AvailableLots": 220,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+        {
+            "CarParkID": "6",
+            "Area": "Marina",
+            "Development": "Singapore Flyer",
+            "Location": "1.28944 103.86311",
+            "AvailableLots": 242,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+        {
+            "CarParkID": "16",
+            "Area": "Harbfront",
+            "Development": "VivoCity P3",
+            "Location": "1.26421 103.82263",
+            "AvailableLots": 402,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+        {
+            "CarParkID": "17",
+            "Area": "Harbfront",
+            "Development": "Sentosa",
+            "Location": "1.25017 103.83126",
+            "AvailableLots": 1474,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+        {
+            "CarParkID": "15",
+            "Area": "Orchard",
+            "Development": "Wheelock Place",
+            "Location": "1.3048 103.83063",
+            "AvailableLots": 71,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+        {
+            "CarParkID": "13",
+            "Area": "Orchard",
+            "Development": "Ngee Ann City",
+            "Location": "1.30236 103.8349",
+            "AvailableLots": 511,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+        {
+            "CarParkID": "22",
+            "Area": "Orchard",
+            "Development": "Concorde Hotel",
+            "Location": "1.3006 103.84191",
+            "AvailableLots": 249,
+            "LotType": "C",
+            "Agency": "LTA"
+        },
+        {
+            "CarParkID": "C4M",
+            "Area": "",
+            "Development": "BLK 413A COMMONWEALTH AVENUE WEST",
+            "Location": "1.3114801086966732 103.77050251295184",
+            "AvailableLots": 188,
+            "LotType": "C",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "CAM",
+            "Area": "",
+            "Development": "BLK 88 TANGLIN HALT ROAD",
+            "Location": "1.3018210574302524 103.79820565809396",
+            "AvailableLots": 50,
+            "LotType": "H",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "CAM",
+            "Area": "",
+            "Development": "BLK 88 TANGLIN HALT ROAD",
+            "Location": "1.3018210574302524 103.79820565809396",
+            "AvailableLots": 185,
+            "LotType": "C",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "CAM",
+            "Area": "",
+            "Development": "BLK 88 TANGLIN HALT ROAD",
+            "Location": "1.3018210574302524 103.79820565809396",
+            "AvailableLots": 97,
+            "LotType": "Y",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "BE4",
+            "Area": "",
+            "Development": "BLK 101-116 BISHAN STREET 12",
+            "Location": "1.346495537433186 103.8483777826147",
+            "AvailableLots": 495,
+            "LotType": "C",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "A2",
+            "Area": "",
+            "Development": "BLK 206/207 ANG MO KIO STREET 22",
+            "Location": "1.3662370557749661 103.84304639719986",
+            "AvailableLots": 127,
+            "LotType": "C",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "U1",
+            "Area": "",
+            "Development": "BLK 101/110 BUKIT BATOK WEST AVENUE 6",
+            "Location": "1.3483897030538512 103.7469815015126",
+            "AvailableLots": 320,
+            "LotType": "C",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "BTM",
+            "Area": "",
+            "Development": "BLK 2B BOON TIONG ROAD",
+            "Location": "1.2867839238651977 103.83328974783585",
+            "AvailableLots": 163,
+            "LotType": "C",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "O0028",
+            "Area": "",
+            "Development": "OUTRAM ROAD OFF STREET",
+            "Location": "1.284380404146159 103.83543041047004",
+            "AvailableLots": 20,
+            "LotType": "C",
+            "Agency": "URA"
+        },
+        {
+            "CarParkID": "P0048",
+            "Area": "",
+            "Development": "PEARL BANK OFF STREET",
+            "Location": "1.2833483597834672 103.84053784909122",
+            "AvailableLots": 18,
+            "LotType": "C",
+            "Agency": "URA"
+        },
+        {
+            "CarParkID": "D0028",
+            "Area": "",
+            "Development": "DELTA CIRCUS FRINGE CAR PARK",
+            "Location": "1.2893051001281517 103.82465436208551",
+            "AvailableLots": 182,
+            "LotType": "C",
+            "Agency": "URA"
+        },
+        {
+            "CarParkID": "S0171",
+            "Area": "",
+            "Development": "SPOONER ROAD OFF STREET",
+            "Location": "1.2756889219219043 103.8350591496928",
+            "AvailableLots": 21,
+            "LotType": "C",
+            "Agency": "URA"
+        },
+        {
+            "CarParkID": "BP2",
+            "Area": "",
+            "Development": "BLK 110/115 BUKIT PURMEI ROAD",
+            "Location": "1.2740916912695632 103.8270043282818",
+            "AvailableLots": 102,
+            "LotType": "C",
+            "Agency": "HDB"
+        },
+        {
+            "CarParkID": "43",
+            "Area": "JurongLakeDistrict",
+            "Development": "Westgate",
+            "Location": "1.3343 103.74282",
+            "AvailableLots": 132,
+            "LotType": "C",
+            "Agency": "LTA"
+        }
+    ]
+}
