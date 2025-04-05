@@ -6,6 +6,7 @@ import { TopBar } from "~/components/global/top-bar-home";
 import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
 import { carparkData, formatCarparkData } from "~/server/carpark/api";
+import { useRouter } from "next/router"; // Import router (assuming Next.js)
 
 interface ParkingLocation {
   name: string;
@@ -17,11 +18,28 @@ interface ParkingLocation {
 
 // Main ParkSMART Component
 const ParkSMART: React.FC = () => {
+  const router = useRouter(); // Initialize router
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [evCharging, setEvCharging] = useState<boolean>(true);
   const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
 
-  const parkingLocations = formatCarparkData(carparkData)
+  const parkingLocations = formatCarparkData(carparkData);
+
+  // Handle navigation to car-park-details page
+  const handleViewDetails = (parking) => {
+    // Navigate to car-park-details page with the parking information as query params
+    router.push({
+      pathname: '/car-park-details',
+      query: { 
+        id: parking.id || parking.Development.replace(/\s+/g, '-').toLowerCase(),
+        name: parking.Development,
+        area: parking.Area,
+        lots: parking.AvailableLots,
+        type: parking.LotType,
+        agency: parking.Agency
+      }
+    });
+  };
 
   // Sample parking data
   const parkingLocationsTest: ParkingLocation[] = [
@@ -91,23 +109,6 @@ const ParkSMART: React.FC = () => {
             Showing results for &ldquo;input text&ldquo;
           </h2>
 
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {parkingLocations.map((parking, index) => (
-              <Card key={index} className="overflow-hidden border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-                <CardContent className="p-6 dark:text-white">
-                  <h3 className="text-xl font-bold mb-2">{parking.name}</h3>
-                  <p><span className="font-medium">Location:</span> {parking.location}</p>
-                  <p><span className="font-medium">Price:</span> {parking.price}</p>
-                  <p>
-                    <span className="font-medium">Availability:</span>{' '}
-                    <span className={parking.availabilityColor}>{parking.availability}</span>
-                  </p>
-                  <Button className="mt-4 bg-blue-500 hover:bg-blue-600 text-white">View Details</Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div> */}
-
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {parkingLocations.map((parking, index) => (
               <Card
@@ -130,7 +131,10 @@ const ParkSMART: React.FC = () => {
                     <span className="font-medium">Agency:</span>{" "}
                     {parking.Agency}
                   </p>
-                  <Button className="mt-4 bg-blue-500 text-white hover:bg-blue-600">
+                  <Button 
+                    className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
+                    onClick={() => handleViewDetails(parking)}
+                  >
                     View Details
                   </Button>
                 </CardContent>

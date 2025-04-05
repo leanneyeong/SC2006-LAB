@@ -17,8 +17,10 @@ import { useEffect, useState } from "react";
 import { carparkData, formatCarparkData } from "~/server/carpark/api";
 import { Button } from "../ui/button";
 import { CardContent } from "../ui/card";
+import { useRouter } from "next/router"; // Import router
 
 export default function MapView() {
+  const router = useRouter(); // Initialize router
   const origin = { lat: 1.2833, lng: 103.8333 };
   const [openWindowOrigin, setOpenWindowOrigin] = useState(false);
   const [carparks, setCarparks] = useState([]);
@@ -27,6 +29,21 @@ export default function MapView() {
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
   const [currentLocation, setCurrentLocation] = useState(null);
+
+  // Handle navigation to car-park-details page
+  const handleViewDetails = (carpark) => {
+    router.push({
+      pathname: '/car-park-details',
+      query: { 
+        id: carpark.CarParkID || carpark.Development.replace(/\s+/g, '-').toLowerCase(),
+        name: carpark.Development,
+        area: carpark.Area,
+        lots: carpark.AvailableLots,
+        type: carpark.LotType,
+        agency: carpark.Agency
+      }
+    });
+  };
 
   useEffect(() => {
     setCarparks(formatCarparkData(carparkData));
@@ -110,6 +127,7 @@ export default function MapView() {
                 console.log("showDirection: false");
               }}
               onShowDirection={setShowDirection}
+              onViewDetails={handleViewDetails}
             />
           )}
         </div>
@@ -214,7 +232,7 @@ const DirectionDetailsCard = ({ routes, routeIndex, setRouteIndex }) => {
       <ul>
         {routes.map((route, index) => {
           return (
-            <li>
+            <li key={index}>
               <a
                 href="#"
                 onClick={() => setRouteIndex(index)}
@@ -349,7 +367,7 @@ const CarparksMarker = ({
   );
 };
 
-const CarparkDetailsCard = ({ carpark, onClose, onShowDirection }) => {
+const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }) => {
   return (
     <div
       style={{
@@ -383,7 +401,10 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection }) => {
 
       {/* Show Direction Button */}
       <div>
-        <Button className="mt-4 bg-blue-500 text-white hover:bg-blue-600">
+        <Button 
+          className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
+          onClick={() => onViewDetails(carpark)}
+        >
           View Details
         </Button>
 
