@@ -64,7 +64,7 @@ export function Navigation({ children }: NavigationProps) {
 
         <div className="space-y-4 px-3 py-4 flex-grow">
           <NavItem 
-            href="/settings" 
+            href="/admin/settings-admin" 
             icon={<Settings size={16} />} 
             label="Profile Settings" 
             collapsed={isLoaded && collapsed} 
