@@ -1,0 +1,34 @@
+@startuml
+title UC007 - Control Flow Diagram (Car Park Details and Directions)
+start
+
+:1. User selects car park to view details;
+:2. Submit request for car park details;
+
+:3. Retrieve car park details;
+if (4. Are details valid?) then (yes)
+  :5. Display car park details (address, rates, availability);
+  
+  if (6. User requests directions?) then (yes)
+    :7. Fetch directions to car park;
+    :8. Display route;
+    --> [Success]
+  else (no)
+    :9. Return to car park details page;
+    --> [Success]
+  endif
+else (no)
+  :10. Display error message (invalid car park);
+  --> [Retry]
+endif
+
+if (11. Is car park full?) then (yes)
+  :12. Display "Car park is full" message;
+  --> [Retry]
+else (no)
+  :13. Display available parking spots;
+  --> [Success]
+endif
+
+stop
+@enduml

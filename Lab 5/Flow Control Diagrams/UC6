@@ -1,0 +1,30 @@
+@startuml
+title UC006 - Control Flow Diagram (Admin Password Recovery)
+start
+
+:1. Admin enters email for password recovery;
+:2. Submit recovery request;
+
+if (3. Is email valid?) then (yes)
+  :4. Validate email;
+  :5. Email validation successful;
+  :6. Proceed to send password recovery link;
+else (no)
+  :7. Display invalid email error;
+  --> [Retry]
+endif
+
+if (8. Is email registered?) then (yes)
+  :9. Check if email is registered;
+  :10. Email is registered;
+  :11. Send password recovery link;
+  --> [Success]
+  :12. Display recovery link sent message;
+  :13. Redirect to password reset page;
+else (no)
+  :14. Display email not found error;
+  --> [Retry]
+endif
+
+stop
+@enduml
