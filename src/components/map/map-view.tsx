@@ -11,7 +11,7 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { HeadingIcon, Locate } from "lucide-react";
+import { HeadingIcon, Locate, LocateFixed } from "lucide-react";
 import React, { useMemo } from "react";
 import { useEffect, useState } from "react";
 import { carparkData, formatCarparkData } from "~/server/carpark/api";
@@ -51,12 +51,7 @@ export default function MapView() {
             mapId={process.env.NEXT_PUBLIC_MAP_ID}
           >
             <MapControl position={ControlPosition.RIGHT_BOTTOM}>
-              <button
-                className="flex items-center justify-center w-12 h-12 bg-white rounded-full shadow-md hover:shadow-lg focus:outline-none cursor-pointer transform -translate-x-1 transition-transform duration-200"
-                onClick={()=>{}}
-              >
-                <Locate />
-              </button>
+              <LocateButton currentLocation={currentLocation}/>
             </MapControl>
 
             <GeolocationMarker position={currentLocation} />
@@ -271,6 +266,21 @@ const GeolocationMarker = ({ position }) => {
   }, [geolocationMarker, map]);
 
   return null;
+};
+
+const LocateButton = ({ currentLocation }) => {
+  const map = useMap();
+  return (
+  <button
+    className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
+    onClick={() => {
+      map?.panTo(currentLocation)
+      map?.setZoom(15)
+    }}
+  >
+    <Locate />
+  </button>
+  );
 };
 
 // 🆕 OriginMarker Component
