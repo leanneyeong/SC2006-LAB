@@ -3,14 +3,16 @@
 import {
   AdvancedMarker,
   APIProvider,
+  ControlPosition,
   InfoWindow,
   Map,
+  MapControl,
   Pin,
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { HeadingIcon } from "lucide-react";
-import React from "react";
+import { HeadingIcon, Locate } from "lucide-react";
+import React, { useMemo } from "react";
 import { useEffect, useState } from "react";
 import { carparkData, formatCarparkData } from "~/server/carpark/api";
 import { Button } from "../ui/button";
@@ -24,10 +26,19 @@ export default function MapView() {
   const [showDirection, setShowDirection] = useState(false);
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
+  const [currentLocation, setCurrentLocation] = useState(null);
 
   useEffect(() => {
     setCarparks(formatCarparkData(carparkData));
     // console.log(carparks)
+
+    // get current user location
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      const location = { lat: latitude, lng: longitude };
+      console.log("Current Location:", location);
+      setCurrentLocation(location);
+    });
   }, []);
 
   return (
@@ -39,15 +50,26 @@ export default function MapView() {
             defaultCenter={origin}
             mapId={process.env.NEXT_PUBLIC_MAP_ID}
           >
+            <MapControl position={ControlPosition.RIGHT_BOTTOM}>
+              <button
+                className="flex items-center justify-center w-12 h-12 bg-white rounded-full shadow-md hover:shadow-lg focus:outline-none cursor-pointer transform -translate-x-1 transition-transform duration-200"
+                onClick={()=>{}}
+              >
+                <Locate />
+              </button>
+            </MapControl>
+
+            <GeolocationMarker position={currentLocation} />
+
             {/* Origin Marker Component */}
-            <OriginMarker
+            {/* <OriginMarker
               position={origin}
               openWindow={openWindowOrigin}
               onClick={() => setOpenWindowOrigin(true)}
               onClose={() => {
                 setOpenWindowOrigin(false);
               }}
-            />
+            /> */}
 
             {/* Carpark Markers Component */}
             <CarparksMarker
@@ -59,7 +81,7 @@ export default function MapView() {
 
             {showDirection && selectedCarpark && (
               <Directions
-                origin={origin}
+                origin={currentLocation}
                 destination={selectedCarpark}
                 setRoutes={setRoutes}
                 setRouteIndex={setRouteIndex}
@@ -99,7 +121,11 @@ export default function MapView() {
 
         {/* Directions or Map Panel */}
         {showDirection && (
-          <DirectionDetailsCard routes={routes} routeIndex={routeIndex} setRouteIndex={setRouteIndex}/>
+          <DirectionDetailsCard
+            routes={routes}
+            routeIndex={routeIndex}
+            setRouteIndex={setRouteIndex}
+          />
         )}
       </div>
     </div>
@@ -147,7 +173,7 @@ const Directions = ({
   useEffect(() => {
     if (!directionsRenderer) return;
     directionsRenderer.setRouteIndex(routeIndex);
-  })
+  });
 
   return null;
 };
@@ -155,6 +181,10 @@ const Directions = ({
 const DirectionDetailsCard = ({ routes, routeIndex, setRouteIndex }) => {
   console.log(routes);
   console.log(routeIndex);
+
+  // sometimes api got problem, idk why but this works
+  if (routes.length === 0) return;
+
   const selectedRoute = routes[routeIndex];
   const leg = selectedRoute?.legs[0];
 
@@ -205,6 +235,44 @@ const DirectionDetailsCard = ({ routes, routeIndex, setRouteIndex }) => {
   );
 };
 
+const GeolocationMarker = ({ position }) => {
+  // https://github.com/visgl/react-google-maps/discussions/552
+  const map = useMap();
+
+  const geolocationMarker = useMemo(() => {
+    if (!map) return null;
+
+    const marker = new google.maps.Marker({
+      position,
+      map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: "#4285F4",
+        fillOpacity: 1,
+        scale: 8,
+        strokeColor: "#FFFFFF",
+        strokeWeight: 2,
+      },
+    });
+
+    return { marker };
+  }, [map, position]);
+
+  useEffect(() => {
+    if (geolocationMarker) {
+      geolocationMarker.marker.setMap(map);
+    }
+
+    return () => {
+      if (geolocationMarker) {
+        geolocationMarker.marker.setMap(null);
+      }
+    };
+  }, [geolocationMarker, map]);
+
+  return null;
+};
+
 // 🆕 OriginMarker Component
 const OriginMarker = ({ position, openWindow, onClick, onClose }) => {
   return (
@@ -242,6 +310,9 @@ const CarparksMarker = ({
             selectedCarpark.CarParkID === carpark.CarParkID && (
               <InfoWindow
                 position={{ lat: carpark.lat, lng: carpark.lng }}
+                headerContent={
+                  <strong>{carpark.Development || "Unknown Carpark"}</strong>
+                }
                 onCloseClick={() => {
                   // onSelectCarpark(null);
                   // onShowDirection(false);
@@ -249,9 +320,6 @@ const CarparksMarker = ({
                 }}
               >
                 <div style={{ color: "black" }}>
-                  <h1 style={{ marginBottom: "5px" }}>
-                    <strong>{carpark.Development || "Unknown Carpark"}</strong>
-                  </h1>
                   <p>
                     <strong>Area:</strong> {carpark.Area || "N/A"}
                   </p>
@@ -303,27 +371,8 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection }) => {
         Close
       </button>
 
-      <CardContent className="p-6 dark:text-white">
-        <h3 className="mb-2 text-xl font-bold">{carpark.Development}</h3>
-        <p>
-          <span className="font-medium">Area:</span> {carpark.Area || "N/A"}
-        </p>
-        <p>
-          <span className="font-medium">Availability:</span>{" "}
-          {carpark.AvailableLots || "Unknown"}
-        </p>
-        <p>
-          <span className="font-medium">Lot Type:</span>{" "}
-          {carpark.LotType || "Unknown"}
-        </p>
-        <p>
-          <span className="font-medium">Agency:</span> {carpark.Agency || "N/A"}
-        </p>
-      </CardContent>
-
       {/* Show Direction Button */}
-      <div
-      >
+      <div>
         <Button className="mt-4 bg-blue-500 text-white hover:bg-blue-600">
           View Details
         </Button>
@@ -342,13 +391,31 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection }) => {
           Direction
         </Button>
       </div>
+
+      <CardContent className="p-6 dark:text-white">
+        <h3 className="mb-2 text-xl font-bold">{carpark.Development}</h3>
+        <p>
+          <span className="font-medium">Area:</span> {carpark.Area || "N/A"}
+        </p>
+        <p>
+          <span className="font-medium">Availability:</span>{" "}
+          {carpark.AvailableLots || "Unknown"}
+        </p>
+        <p>
+          <span className="font-medium">Lot Type:</span>{" "}
+          {carpark.LotType || "Unknown"}
+        </p>
+        <p>
+          <span className="font-medium">Agency:</span> {carpark.Agency || "N/A"}
+        </p>
+      </CardContent>
     </div>
   );
 };
 
 const mapStyle = {
   width: "100%",
-  height: "60vh",
+  height: "70vh",
 };
 
 const directions = {
