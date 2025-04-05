@@ -7,6 +7,7 @@ import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
 import { carparkData, formatCarparkData } from "~/server/carpark/api";
 import { useRouter } from "next/router"; // Import router (assuming Next.js)
+import { RefreshCw } from "lucide-react"; // Import refresh icon
 
 interface ParkingLocation {
   name: string;
@@ -22,8 +23,9 @@ const ParkSMART: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [evCharging, setEvCharging] = useState<boolean>(true);
   const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const parkingLocations = formatCarparkData(carparkData);
+  const [parkingLocations, setParkingLocations] = useState(formatCarparkData(carparkData));
 
   // Handle navigation to car-park-details page
   const handleViewDetails = (parking) => {
@@ -39,6 +41,18 @@ const ParkSMART: React.FC = () => {
         agency: parking.Agency
       }
     });
+  };
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    
+    // Simulate refreshing data
+    setTimeout(() => {
+      // Re-fetch or update the data
+      setParkingLocations(formatCarparkData(carparkData));
+      setIsRefreshing(false);
+    }, 1000);
   };
 
   // Sample parking data
@@ -105,9 +119,23 @@ const ParkSMART: React.FC = () => {
 
         {/* Results Area */}
         <main className="flex-grow bg-gray-50 p-4 dark:bg-gray-800">
-          <h2 className="mb-6 text-2xl font-bold dark:text-white">
-            Showing results for &ldquo;input text&ldquo;
-          </h2>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-2xl font-bold dark:text-white">
+              Showing results for &ldquo;{searchQuery || "all locations"}&ldquo;
+            </h2>
+            
+            {/* Refresh Button */}
+            <Button 
+              size="sm"
+              variant="outline" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-1 border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <RefreshCw size={16} className={`${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+            </Button>
+          </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {parkingLocations.map((parking, index) => (
