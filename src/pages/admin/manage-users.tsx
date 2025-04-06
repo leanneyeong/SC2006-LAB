@@ -82,6 +82,67 @@ const UserManagement: React.FC = () => {
     }
   ]);
 
+  // State for filtered users - initially set to all users
+  const [filteredUsers, setFilteredUsers] = useState<User[]>(users);
+
+  // Function to check if any word in a string starts with the search query
+  const matchesWordStart = (text: string, query: string): boolean => {
+    // If query contains wildcard, use the wildcard pattern
+    if (query.includes('*')) {
+      const pattern = createWildcardPattern(query);
+      return pattern.test(text);
+    }
+    
+    // Split the text into words and check if any word starts with the query
+    const words = text.split(/\s+/);
+    return words.some(word => word.toLowerCase().startsWith(query.toLowerCase()));
+  };
+  
+  // Function to convert user input with wildcards (*) to RegExp pattern
+  const createWildcardPattern = (input: string): RegExp => {
+    // Escape special RegExp characters except asterisk
+    const escapedInput = input.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+    
+    // Replace * with .* for wildcard matching
+    const pattern = escapedInput.replace(/\*/g, '.*');
+    
+    // Create RegExp that matches anywhere in string
+    return new RegExp(pattern);
+  };
+
+  // Handle search button click
+  const handleSearch = () => {
+    if (searchQuery.trim() === "") {
+      setFilteredUsers(users);
+    } else {
+      const query = searchQuery.trim().toLowerCase();
+      
+      const filtered = users.filter(user => {
+        // For ID, check if it contains the query
+        const idMatch = user.id.toLowerCase().includes(query);
+        
+        // For first name, check if any word starts with the query
+        const firstNameMatch = matchesWordStart(user.firstName, query);
+        
+        // For last name, check if any word starts with the query
+        const lastNameMatch = matchesWordStart(user.lastName, query);
+        
+        return idMatch || firstNameMatch || lastNameMatch;
+      });
+      
+      setFilteredUsers(filtered);
+    }
+    
+    console.log("Searching for:", searchQuery);
+  };
+
+  // Handle key press for search input
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   // Handle navigation to different sections
   const handleNavigation = (path: string) => {
     router.push(path);
@@ -103,6 +164,13 @@ const UserManagement: React.FC = () => {
       
       // Update state with the new users array
       setUsers(updatedUsers);
+      
+      // Update filteredUsers to reflect the changes
+      setFilteredUsers(prevFiltered => 
+        prevFiltered.map(user => 
+          user.id === editingUserId ? editFormData : user
+        )
+      );
       
       // In a real app, you would also save changes to your backend here
       
@@ -136,6 +204,17 @@ const UserManagement: React.FC = () => {
   
   // Handle saving new user
   const handleSaveNewUser = () => {
+    // Validate that all fields are filled
+    if (
+      !newUserData.firstName.trim() || 
+      !newUserData.lastName.trim() || 
+      !newUserData.dateJoined || 
+      !newUserData.lastActive
+    ) {
+      alert("Please fill in all fields before saving.");
+      return;
+    }
+    
     // Generate a new ID (in a real app, this would likely come from the backend)
     const newId = `USR${String(users.length + 1).padStart(3, '0')}`;
     
@@ -146,7 +225,11 @@ const UserManagement: React.FC = () => {
     };
     
     // Add to users array
-    setUsers([...users, newUser]);
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
+    
+    // Also update filteredUsers to include the new user
+    setFilteredUsers([...filteredUsers, newUser]);
     
     // Reset the form
     handleCancelNewUser();
@@ -167,6 +250,9 @@ const UserManagement: React.FC = () => {
     
     // Update state with the new users array
     setUsers(updatedUsers);
+    
+    // Also update filteredUsers
+    setFilteredUsers(filteredUsers.filter(user => user.id !== userId));
     
     // In a real app, you would also delete from your backend here
   };
@@ -193,13 +279,18 @@ const UserManagement: React.FC = () => {
               <div className="relative">
                 <Input
                   type="text"
-                  placeholder="Search for a user..."
+                  placeholder="Search by ID or Name"
                   className="w-64 rounded-md bg-white"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
                 />
               </div>
-              <Button variant="secondary" className="flex items-center gap-1">
+              <Button 
+                variant="secondary" 
+                className="flex items-center gap-1"
+                onClick={handleSearch}
+              >
                 <Search size={16} />
                 Search
               </Button>
@@ -220,171 +311,189 @@ const UserManagement: React.FC = () => {
           <main className="flex-1 p-6">
             <Card className="border-gray-200 shadow-sm">
               <CardContent className="p-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-semibold">UserID</TableHead>
-                      <TableHead className="font-semibold">First Name</TableHead>
-                      <TableHead className="font-semibold">Last Name</TableHead>
-                      <TableHead className="font-semibold">Date Joined</TableHead>
-                      <TableHead className="font-semibold">Last Active</TableHead>
-                      <TableHead className="text-right font-semibold">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.id}</TableCell>
-                        {editingUserId === user.id ? (
-                          <>
-                            <TableCell>
-                              <Input 
-                                value={editFormData?.firstName} 
-                                onChange={(e) => handleEditFormChange(e, 'firstName')} 
-                                className="w-full"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input 
-                                value={editFormData?.lastName} 
-                                onChange={(e) => handleEditFormChange(e, 'lastName')} 
-                                className="w-full"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input 
-                                type="date"
-                                value={editFormData?.dateJoined} 
-                                onChange={(e) => handleEditFormChange(e, 'dateJoined')} 
-                                className="w-full"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Input 
-                                type="date"
-                                value={editFormData?.lastActive} 
-                                onChange={(e) => handleEditFormChange(e, 'lastActive')} 
-                                className="w-full"
-                              />
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end space-x-2">
-                                <Button 
-                                  variant="outline" 
-                                  className="bg-green-600 text-white hover:bg-green-700"
-                                  size="sm"
-                                  onClick={handleSaveEdit}
-                                >
-                                  Save
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  className="bg-gray-500 text-white hover:bg-gray-600"
-                                  size="sm"
-                                  onClick={handleCancelEdit}
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </>
-                        ) : (
-                          <>
-                            <TableCell>{user.firstName}</TableCell>
-                            <TableCell>{user.lastName}</TableCell>
-                            <TableCell>{user.dateJoined}</TableCell>
-                            <TableCell>{user.lastActive}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end space-x-2">
-                                <Button 
-                                  variant="outline" 
-                                  className="bg-green-600 text-white hover:bg-green-700"
-                                  size="sm"
-                                  onClick={() => handleEditClick(user)}
-                                >
-                                  <Edit2 size={16} className="mr-1" />
-                                  Edit
-                                </Button>
-                                <Button 
-                                  variant="destructive" 
-                                  className="bg-red-600 hover:bg-red-700"
-                                  size="sm"
-                                  onClick={() => handleDelete(user.id)}
-                                >
-                                  <Trash2 size={16} className="mr-1" />
-                                  Delete
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    ))}
-                    
-                    {/* Add new user row */}
-                    {isAddingUser && (
+                {filteredUsers.length === 0 ? (
+                  <div className="my-4 text-center">
+                    <p className="text-gray-500">No users found matching "{searchQuery}"</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell>New</TableCell>
-                        <TableCell>
-                          <Input 
-                            value={newUserData.firstName} 
-                            onChange={(e) => handleNewUserChange(e, 'firstName')} 
-                            className="w-full"
-                            placeholder="First Name"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input 
-                            value={newUserData.lastName} 
-                            onChange={(e) => handleNewUserChange(e, 'lastName')} 
-                            className="w-full"
-                            placeholder="Last Name"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input 
-                            type="date"
-                            value={newUserData.dateJoined} 
-                            onChange={(e) => handleNewUserChange(e, 'dateJoined')} 
-                            className="w-full"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input 
-                            type="date"
-                            value={newUserData.lastActive} 
-                            onChange={(e) => handleNewUserChange(e, 'lastActive')} 
-                            className="w-full"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button 
-                              variant="outline" 
-                              className="bg-green-600 text-white hover:bg-green-700"
-                              size="sm"
-                              onClick={handleSaveNewUser}
-                            >
-                              Save
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              className="bg-gray-500 text-white hover:bg-gray-600"
-                              size="sm"
-                              onClick={handleCancelNewUser}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </TableCell>
+                        <TableHead className="font-semibold">UserID</TableHead>
+                        <TableHead className="font-semibold">First Name</TableHead>
+                        <TableHead className="font-semibold">Last Name</TableHead>
+                        <TableHead className="font-semibold">Date Joined</TableHead>
+                        <TableHead className="font-semibold">Last Active</TableHead>
+                        <TableHead className="text-right font-semibold">Actions</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.id}</TableCell>
+                          {editingUserId === user.id ? (
+                            <>
+                              <TableCell>
+                                <Input 
+                                  value={editFormData?.firstName} 
+                                  onChange={(e) => handleEditFormChange(e, 'firstName')} 
+                                  className="w-full"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input 
+                                  value={editFormData?.lastName} 
+                                  onChange={(e) => handleEditFormChange(e, 'lastName')} 
+                                  className="w-full"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input 
+                                  type="date"
+                                  value={editFormData?.dateJoined} 
+                                  onChange={(e) => handleEditFormChange(e, 'dateJoined')} 
+                                  className="w-full"
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <Input 
+                                  type="date"
+                                  value={editFormData?.lastActive} 
+                                  onChange={(e) => handleEditFormChange(e, 'lastActive')} 
+                                  className="w-full"
+                                />
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    className="bg-green-600 text-white hover:bg-green-700"
+                                    size="sm"
+                                    onClick={handleSaveEdit}
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    className="bg-gray-500 text-white hover:bg-gray-600"
+                                    size="sm"
+                                    onClick={handleCancelEdit}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </>
+                          ) : (
+                            <>
+                              <TableCell>{user.firstName}</TableCell>
+                              <TableCell>{user.lastName}</TableCell>
+                              <TableCell>{user.dateJoined}</TableCell>
+                              <TableCell>{user.lastActive}</TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    className="bg-green-600 text-white hover:bg-green-700"
+                                    size="sm"
+                                    onClick={() => handleEditClick(user)}
+                                  >
+                                    <Edit2 size={16} className="mr-1" />
+                                    Edit
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    className="bg-red-600 hover:bg-red-700"
+                                    size="sm"
+                                    onClick={() => handleDelete(user.id)}
+                                  >
+                                    <Trash2 size={16} className="mr-1" />
+                                    Delete
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      ))}
+                      
+                      {/* Add new user row */}
+                      {isAddingUser && (
+                        <TableRow>
+                          <TableCell>New</TableCell>
+                          <TableCell>
+                            <Input 
+                              value={newUserData.firstName} 
+                              onChange={(e) => handleNewUserChange(e, 'firstName')} 
+                              className="w-full"
+                              placeholder="First Name"
+                              required
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              value={newUserData.lastName} 
+                              onChange={(e) => handleNewUserChange(e, 'lastName')} 
+                              className="w-full"
+                              placeholder="Last Name"
+                              required
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="date"
+                              value={newUserData.dateJoined} 
+                              onChange={(e) => handleNewUserChange(e, 'dateJoined')} 
+                              className="w-full"
+                              required
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              type="date"
+                              value={newUserData.lastActive} 
+                              onChange={(e) => handleNewUserChange(e, 'lastActive')} 
+                              className="w-full"
+                              required
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button 
+                                variant="outline" 
+                                className="bg-green-600 text-white hover:bg-green-700"
+                                size="sm"
+                                onClick={handleSaveNewUser}
+                              >
+                                Save
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                className="bg-gray-500 text-white hover:bg-gray-600"
+                                size="sm"
+                                onClick={handleCancelNewUser}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
 
-                <p className="mt-4 text-center text-sm text-gray-500">
-                  Select a user to manage.
-                </p>
+                {searchQuery.trim() !== '' && (
+                  <p className="mt-4 text-center text-sm text-gray-500">
+                    Showing {filteredUsers.length} of {users.length} users
+                  </p>
+                )}
+                
+                {searchQuery.trim() === '' && (
+                  <p className="mt-4 text-center text-sm text-gray-500">
+                    Select a user to manage.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </main>
