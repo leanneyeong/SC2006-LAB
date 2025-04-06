@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Navigation } from "~/components/global/navigation-admin";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Trash2, Edit2 } from "lucide-react";
 import { useRouter } from "next/router";
 
 interface User {
@@ -19,9 +19,18 @@ interface User {
 const UserManagement: React.FC = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<User | null>(null);
+  const [isAddingUser, setIsAddingUser] = useState<boolean>(false);
+  const [newUserData, setNewUserData] = useState<Omit<User, 'id'>>({
+    firstName: "",
+    lastName: "",
+    dateJoined: new Date().toISOString().slice(0, 10),
+    lastActive: new Date().toISOString().slice(0, 10)
+  });
   
-  // Sample user data
-  const users: User[] = [
+  // Sample user data - converted to state so we can update it
+  const [users, setUsers] = useState<User[]>([
     {
       id: "USR001",
       firstName: "John",
@@ -71,11 +80,105 @@ const UserManagement: React.FC = () => {
       dateJoined: "2024-03-07",
       lastActive: "2025-04-04"
     }
-  ];
+  ]);
 
   // Handle navigation to different sections
   const handleNavigation = (path: string) => {
     router.push(path);
+  };
+  
+  // Handle edit button click
+  const handleEditClick = (user: User) => {
+    setEditingUserId(user.id);
+    setEditFormData({...user});
+  };
+  
+  // Handle save after editing
+  const handleSaveEdit = () => {
+    if (editFormData) {
+      // Update the users array with the edited data
+      const updatedUsers = users.map(user => 
+        user.id === editingUserId ? editFormData : user
+      );
+      
+      // Update state with the new users array
+      setUsers(updatedUsers);
+      
+      // In a real app, you would also save changes to your backend here
+      
+      // Reset editing state
+      setEditingUserId(null);
+      setEditFormData(null);
+    }
+  };
+  
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setEditFormData(null);
+  };
+  
+  // Handle adding a new user
+  const handleAddNewUser = () => {
+    setIsAddingUser(true);
+  };
+  
+  // Handle canceling new user addition
+  const handleCancelNewUser = () => {
+    setIsAddingUser(false);
+    setNewUserData({
+      firstName: "",
+      lastName: "",
+      dateJoined: new Date().toISOString().slice(0, 10),
+      lastActive: new Date().toISOString().slice(0, 10)
+    });
+  };
+  
+  // Handle saving new user
+  const handleSaveNewUser = () => {
+    // Generate a new ID (in a real app, this would likely come from the backend)
+    const newId = `USR${String(users.length + 1).padStart(3, '0')}`;
+    
+    // Create new user object
+    const newUser: User = {
+      id: newId,
+      ...newUserData
+    };
+    
+    // Add to users array
+    setUsers([...users, newUser]);
+    
+    // Reset the form
+    handleCancelNewUser();
+  };
+  
+  // Handle new user form changes
+  const handleNewUserChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof Omit<User, 'id'>) => {
+    setNewUserData({
+      ...newUserData,
+      [field]: e.target.value
+    });
+  };
+  
+  // Handle delete
+  const handleDelete = (userId: string) => {
+    // Filter out the deleted user
+    const updatedUsers = users.filter(user => user.id !== userId);
+    
+    // Update state with the new users array
+    setUsers(updatedUsers);
+    
+    // In a real app, you would also delete from your backend here
+  };
+  
+  // Handle form field changes
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof User) => {
+    if (editFormData) {
+      setEditFormData({
+        ...editFormData,
+        [field]: e.target.value
+      });
+    }
   };
 
   return (
@@ -100,7 +203,11 @@ const UserManagement: React.FC = () => {
                 <Search size={16} />
                 Search
               </Button>
-              <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700">
+              <Button 
+                variant="secondary" 
+                className="bg-green-600 text-white hover:bg-green-700"
+                onClick={handleAddNewUser}
+              >
                 Add New User
               </Button>
             </div>
@@ -128,22 +235,150 @@ const UserManagement: React.FC = () => {
                     {users.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>{user.id}</TableCell>
-                        <TableCell>{user.firstName}</TableCell>
-                        <TableCell>{user.lastName}</TableCell>
-                        <TableCell>{user.dateJoined}</TableCell>
-                        <TableCell>{user.lastActive}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="destructive" 
-                            className="bg-red-600 hover:bg-red-700"
-                            size="sm"
-                          >
-                            <Trash2 size={16} className="mr-1" />
-                            Delete
-                          </Button>
-                        </TableCell>
+                        {editingUserId === user.id ? (
+                          <>
+                            <TableCell>
+                              <Input 
+                                value={editFormData?.firstName} 
+                                onChange={(e) => handleEditFormChange(e, 'firstName')} 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                value={editFormData?.lastName} 
+                                onChange={(e) => handleEditFormChange(e, 'lastName')} 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                type="date"
+                                value={editFormData?.dateJoined} 
+                                onChange={(e) => handleEditFormChange(e, 'dateJoined')} 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                type="date"
+                                value={editFormData?.lastActive} 
+                                onChange={(e) => handleEditFormChange(e, 'lastActive')} 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  className="bg-green-600 text-white hover:bg-green-700"
+                                  size="sm"
+                                  onClick={handleSaveEdit}
+                                >
+                                  Save
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  className="bg-gray-500 text-white hover:bg-gray-600"
+                                  size="sm"
+                                  onClick={handleCancelEdit}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          <>
+                            <TableCell>{user.firstName}</TableCell>
+                            <TableCell>{user.lastName}</TableCell>
+                            <TableCell>{user.dateJoined}</TableCell>
+                            <TableCell>{user.lastActive}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  className="bg-green-600 text-white hover:bg-green-700"
+                                  size="sm"
+                                  onClick={() => handleEditClick(user)}
+                                >
+                                  <Edit2 size={16} className="mr-1" />
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="destructive" 
+                                  className="bg-red-600 hover:bg-red-700"
+                                  size="sm"
+                                  onClick={() => handleDelete(user.id)}
+                                >
+                                  <Trash2 size={16} className="mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
+                    
+                    {/* Add new user row */}
+                    {isAddingUser && (
+                      <TableRow>
+                        <TableCell>New</TableCell>
+                        <TableCell>
+                          <Input 
+                            value={newUserData.firstName} 
+                            onChange={(e) => handleNewUserChange(e, 'firstName')} 
+                            className="w-full"
+                            placeholder="First Name"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            value={newUserData.lastName} 
+                            onChange={(e) => handleNewUserChange(e, 'lastName')} 
+                            className="w-full"
+                            placeholder="Last Name"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="date"
+                            value={newUserData.dateJoined} 
+                            onChange={(e) => handleNewUserChange(e, 'dateJoined')} 
+                            className="w-full"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="date"
+                            value={newUserData.lastActive} 
+                            onChange={(e) => handleNewUserChange(e, 'lastActive')} 
+                            className="w-full"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button 
+                              variant="outline" 
+                              className="bg-green-600 text-white hover:bg-green-700"
+                              size="sm"
+                              onClick={handleSaveNewUser}
+                            >
+                              Save
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              className="bg-gray-500 text-white hover:bg-gray-600"
+                              size="sm"
+                              onClick={handleCancelNewUser}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
 

@@ -50,7 +50,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <Input
               type="text"
               placeholder="Search for a Carpark..."
-              className="mr-2 w-64 bg-white border-white focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="mr-2 w-64 bg-white text-black border-white focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

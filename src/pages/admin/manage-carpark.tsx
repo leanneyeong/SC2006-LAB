@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Navigation } from "~/components/global/navigation-admin";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Trash2, Edit2 } from "lucide-react";
 import { useRouter } from "next/router";
 
 interface Carpark {
@@ -20,9 +20,19 @@ interface Carpark {
 const CarparkManagement: React.FC = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [editingCarparkId, setEditingCarparkId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<Carpark | null>(null);
+  const [isAddingCarpark, setIsAddingCarpark] = useState<boolean>(false);
+  const [newCarparkData, setNewCarparkData] = useState<Omit<Carpark, 'id'>>({
+    name: "",
+    area: "",
+    availability: 0,
+    agency: "",
+    price: 0.00
+  });
   
-  // Sample carpark data
-  const carparks: Carpark[] = [
+  // Sample carpark data - converted to state so we can update it
+  const [carparks, setCarparks] = useState<Carpark[]>([
     {
       id: "CP001",
       name: "Central Plaza Parking",
@@ -79,11 +89,154 @@ const CarparkManagement: React.FC = () => {
       agency: "Retail Park Management",
       price: 2.00
     }
-  ];
+  ]);
 
   // Handle navigation to different sections
   const handleNavigation = (path: string) => {
     router.push(path);
+  };
+  
+  // Handle edit button click
+  const handleEditClick = (carpark: Carpark) => {
+    setEditingCarparkId(carpark.id);
+    setEditFormData({...carpark});
+  };
+  
+  // Handle save after editing
+  const handleSaveEdit = () => {
+    if (editFormData) {
+      // Update the carparks array with the edited data
+      const updatedCarparks = carparks.map(carpark => 
+        carpark.id === editingCarparkId ? editFormData : carpark
+      );
+      
+      // Update state with the new carparks array
+      setCarparks(updatedCarparks);
+      
+      // In a real app, you would also save changes to your backend here
+      
+      // Reset editing state
+      setEditingCarparkId(null);
+      setEditFormData(null);
+    }
+  };
+  
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingCarparkId(null);
+    setEditFormData(null);
+  };
+  
+  // Handle delete
+  const handleDelete = (carparkId: string) => {
+    // Filter out the deleted carpark
+    const updatedCarparks = carparks.filter(carpark => carpark.id !== carparkId);
+    
+    // Update state with the new carparks array
+    setCarparks(updatedCarparks);
+    
+    // In a real app, you would also delete from your backend here
+  };
+  
+  // Handle adding a new carpark
+  const handleAddNewCarpark = () => {
+    setIsAddingCarpark(true);
+  };
+  
+  // Handle canceling new carpark addition
+  const handleCancelNewCarpark = () => {
+    setIsAddingCarpark(false);
+    setNewCarparkData({
+      name: "",
+      area: "",
+      availability: 0,
+      agency: "",
+      price: 0.00
+    });
+  };
+  
+  // Handle saving new carpark
+  const handleSaveNewCarpark = () => {
+    // Validate that all fields are filled
+    if (
+      !newCarparkData.name.trim() || 
+      !newCarparkData.area.trim() || 
+      !newCarparkData.agency.trim() || 
+      newCarparkData.availability === null || 
+      newCarparkData.price === null
+    ) {
+      alert("Please fill in all fields before saving.");
+      return;
+    }
+    
+    // Generate a new ID (in a real app, this would likely come from the backend)
+    const newId = `CP${String(carparks.length + 1).padStart(3, '0')}`;
+    
+    // Create new carpark object
+    const newCarpark: Carpark = {
+      id: newId,
+      ...newCarparkData
+    };
+    
+    // Add to carparks array
+    setCarparks([...carparks, newCarpark]);
+    
+    // Reset the form
+    handleCancelNewCarpark();
+  };
+  
+  // Handle form field changes for editing
+  const handleEditFormChange = (
+    e: React.ChangeEvent<HTMLInputElement>, 
+    field: keyof Carpark
+  ) => {
+    if (editFormData) {
+      let value: string | number = e.target.value;
+      
+      // Handle numeric values
+      if (field === 'availability') {
+        value = parseInt(value) || 0;
+      } else if (field === 'price') {
+        // Only allow numeric input for price
+        const numericValue = e.target.value.replace(/[^0-9.]/g, '');
+        if (numericValue === '' || !isNaN(parseFloat(numericValue))) {
+          value = numericValue;
+        } else {
+          return; // Don't update if not a valid number
+        }
+      }
+      
+      setEditFormData({
+        ...editFormData,
+        [field]: value
+      });
+    }
+  };
+  
+  // Handle new carpark form changes
+  const handleNewCarparkChange = (
+    e: React.ChangeEvent<HTMLInputElement>, 
+    field: keyof Omit<Carpark, 'id'>
+  ) => {
+    let value: string | number = e.target.value;
+      
+    // Handle numeric values
+    if (field === 'availability') {
+      value = parseInt(value) || 0;
+    } else if (field === 'price') {
+      // Only allow numeric input for price
+      const numericValue = e.target.value.replace(/[^0-9.]/g, '');
+      if (numericValue === '' || !isNaN(parseFloat(numericValue))) {
+        value = numericValue;
+      } else {
+        return; // Don't update if not a valid number
+      }
+    }
+    
+    setNewCarparkData({
+      ...newCarparkData,
+      [field]: value
+    });
   };
 
   return (
@@ -108,7 +261,11 @@ const CarparkManagement: React.FC = () => {
                 <Search size={16} />
                 Search
               </Button>
-              <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700">
+              <Button 
+                variant="secondary" 
+                className="bg-green-600 text-white hover:bg-green-700"
+                onClick={handleAddNewCarpark}
+              >
                 Add New Carpark
               </Button>
             </div>
@@ -137,23 +294,217 @@ const CarparkManagement: React.FC = () => {
                     {carparks.map((carpark) => (
                       <TableRow key={carpark.id}>
                         <TableCell>{carpark.id}</TableCell>
-                        <TableCell>{carpark.name}</TableCell>
-                        <TableCell>{carpark.area}</TableCell>
-                        <TableCell>{carpark.availability}</TableCell>
-                        <TableCell>{carpark.agency}</TableCell>
-                        <TableCell className="text-right">${carpark.price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="destructive" 
-                            className="bg-red-600 hover:bg-red-700"
-                            size="sm"
-                          >
-                            <Trash2 size={16} className="mr-1" />
-                            Delete
-                          </Button>
-                        </TableCell>
+                        {editingCarparkId === carpark.id ? (
+                          <>
+                            <TableCell>
+                              <Input 
+                                value={editFormData?.name} 
+                                onChange={(e) => handleEditFormChange(e, 'name')} 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                value={editFormData?.area} 
+                                onChange={(e) => handleEditFormChange(e, 'area')} 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                type="number"
+                                step="1"
+                                value={editFormData?.availability} 
+                                onChange={(e) => handleEditFormChange(e, 'availability')} 
+                                className="w-full"
+                                onKeyDown={(e) => {
+                                  // Prevent up/down arrow keys
+                                  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                value={editFormData?.agency} 
+                                onChange={(e) => handleEditFormChange(e, 'agency')} 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input 
+                                type="text"
+                                value={editFormData?.price} 
+                                onChange={(e) => handleEditFormChange(e, 'price')} 
+                                className="w-full"
+                                placeholder="0"
+                                onKeyDown={(e) => {
+                                  // Only allow numbers, backspace, delete, tab, etc.
+                                  if (!/^[0-9.]$/.test(e.key) && 
+                                      e.key !== 'Backspace' && 
+                                      e.key !== 'Delete' && 
+                                      e.key !== 'Tab' && 
+                                      e.key !== 'ArrowLeft' && 
+                                      e.key !== 'ArrowRight') {
+                                    // Allow Copy/Paste
+                                    if (!(e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'a'))) {
+                                      e.preventDefault();
+                                    }
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  className="bg-green-600 text-white hover:bg-green-700"
+                                  size="sm"
+                                  onClick={handleSaveEdit}
+                                >
+                                  Save
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  className="bg-gray-500 text-white hover:bg-gray-600"
+                                  size="sm"
+                                  onClick={handleCancelEdit}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          <>
+                            <TableCell>{carpark.name}</TableCell>
+                            <TableCell>{carpark.area}</TableCell>
+                            <TableCell>{carpark.availability}</TableCell>
+                            <TableCell>{carpark.agency}</TableCell>
+                            <TableCell className="text-right">${carpark.price}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  variant="outline" 
+                                  className="bg-green-600 text-white hover:bg-green-700"
+                                  size="sm"
+                                  onClick={() => handleEditClick(carpark)}
+                                >
+                                  <Edit2 size={16} className="mr-1" />
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="destructive" 
+                                  className="bg-red-600 hover:bg-red-700"
+                                  size="sm"
+                                  onClick={() => handleDelete(carpark.id)}
+                                >
+                                  <Trash2 size={16} className="mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
+                    
+                    {/* Add new carpark row */}
+                    {isAddingCarpark && (
+                      <TableRow>
+                        <TableCell>New</TableCell>
+                        <TableCell>
+                          <Input 
+                            value={newCarparkData.name} 
+                            onChange={(e) => handleNewCarparkChange(e, 'name')} 
+                            className="w-full"
+                            placeholder="Carpark Name"
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            value={newCarparkData.area} 
+                            onChange={(e) => handleNewCarparkChange(e, 'area')} 
+                            className="w-full"
+                            placeholder="Area"
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number"
+                            step="1"
+                            value={newCarparkData.availability} 
+                            onChange={(e) => handleNewCarparkChange(e, 'availability')} 
+                            className="w-full"
+                            placeholder="Availability"
+                            required
+                            min="0"
+                            onKeyDown={(e) => {
+                              // Prevent up/down arrow keys
+                              if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                e.preventDefault();
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            value={newCarparkData.agency} 
+                            onChange={(e) => handleNewCarparkChange(e, 'agency')} 
+                            className="w-full"
+                            placeholder="Agency"
+                            required
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="text"
+                            value={newCarparkData.price} 
+                            onChange={(e) => handleNewCarparkChange(e, 'price')} 
+                            className="w-full"
+                            placeholder="0"
+                            required
+                            onKeyDown={(e) => {
+                              // Only allow numbers, backspace, delete, tab, etc.
+                              if (!/^[0-9.]$/.test(e.key) && 
+                                  e.key !== 'Backspace' && 
+                                  e.key !== 'Delete' && 
+                                  e.key !== 'Tab' && 
+                                  e.key !== 'ArrowLeft' && 
+                                  e.key !== 'ArrowRight') {
+                                // Allow Copy/Paste
+                                if (!(e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'a'))) {
+                                  e.preventDefault();
+                                }
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button 
+                              variant="outline" 
+                              className="bg-green-600 text-white hover:bg-green-700"
+                              size="sm"
+                              onClick={handleSaveNewCarpark}
+                            >
+                              Save
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              className="bg-gray-500 text-white hover:bg-gray-600"
+                              size="sm"
+                              onClick={handleCancelNewCarpark}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
 
