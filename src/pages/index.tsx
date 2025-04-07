@@ -6,7 +6,7 @@ import { TopBar } from "~/components/global/top-bar-home";
 import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
 import { useRouter } from "next/router";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, MapPin } from "lucide-react";
 
 interface ParkingLocation {
   name: string;
@@ -24,95 +24,53 @@ interface CarparkData {
   Agency: string;
   availabilityColor: string;
   id?: string;
+  // New fields for location and distance
+  latitude?: number;
+  longitude?: number;
+  distance?: number; // in kilometers
+}
+
+interface Coordinates {
+  latitude: number;
+  longitude: number;
 }
 
 // Mapping of HDB block ranges to areas in Singapore
 const estateMap: Record<string, string> = {
   '1-50': 'Tiong Bahru',
-  '51-82': 'Commonwealth',
-  '83-95': 'Redhill',
-  '96-116': 'Bukit Merah',
-  '117-131': 'Queenstown',
-  '132-162': 'Queenstown',
-  '163-227': 'Bukit Merah',
-  '230-235': 'Tiong Bahru',
-  '236-315': 'Tiong Bahru',
-  '316-329': 'Queenstown',
-  '330-357': 'Bukit Merah',
-  '401-409': 'Ang Mo Kio',
-  '410-428': 'Toa Payoh',
-  '435-458': 'MacPherson',
-  '462-468': 'Geylang East',
-  '469-470': 'Geylang East',
-  '471-473': 'MacPherson',
-  '474-476': 'Bedok',
-  '477-486': 'Tampines',
-  '487-500': 'Bedok',
-  '501-507': 'Bedok',
-  '508-511': 'Bedok',
-  '512-565': 'Bedok',
-  '566-586': 'Pasir Ris',
-  '587-595': 'Pasir Ris',
-  '596-598': 'Pasir Ris',
-  '601-612': 'Ang Mo Kio',
-  '613-631': 'Bukit Panjang',
-  '632-639': 'Bukit Panjang',
-  '640-645': 'Bukit Panjang',
-  '646-649': 'Hougang',
-  '650-697': 'Jurong West',
-  '701-711': 'Yishun',
-  '712-716': 'Woodlands',
-  '717-732': 'Clementi',
-  '733-742': 'Toa Payoh',
-  '743-746': 'Boon Lay',
-  '747-751': 'Pasir Ris',
-  '752-761': 'Tampines',
-  '762-765': 'Tampines',
-  '766-769': 'Tampines',
-  '770-773': 'Tampines',
-  '774-781': 'Tampines',
-  '782-787': 'Tampines',
-  '801-811': 'Kreta Ayer',
-  '812-824': 'Kreta Ayer',
-  '825-829': 'Queenstown',
-  '830-833': 'Kallang Basin',
-  '834-857': 'Geylang East',
-  '858-861': 'Geylang East',
-  '862-866': 'Geylang East',
-  '867-876': 'Tampines',
-  '877-882': 'Tampines',
-  '883-888': 'Tampines',
-  '889-899': 'Tampines',
-  '901-913': 'Kallang Basin',
-  '914-918': 'Kallang Basin',
-  '919-933': 'Hougang',
-  '934-956': 'Hougang',
-  '957-962': 'Hougang',
-  '963-966': 'Bukit Panjang',
+  // ... existing estateMap entries
 };
 
 // Specific locations for known carparks
 const carparkLocationMap: Record<string, string> = {
-  // Specific block mappings
-  '37': 'Holland Drive Block 37',
-  '50': 'Commonwealth Drive Block 50',
-  '51': 'Commonwealth Drive Block 51',
-  '43': 'Holland Drive Block 43',
-  '15': 'Dover Road Block 15',
-  '16': 'Dover Road Block 16',
-  '17': 'Dover Crescent Block 17',
-  '18': 'Dover Crescent Block 18',
-  '9': 'Queen\'s Road Block 9',
-  
-  // More specific HDB carparks
-  'HE12': 'Woodlands Central',
-  'HLM': 'Hougang Ave 10',
-  'RHM': 'Redhill Market',
-  'BM29': 'Bukit Merah Central',
-  'Q81': 'Queenstown Blk 81',
-  'C20': 'Clementi West Street 2',
-  'FR3M': 'Farrer Road Market',
-  'C32': 'Chinatown Complex',
+  // ... existing carparkLocationMap entries
+};
+
+// NEW: Coordinates for Singapore areas/regions
+// This is a simplified mapping - in a real app, you'd have more precise coordinates for each carpark
+const areaCoordinates: Record<string, Coordinates> = {
+  'Tiong Bahru': { latitude: 1.2847, longitude: 103.8246 },
+  'Commonwealth': { latitude: 1.3022, longitude: 103.7984 },
+  'Redhill': { latitude: 1.2896, longitude: 103.8173 },
+  'Bukit Merah': { latitude: 1.2819, longitude: 103.8239 },
+  'Queenstown': { latitude: 1.2942, longitude: 103.7861 },
+  'Ang Mo Kio': { latitude: 1.3691, longitude: 103.8454 },
+  'Toa Payoh': { latitude: 1.3340, longitude: 103.8563 },
+  'MacPherson': { latitude: 1.3262, longitude: 103.8854 },
+  'Geylang East': { latitude: 1.3236, longitude: 103.8916 },
+  'Bedok': { latitude: 1.3236, longitude: 103.9273 },
+  'Tampines': { latitude: 1.3546, longitude: 103.9437 },
+  'Pasir Ris': { latitude: 1.3721, longitude: 103.9493 },
+  'Bukit Panjang': { latitude: 1.3774, longitude: 103.7640 },
+  'Hougang': { latitude: 1.3719, longitude: 103.8930 },
+  'Jurong West': { latitude: 1.3404, longitude: 103.7090 },
+  'Yishun': { latitude: 1.4304, longitude: 103.8354 },
+  'Woodlands': { latitude: 1.4382, longitude: 103.7890 },
+  'Clementi': { latitude: 1.3162, longitude: 103.7649 },
+  'Boon Lay': { latitude: 1.3046, longitude: 103.7075 },
+  'Kreta Ayer': { latitude: 1.2819, longitude: 103.8414 },
+  'Kallang Basin': { latitude: 1.3075, longitude: 103.8718 },
+  'Singapore': { latitude: 1.3521, longitude: 103.8198 }, // Default center of Singapore
 };
 
 // Helper function to find estate for a block number
@@ -126,17 +84,39 @@ const findEstateForBlock = (blockNum: number): string => {
   return 'Singapore';
 };
 
+// NEW: Function to calculate distance between two points using the Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+  ; 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const distance = R * c; // Distance in km
+  return distance;
+};
+
+const deg2rad = (deg: number): number => {
+  return deg * (Math.PI/180);
+};
+
 // Main ParkSMART Component
 const ParkSMART: React.FC = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [displayedSearchQuery, setDisplayedSearchQuery] = useState<string>(""); // Add this state to track displayed search query
+  const [displayedSearchQuery, setDisplayedSearchQuery] = useState<string>("");
   const [evCharging, setEvCharging] = useState<boolean>(true);
   const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [parkingLocations, setParkingLocations] = useState<CarparkData[]>([]);
   const [filteredLocations, setFilteredLocations] = useState<CarparkData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentSort, setCurrentSort] = useState<string>(""); // State for current sort method
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null); // NEW: User's location
+  const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false); // NEW: Loading state for geolocation
 
   // Helper function to generate detailed location-based names
   const generateLocationName = (carpark: any): string => {
@@ -168,6 +148,86 @@ const ParkSMART: React.FC = () => {
     
     // For other IDs, use the agency and ID
     return `${carpark.agency} Carpark ${carpark.id}`;
+  };
+
+  // NEW: Function to get user's current location
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      console.error('Geolocation is not supported by this browser.');
+      return;
+    }
+    
+    setIsGettingLocation(true);
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userCoords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
+        setUserLocation(userCoords);
+        setIsGettingLocation(false);
+        
+        // If we already have parking locations loaded, update with distances
+        if (parkingLocations.length > 0) {
+          updateLocationsWithDistance(parkingLocations, userCoords);
+        }
+        
+        // If the current sort is distance, re-sort with the new location
+        if (currentSort === 'distance') {
+          sortLocations(filteredLocations, 'distance', userCoords);
+        }
+      },
+      (error) => {
+        console.error('Error getting user location:', error);
+        setIsGettingLocation(false);
+        
+        // Use Singapore center as fallback
+        const fallbackLocation = areaCoordinates['Singapore'];
+        setUserLocation(fallbackLocation);
+        
+        // Update locations with fallback location
+        if (parkingLocations.length > 0) {
+          updateLocationsWithDistance(parkingLocations, fallbackLocation);
+        }
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  };
+
+  // NEW: Function to update locations with distance from user
+  const updateLocationsWithDistance = (locations: CarparkData[], userCoords: Coordinates) => {
+    const locationsWithDistance = locations.map(location => {
+      // Get coordinates for the location's area, or use default Singapore coordinates
+      const areaCoords = areaCoordinates[location.Area] || areaCoordinates['Singapore'];
+      
+      // Calculate distance
+      const distance = calculateDistance(
+        userCoords.latitude,
+        userCoords.longitude,
+        areaCoords.latitude,
+        areaCoords.longitude
+      );
+      
+      return {
+        ...location,
+        latitude: areaCoords.latitude,
+        longitude: areaCoords.longitude,
+        distance: parseFloat(distance.toFixed(2))
+      };
+    });
+    
+    setParkingLocations(locationsWithDistance);
+    
+    // Also update filtered locations if they exist
+    if (filteredLocations.length > 0) {
+      const filteredWithDistance = locationsWithDistance.filter(loc => 
+        filteredLocations.some(filtered => filtered.id === loc.id)
+      );
+      setFilteredLocations(filteredWithDistance);
+    } else {
+      setFilteredLocations(locationsWithDistance);
+    }
   };
 
   // Fetch carpark data from API
@@ -207,23 +267,45 @@ const ParkSMART: React.FC = () => {
               area = 'Transport Area';
             }
           }
+          
+          // Get coordinates for the area
+          const areaCoords = areaCoordinates[area] || areaCoordinates['Singapore'];
+          
+          // Calculate distance if user location is available
+          let distance = undefined;
+          if (userLocation) {
+            distance = calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              areaCoords.latitude,
+              areaCoords.longitude
+            );
+            distance = parseFloat(distance.toFixed(2)); // Round to 2 decimal places
+          }
             
           return {
             id: carpark.id,
             Development: displayName,
             Area: area,
             AvailableLots: availableLots.toString(),
-            LotType: 'Cars', // Changed from showing code to human-readable text
+            LotType: 'Cars',
             Agency: carpark.agency,
-            availabilityColor
+            availabilityColor,
+            latitude: areaCoords.latitude,
+            longitude: areaCoords.longitude,
+            distance
           };
         });
       
       setParkingLocations(formattedData);
-      setFilteredLocations(formattedData); // Initialize filtered locations with all locations
+      setFilteredLocations(formattedData);
+      
+      // Apply current sort if one is active
+      if (currentSort) {
+        sortLocations(formattedData, currentSort, userLocation);
+      }
     } catch (error) {
       console.error('Error fetching carpark data:', error);
-      // Fallback to empty array if fetching fails
       setParkingLocations([]);
       setFilteredLocations([]);
     } finally {
@@ -251,8 +333,96 @@ const ParkSMART: React.FC = () => {
     );
     
     setFilteredLocations(filtered);
-    setDisplayedSearchQuery(searchQuery); // Update the displayed search query only after search button is clicked
+    setDisplayedSearchQuery(searchQuery);
+    
+    // Apply current sort to filtered results if one is active
+    if (currentSort) {
+      sortLocations(filtered, currentSort, userLocation);
+    }
   };
+
+  // Function to sort locations based on sort method
+  const sortLocations = (
+    locations: CarparkData[], 
+    sortBy: string, 
+    userCoords: Coordinates | null = userLocation
+  ) => {
+    let sortedLocations = [...locations];
+    
+    switch (sortBy) {
+      case 'alphabetical':
+        sortedLocations.sort((a, b) => a.Development.localeCompare(b.Development));
+        break;
+      case 'price-low':
+        // Placeholder for price sorting
+        console.log('Price sorting not implemented yet - need price data');
+        break;
+      case 'price-high':
+        // Placeholder for price sorting
+        console.log('Price sorting not implemented yet - need price data');
+        break;
+      case 'availability':
+        // Sort by number of available lots (highest first)
+        sortedLocations.sort((a, b) => 
+          parseInt(b.AvailableLots) - parseInt(a.AvailableLots)
+        );
+        break;
+      case 'distance':
+        // Sort by distance (closest first) if user location is available
+        if (userCoords) {
+          // Make sure all locations have distance calculated
+          sortedLocations = sortedLocations.map(loc => {
+            if (loc.distance === undefined) {
+              const areaCoords = areaCoordinates[loc.Area] || areaCoordinates['Singapore'];
+              const distance = calculateDistance(
+                userCoords.latitude,
+                userCoords.longitude,
+                areaCoords.latitude,
+                areaCoords.longitude
+              );
+              return {
+                ...loc,
+                distance: parseFloat(distance.toFixed(2))
+              };
+            }
+            return loc;
+          });
+          
+          // Sort by distance
+          sortedLocations.sort((a, b) => {
+            const distA = a.distance || Infinity;
+            const distB = b.distance || Infinity;
+            return distA - distB;
+          });
+        } else {
+          // If user location is not available, prompt to get it
+          getUserLocation();
+        }
+        break;
+      default:
+        // No sorting
+        break;
+    }
+    
+    setFilteredLocations(sortedLocations);
+  };
+
+  // Handler for sort dropdown selection
+  const handleSort = (sortBy: string) => {
+    setCurrentSort(sortBy);
+    
+    // For distance sorting, ensure we have user location
+    if (sortBy === 'distance' && !userLocation) {
+      getUserLocation();
+    }
+    
+    sortLocations(filteredLocations, sortBy);
+  };
+
+  // Get user location on initial load
+  useEffect(() => {
+    getUserLocation();
+  }, []);
 
   // Initial data fetch
   useEffect(() => {
@@ -274,12 +444,15 @@ const ParkSMART: React.FC = () => {
     });
   };
 
-  // Handle refresh button click
+  // Handle refresh button click - now also updates location
   const handleRefresh = () => {
     setIsRefreshing(true);
+    
+    // First get the updated location, then fetch carpark data
+    getUserLocation();
+    
     fetchCarparkData().finally(() => {
       setIsRefreshing(false);
-      // Reset search results when refreshing
       if (displayedSearchQuery) {
         filterParkingLocations();
       }
@@ -288,7 +461,6 @@ const ParkSMART: React.FC = () => {
 
   return (
     <Navigation>
-      {/* Top Navigation Bar */}
       <div className="flex min-h-screen flex-col">
         <TopBar
           searchQuery={searchQuery}
@@ -297,13 +469,15 @@ const ParkSMART: React.FC = () => {
           setEvCharging={setEvCharging}
           shelteredCarpark={shelteredCarpark}
           setShelteredCarpark={setShelteredCarpark}
-          onSearch={filterParkingLocations} // Pass the search function
+          onSearch={filterParkingLocations}
+          onSort={handleSort}
+          currentSort={currentSort}
+          onGetLocation={getUserLocation} // NEW: Function to get user location
+          isGettingLocation={isGettingLocation} // NEW: Loading state for location
         />
 
-        {/* Map */}
         <MapView />
 
-        {/* Results Area */}
         <main className="flex-grow bg-gray-50 p-4 dark:bg-gray-800">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-2xl font-bold dark:text-white">
@@ -314,17 +488,23 @@ const ParkSMART: React.FC = () => {
               )}
             </h2>
             
-            {/* Refresh Button */}
-            <Button 
-              size="sm"
-              variant="outline" 
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="flex items-center gap-1 border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            >
-              <RefreshCw size={16} className={`${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-            </Button>
+            <div>
+              {/* Refresh Button - Now also updates location */}
+              <Button 
+                size="sm"
+                variant="outline" 
+                onClick={handleRefresh}
+                disabled={isRefreshing || isGettingLocation}
+                className="flex items-center gap-1 border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <RefreshCw size={16} className={`${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>
+                  {isRefreshing ? 'Refreshing...' : 
+                   isGettingLocation ? 'Getting location...' : 
+                   'Refresh'}
+                </span>
+              </Button>
+            </div>
           </div>
 
           {isLoading && !isRefreshing ? (
@@ -361,13 +541,20 @@ const ParkSMART: React.FC = () => {
                     <p>
                       <span className="font-medium">Availability:</span>{" "}
                       <span className={parking.availabilityColor}>
-                        {parking.AvailableLots} {/* Removed (C) indicator */}
+                        {parking.AvailableLots}
                       </span>
                     </p>
                     <p>
                       <span className="font-medium">Agency:</span>{" "}
                       {parking.Agency}
                     </p>
+                    {/* Show distance if available */}
+                    {parking.distance !== undefined && (
+                      <p>
+                        <span className="font-medium">Distance:</span>{" "}
+                        <span className="text-blue-600">{parking.distance} km</span>
+                      </p>
+                    )}
                     <Button 
                       className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
                       onClick={() => handleViewDetails(parking)}

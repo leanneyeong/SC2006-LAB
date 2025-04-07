@@ -10,7 +10,7 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { Input } from '~/components/ui/input';
 import { Button } from '~/components/ui/button';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, MapPin } from 'lucide-react';
 import { UserButton } from "@clerk/nextjs";
 
 // Define TypeScript interface
@@ -21,7 +21,12 @@ interface TopBarProps {
   setEvCharging: (checked: boolean) => void;
   shelteredCarpark: boolean;
   setShelteredCarpark: (checked: boolean) => void;
-  onSearch: () => void; // Added new prop for search functionality
+  onSearch: () => void;
+  onSort: (sortBy: string) => void;
+  currentSort: string;
+  // NEW props for location handling
+  onGetLocation?: () => void;
+  isGettingLocation?: boolean;
 }
 
 // TopBar Component
@@ -32,7 +37,11 @@ export const TopBar: React.FC<TopBarProps> = ({
   setEvCharging, 
   shelteredCarpark, 
   setShelteredCarpark,
-  onSearch
+  onSearch,
+  onSort,
+  currentSort,
+  onGetLocation,
+  isGettingLocation = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -51,6 +60,24 @@ export const TopBar: React.FC<TopBarProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       onSearch();
+    }
+  };
+
+  // Get display text for current sort
+  const getSortDisplayText = () => {
+    switch (currentSort) {
+      case 'alphabetical':
+        return 'Alphabetical Order';
+      case 'price-low':
+        return 'Price: Low to High';
+      case 'price-high':
+        return 'Price: High to Low';
+      case 'availability':
+        return 'Availability';
+      case 'distance':
+        return 'Distance';
+      default:
+        return 'Sort By';
     }
   };
 
@@ -109,12 +136,14 @@ export const TopBar: React.FC<TopBarProps> = ({
                 Sheltered Carpark
               </label>
             </div>
+            
+{/* Removed the location button as requested */}
           </div>
           
           <div className="flex items-center ml-0 md:ml-auto space-x-4 relative">
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center justify-between px-3 py-2 bg-white text-blue-500 rounded-md hover:bg-gray-100 transition-colors font-medium text-sm min-w-32">
-                <span>Sort By</span>
+                <span>{getSortDisplayText()}</span>
                 <ChevronDown className="ml-2 h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-36 mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
@@ -122,19 +151,22 @@ export const TopBar: React.FC<TopBarProps> = ({
                   SORT OPTIONS
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-200 h-px" />
-                <DropdownMenuItem className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <DropdownMenuItem 
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors ${currentSort === 'alphabetical' ? 'bg-blue-50 text-blue-600' : ''}`}
+                  onClick={() => onSort('alphabetical')}
+                >
                   Alphabetical Order
                 </DropdownMenuItem>
-                <DropdownMenuItem className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                  Price: Low to High
-                </DropdownMenuItem>
-                <DropdownMenuItem className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                  Price: High to Low
-                </DropdownMenuItem>
-                <DropdownMenuItem className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <DropdownMenuItem 
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors ${currentSort === 'availability' ? 'bg-blue-50 text-blue-600' : ''}`}
+                  onClick={() => onSort('availability')}
+                >
                   Availability
                 </DropdownMenuItem>
-                <DropdownMenuItem className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                <DropdownMenuItem 
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-600 transition-colors ${currentSort === 'distance' ? 'bg-blue-50 text-blue-600' : ''}`}
+                  onClick={() => onSort('distance')}
+                >
                   Distance
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -148,4 +180,4 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
     </header>
   );
-};
+}
