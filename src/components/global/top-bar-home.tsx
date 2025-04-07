@@ -10,7 +10,7 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { Input } from '~/components/ui/input';
 import { Button } from '~/components/ui/button';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import { UserButton } from "@clerk/nextjs";
 
 // Define TypeScript interface
@@ -21,6 +21,7 @@ interface TopBarProps {
   setEvCharging: (checked: boolean) => void;
   shelteredCarpark: boolean;
   setShelteredCarpark: (checked: boolean) => void;
+  onSearch: () => void; // Added new prop for search functionality
 }
 
 // TopBar Component
@@ -30,9 +31,28 @@ export const TopBar: React.FC<TopBarProps> = ({
   evCharging, 
   setEvCharging, 
   shelteredCarpark, 
-  setShelteredCarpark 
+  setShelteredCarpark,
+  onSearch
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Handle form submission - prevent default and trigger search
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch();
+  };
+
+  // Handle pressing Enter in search input
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      onSearch();
+    }
+  };
 
   return (
     <header className="bg-blue-500 text-white p-4 relative">
@@ -46,16 +66,24 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
         
         <div className="flex flex-col md:flex-row gap-2 items-start md:items-center flex-grow md:ml-6">
-          <div className="flex">
+          <form onSubmit={handleSubmit} className="flex">
             <Input
               type="text"
               placeholder="Search for a Carpark..."
               className="mr-2 w-64 bg-white text-black border-white focus:border-white focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
             />
-            <Button variant="secondary" className="bg-white text-black hover:bg-gray-100">Search</Button>
-          </div>
+            <Button 
+              type="submit" 
+              variant="secondary" 
+              className="bg-white text-black hover:bg-gray-100"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </form>
           
           <div className="flex items-center ml-0 md:ml-4 space-x-4">
             <div className="flex items-center space-x-2">
