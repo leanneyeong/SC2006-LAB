@@ -28,6 +28,16 @@ interface CarparkData {
   latitude?: number;
   longitude?: number;
   distance?: number; // in kilometers
+  // Additional fields from CSV database for HDB carparks
+  address?: string;
+  carParkType?: string;
+  typeOfParkingSystem?: string;
+  shortTermParking?: string;
+  freeParking?: string;
+  nightParking?: string;
+  carParkDecks?: string;
+  gantryHeight?: string;
+  carParkBasement?: string;
 }
 
 interface Coordinates {
@@ -230,20 +240,33 @@ const ParkSMART: React.FC = () => {
     }
   };
 
-  // Fetch carpark data from API
+  // Fetch carpark data from API - UPDATED to include user location
   const fetchCarparkData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/carparks');
+      let response;
+      // Include user location in API request if available
+      if (userLocation) {
+        response = await fetch(
+          `/api/carparks?latitude=${userLocation.latitude}&longitude=${userLocation.longitude}`
+        );
+      } else {
+        response = await fetch('/api/carparks');
+      }
+      
       if (!response.ok) {
         throw new Error('Failed to fetch carpark data');
       }
       const data = await response.json();
       
+      // Add this debug line right here
+      console.log("Sample carpark data from API:", data.carparks.slice(0, 3));
+      
       // Filter for only car lots (type "C") and transform data for display
       const formattedData = data.carparks
         .filter((carpark: any) => carpark.lotType === 'C')
         .map((carpark: any) => {
+          // ...rest of your code
           // Determine availability color based on lots available
           const availableLots = parseInt(carpark.availableLots) || 0;
           const availabilityColor = 
@@ -252,7 +275,7 @@ const ParkSMART: React.FC = () => {
             'text-red-600';
           
           // Generate a detailed display name
-          const displayName = carpark.name || generateLocationName(carpark);
+          const displayName = carpark.address || carpark.name || generateLocationName(carpark);
           
           // Get area from carpark data or derive from ID
           let area = carpark.area;
@@ -268,17 +291,26 @@ const ParkSMART: React.FC = () => {
             }
           }
           
-          // Get coordinates for the area
-          const areaCoords = areaCoordinates[area] || areaCoordinates['Singapore'];
+          // Use coordinates from API if available, otherwise use area coordinates
+          let latitude = carpark.coordinates?.lat;
+          let longitude = carpark.coordinates?.lng;
           
-          // Calculate distance if user location is available
-          let distance = undefined;
-          if (userLocation) {
+          if (!latitude || !longitude) {
+            const areaCoords = areaCoordinates[area] || areaCoordinates['Singapore'];
+            latitude = areaCoords.latitude;
+            longitude = areaCoords.longitude;
+          }
+          
+          // Use distance from API if available
+          let distance = carpark.distance;
+          
+          // If no distance from API but we have userLocation, calculate it
+          if (distance === undefined && userLocation) {
             distance = calculateDistance(
               userLocation.latitude,
               userLocation.longitude,
-              areaCoords.latitude,
-              areaCoords.longitude
+              latitude,
+              longitude
             );
             distance = parseFloat(distance.toFixed(2)); // Round to 2 decimal places
           }
@@ -291,9 +323,19 @@ const ParkSMART: React.FC = () => {
             LotType: 'Cars',
             Agency: carpark.agency,
             availabilityColor,
-            latitude: areaCoords.latitude,
-            longitude: areaCoords.longitude,
-            distance
+            latitude,
+            longitude,
+            distance,
+            // Add CSV data fields if available (especially for HDB carparks)
+            address: carpark.address,
+            carParkType: carpark.carParkType,
+            typeOfParkingSystem: carpark.typeOfParkingSystem,
+            shortTermParking: carpark.shortTermParking,
+            freeParking: carpark.freeParking,
+            nightParking: carpark.nightParking,
+            carParkDecks: carpark.carParkDecks,
+            gantryHeight: carpark.gantryHeight,
+            carParkBasement: carpark.carParkBasement
           };
         });
       
@@ -419,15 +461,17 @@ const ParkSMART: React.FC = () => {
     sortLocations(filteredLocations, sortBy);
   };
 
-  // Get user location on initial load
+  // First get user location, then fetch carpark data
   useEffect(() => {
     getUserLocation();
   }, []);
 
-  // Initial data fetch
+  // Fetch data when location is available or changes
   useEffect(() => {
-    fetchCarparkData();
-  }, []);
+    if (userLocation) {
+      fetchCarparkData();
+    }
+  }, [userLocation]);
 
   // Handle navigation to car-park-details page
   const handleViewDetails = (parking: CarparkData) => {
@@ -451,12 +495,13 @@ const ParkSMART: React.FC = () => {
     // First get the updated location, then fetch carpark data
     getUserLocation();
     
-    fetchCarparkData().finally(() => {
+    // The fetchCarparkData will be triggered by the useEffect watching userLocation
+    setTimeout(() => {
       setIsRefreshing(false);
       if (displayedSearchQuery) {
         filterParkingLocations();
       }
-    });
+    }, 3000); // Give enough time for location and data fetch
   };
 
   return (
@@ -553,6 +598,19 @@ const ParkSMART: React.FC = () => {
                       <p>
                         <span className="font-medium">Distance:</span>{" "}
                         <span className="text-blue-600">{parking.distance} km</span>
+                      </p>
+                    )}
+                    {/* Show additional information for HDB carparks */}
+                    {parking.Agency === 'HDB' && parking.freeParking && (
+                      <p>
+                        <span className="font-medium">Free Parking:</span>{" "}
+                        {parking.freeParking}
+                      </p>
+                    )}
+                    {parking.Agency === 'HDB' && parking.nightParking && (
+                      <p>
+                        <span className="font-medium">Night Parking:</span>{" "}
+                        {parking.nightParking}
                       </p>
                     )}
                     <Button 
