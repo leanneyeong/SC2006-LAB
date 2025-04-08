@@ -17,6 +17,19 @@ interface ReviewProps {
   }
 }
 
+interface PricingData {
+  weekday: {
+    morning: string;
+    afternoon: string;
+    evening: string;
+  };
+  weekend: {
+    morning: string;
+    afternoon: string;
+    evening: string;
+  };
+}
+
 interface CarParkDetailProps {
   name: string;
   location: string;
@@ -26,6 +39,7 @@ interface CarParkDetailProps {
   evCharging: boolean;
   rating: number;
   reviews: ReviewProps[];
+  pricing?: PricingData; // Add pricing data
 }
 
 const CarParkDetailPage: React.FC = () => {
@@ -35,6 +49,35 @@ const CarParkDetailPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [evCharging, setEvCharging] = useState<boolean>(true);
   const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
+  
+  // Add state for current time
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  
+  // Function to calculate current price based on time and pricing data
+  const calculateCurrentPrice = (pricingData: PricingData | undefined): string => {
+    if (!pricingData) {
+      return '$0.60/hr'; // Default price if no pricing data available
+    }
+    
+    const now = new Date();
+    const hour = now.getHours();
+    const isWeekend = now.getDay() === 0 || now.getDay() === 6; // 0 = Sunday, 6 = Saturday
+    
+    const periodPricing = isWeekend ? pricingData.weekend : pricingData.weekday;
+    
+    // Define time periods: morning (7-12), afternoon (12-18), evening (18-7)
+    let period;
+    if (hour >= 7 && hour < 12) {
+      period = 'morning';
+    } else if (hour >= 12 && hour < 18) {
+      period = 'afternoon';
+    } else {
+      period = 'evening';
+    }
+    
+    const price = periodPricing[period] || '0.60';
+    return `$${price}/hr`;
+  };
   
   // State for carpark details with multiple reviews
   const [carParkDetail, setCarParkDetail] = useState<CarParkDetailProps>({
@@ -118,21 +161,59 @@ const CarParkDetailPage: React.FC = () => {
       }
     ]
   });
+  
+  // Set up timer to update the price every minute
+  useEffect(() => {
+    // Update time immediately
+    setCurrentTime(new Date());
+    
+    // Set interval to update every minute
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+      
+      // Recalculate price if pricing data is available
+      if (carParkDetail.pricing) {
+        const newPrice = calculateCurrentPrice(carParkDetail.pricing);
+        if (newPrice !== carParkDetail.price) {
+          setCarParkDetail(prevDetails => ({
+            ...prevDetails,
+            price: newPrice
+          }));
+        }
+      }
+    }, 60000); // 60000 ms = 1 minute
+    
+    // Clean up timer on component unmount
+    return () => clearInterval(timer);
+  }, [carParkDetail.pricing]); // Re-run if pricing data changes
 
-  // Get query parameters when the component mounts
+  // Get query parameters when the component mounts and handle pricing data
   useEffect(() => {
     if (router.isReady) {
       // Extract carpark details from the query parameters
-      const { name, area, lots, type, agency } = router.query;
+      const { name, area, lots, type, agency, pricingData } = router.query;
+      
+      // Parse pricing data if available
+      let pricing: PricingData | undefined;
+      if (pricingData && typeof pricingData === 'string') {
+        try {
+          pricing = JSON.parse(pricingData);
+        } catch (error) {
+          console.error('Error parsing pricing data:', error);
+        }
+      }
+      
+      // Calculate current price based on time and pricing data
+      const currentPrice = calculateCurrentPrice(pricing);
       
       // Update the carpark details with the query parameters
       setCarParkDetail(prevDetails => ({
         ...prevDetails,
         name: name as string || 'Unknown Carpark',
         location: area as string || 'Unknown Location',
-        availability: `${lots || 0} ${type || 'Lots'}`,
-        // You can add logic here to determine price based on location or other factors
-        price: area === 'Orchard' ? '$12/hr' : area === 'Downtown' ? '$10/hr' : '$5/hr',
+        availability: `${lots || 0} Lots`,
+        price: currentPrice,
+        pricing: pricing,
       }));
     }
   }, [router.isReady, router.query]);

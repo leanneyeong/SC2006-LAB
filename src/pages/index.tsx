@@ -16,6 +16,19 @@ interface ParkingLocation {
   availabilityColor: string;
 }
 
+interface PricingData {
+  weekday: {
+    morning: string;
+    afternoon: string;
+    evening: string;
+  };
+  weekend: {
+    morning: string;
+    afternoon: string;
+    evening: string;
+  };
+}
+
 interface CarparkData {
   Development: string;
   Area: string;
@@ -24,7 +37,9 @@ interface CarparkData {
   Agency: string;
   availabilityColor: string;
   id?: string;
-  // New fields for location and distance
+  // New field for pricing data
+  pricing?: PricingData;
+  // Location and distance
   latitude?: number;
   longitude?: number;
   distance?: number; // in kilometers
@@ -268,7 +283,6 @@ const ParkSMART: React.FC = () => {
       const formattedData = data.carparks
         .filter((carpark: any) => carpark.lotType === 'C')
         .map((carpark: any) => {
-          // ...rest of your code
           // Determine availability color based on lots available
           const availableLots = parseInt(carpark.availableLots) || 0;
           const availabilityColor = 
@@ -306,23 +320,29 @@ const ParkSMART: React.FC = () => {
           // Use distance from API if available
           let distance = carpark.distance;
 
-// Make sure distance is a number, not a string or undefined
-if (typeof distance !== 'undefined') {
-  distance = parseFloat(distance);
-  
-  // If distance is NaN or 0, calculate it
-  if (isNaN(distance) || distance === 0) {
-    if (userLocation && latitude && longitude) {
-      distance = calculateDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        latitude,
-        longitude
-      );
-      distance = parseFloat(distance.toFixed(2));
-    }
-  }
-}
+          // Make sure distance is a number, not a string or undefined
+          if (typeof distance !== 'undefined') {
+            distance = parseFloat(distance);
+            
+            // If distance is NaN or 0, calculate it
+            if (isNaN(distance) || distance === 0) {
+              if (userLocation && latitude && longitude) {
+                distance = calculateDistance(
+                  userLocation.latitude,
+                  userLocation.longitude,
+                  latitude,
+                  longitude
+                );
+                distance = parseFloat(distance.toFixed(2));
+              }
+            }
+          }
+          
+          // Add pricing information from API
+          const pricingData = carpark.pricing || {
+            weekday: { morning: '0.60', afternoon: '1.20', evening: '0.60' },
+            weekend: { morning: '0.60', afternoon: '0.60', evening: '0.60' }
+          };
             
           return {
             id: carpark.id,
@@ -335,6 +355,8 @@ if (typeof distance !== 'undefined') {
             latitude,
             longitude,
             distance,
+            // Add pricing data
+            pricing: pricingData,
             // Add CSV data fields if available (especially for HDB carparks)
             address: carpark.address,
             carParkType: carpark.carParkType,
@@ -492,7 +514,9 @@ if (typeof distance !== 'undefined') {
         area: parking.Area,
         lots: parking.AvailableLots,
         type: parking.LotType,
-        agency: parking.Agency
+        agency: parking.Agency,
+        // Add pricing data as a JSON string
+        pricingData: JSON.stringify(parking.pricing || {})
       }
     });
   };
