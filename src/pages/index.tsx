@@ -164,6 +164,12 @@ const ParkSMART: React.FC = () => {
   const getUserLocation = () => {
     if (!navigator.geolocation) {
       console.error('Geolocation is not supported by this browser.');
+      // Use your existing areaCoordinates map
+      const fallbackLocation = {
+        latitude: areaCoordinates['Singapore'].latitude,
+        longitude: areaCoordinates['Singapore'].longitude
+      };
+      setUserLocation(fallbackLocation);
       return;
     }
     
@@ -175,33 +181,29 @@ const ParkSMART: React.FC = () => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         };
+        console.log('Got user location:', userCoords);
         setUserLocation(userCoords);
         setIsGettingLocation(false);
         
-        // If we already have parking locations loaded, update with distances
-        if (parkingLocations.length > 0) {
-          updateLocationsWithDistance(parkingLocations, userCoords);
-        }
-        
-        // If the current sort is distance, re-sort with the new location
-        if (currentSort === 'distance') {
-          sortLocations(filteredLocations, 'distance', userCoords);
-        }
+        // Now fetch data with the new location
+        fetchCarparkData();
       },
       (error) => {
         console.error('Error getting user location:', error);
         setIsGettingLocation(false);
         
         // Use Singapore center as fallback
-        const fallbackLocation = areaCoordinates['Singapore'];
+        const fallbackLocation = {
+          latitude: areaCoordinates['Singapore'].latitude,
+          longitude: areaCoordinates['Singapore'].longitude
+        };
         setUserLocation(fallbackLocation);
-        
-        // Update locations with fallback location
-        if (parkingLocations.length > 0) {
-          updateLocationsWithDistance(parkingLocations, fallbackLocation);
-        }
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      { 
+        enableHighAccuracy: true, 
+        timeout: 10000,
+        maximumAge: 0 
+      }
     );
   };
 
@@ -303,17 +305,24 @@ const ParkSMART: React.FC = () => {
           
           // Use distance from API if available
           let distance = carpark.distance;
-          
-          // If no distance from API but we have userLocation, calculate it
-          if (distance === undefined && userLocation) {
-            distance = calculateDistance(
-              userLocation.latitude,
-              userLocation.longitude,
-              latitude,
-              longitude
-            );
-            distance = parseFloat(distance.toFixed(2)); // Round to 2 decimal places
-          }
+
+// Make sure distance is a number, not a string or undefined
+if (typeof distance !== 'undefined') {
+  distance = parseFloat(distance);
+  
+  // If distance is NaN or 0, calculate it
+  if (isNaN(distance) || distance === 0) {
+    if (userLocation && latitude && longitude) {
+      distance = calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        latitude,
+        longitude
+      );
+      distance = parseFloat(distance.toFixed(2));
+    }
+  }
+}
             
           return {
             id: carpark.id,

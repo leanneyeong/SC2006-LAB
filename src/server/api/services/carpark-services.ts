@@ -99,9 +99,25 @@ const findAreaForHDBBlock = (blockId: string): string => {
 };
 
 const getHDBCarparkCoordinates = (carpark_id: string, dbCarpark: any): { lat: number; lng: number } | null => {
-  // Your existing implementation
-  return areaCoordinates['Singapore']; // Default fallback
-};
+    // Try to get coordinates from database first if available
+    if (dbCarpark?.latitude && dbCarpark?.longitude) {
+      return { 
+        lat: parseFloat(dbCarpark.latitude), 
+        lng: parseFloat(dbCarpark.longitude) 
+      };
+    }
+    
+    // Use your existing function to get area
+    const area = findAreaForHDBBlock(carpark_id);
+    
+    // Use your existing areaCoordinates map
+    if (area && areaCoordinates[area]) {
+      return areaCoordinates[area];
+    }
+    
+    // Use your default Singapore coordinates
+    return areaCoordinates['Singapore']; 
+  };
 
 const generateHDBCarparkName = (blockId: string): string | undefined => {
   // Your existing implementation
@@ -110,16 +126,17 @@ const generateHDBCarparkName = (blockId: string): string | undefined => {
 
 // Calculate distance between coordinates - reuse your existing function
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371; // Radius of the earth in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    return parseFloat(distance.toFixed(2)); // Round to 2 decimal places
+  };
 
 // UPDATED: Function to fetch HDB carpark data with FIXED database query
 export const getHDBCarparkAvailability = async (userLocation?: UserLocation): Promise<UnifiedCarparkSchema[]> => {
@@ -592,6 +609,25 @@ export const getAllCarparkAvailability = async (userLocation?: UserLocation): Pr
       // Sort the combined results by distance if user location is provided
       if (userLocation) {
         allCarparks.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+        
+        // Add this after sorting carparks by distance
+        if (userLocation) {
+          allCarparks.forEach(carpark => {
+            if (carpark.coordinates && !carpark.distance) {
+              carpark.distance = calculateDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                carpark.coordinates.lat,
+                carpark.coordinates.lng
+              );
+            }
+            
+            // If distance is 0 or not set, make sure it's at least a small value
+            if (!carpark.distance) {
+              carpark.distance = 0.01;
+            }
+          });
+        }
       }
   
       console.log(`Returning combined data with ${allCarparks.length} total carparks after deduplication`);
@@ -622,35 +658,45 @@ export const getAllCarparkAvailability = async (userLocation?: UserLocation): Pr
 
 // API route handler that accepts user location
 export const carparkApiHandlerUnified = async (req: any, res: any) => {
-  // Extract user location from request query parameters
-  const { latitude, longitude } = req.query;
-  let userLocation: UserLocation | undefined;
-  
-  // Validate user location
-  if (latitude && longitude) {
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
+    // Extract user location from request query parameters
+    const { latitude, longitude } = req.query;
+    let userLocation: UserLocation | undefined;
     
-    // Check if the values are valid numbers and within reasonable range for Singapore
-    if (!isNaN(lat) && !isNaN(lng) && 
-        lat >= 1.1 && lat <= 1.5 && // Singapore latitude range
-        lng >= 103.6 && lng <= 104.1) { // Singapore longitude range
-      userLocation = { latitude: lat, longitude: lng };
-      console.log('Valid user location detected:', userLocation);
+    // Validate user location
+    if (latitude && longitude) {
+      const lat = parseFloat(latitude as string);
+      const lng = parseFloat(longitude as string);
+      
+      // Check if the values are valid numbers and within reasonable range for Singapore
+      if (!isNaN(lat) && !isNaN(lng) && 
+          lat >= 1.1 && lat <= 1.5 && // Singapore latitude range
+          lng >= 103.6 && lng <= 104.1) { // Singapore longitude range
+        userLocation = { latitude: lat, longitude: lng };
+        console.log('Valid user location received:', userLocation);
+      } else {
+        console.warn('Invalid coordinates received:', { latitude, longitude });
+      }
     } else {
-      console.warn('Invalid coordinates received:', { latitude, longitude });
+      console.log('No user location provided in request');
     }
-  } else {
-    console.log('No user location provided in request');
-  }
-  
-  try {
-    // Get carpark data with distance calculation
-    const carparkData = await getAllCarparkAvailability(userLocation);
     
-    res.status(200).json(carparkData);
-  } catch (error) {
-    console.error('Error in unified carpark API handler:', error);
-    res.status(500).json({ error: 'Failed to fetch carpark data' });
-  }
-};
+    try {
+      // Get carpark data with distance calculation
+      // Using your existing getAllCarparkAvailability function
+      const carparkData = await getAllCarparkAvailability(userLocation);
+      
+      res.status(200).json({
+        ...carparkData,
+        meta: {
+          ...carparkData.meta,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Error in unified carpark API handler:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch carpark data',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  };
