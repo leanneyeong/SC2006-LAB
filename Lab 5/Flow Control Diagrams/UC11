@@ -1,0 +1,24 @@
+@startuml
+title UC011 - Control Flow Diagram (Submit Car Park Review)
+start
+
+:1. User selects car park to review;
+:2. Submit review request;
+
+:3. Fetch car park data;
+:4. Display review page;
+:5. User enters review;
+:6. Submit review;
+
+:7. Validate review content;
+if (8. Is review valid?) then (yes)
+  :9. Add review to database;
+  :10. Display confirmation message ("Review submitted successfully");
+  --> [Success]
+else (no)
+  :11. Display error message ("Review content invalid");
+  --> [Retry]
+endif
+
+stop
+@enduml

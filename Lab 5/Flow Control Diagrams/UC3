@@ -1,0 +1,33 @@
+@startuml
+title UC003 - Control Flow Diagram (User Login)
+start
+
+:1. User enters username and password;
+:2. Submit login;
+
+if (3. Are credentials valid?) then (yes)
+  :4. Redirect to home screen;
+  stop
+  ' Path A: Successful login
+else (no)
+  if (5. Too many failed attempts?) then (yes)
+    :6. Display account locked;
+    stop
+    ' Path B: Account locked after too many attempts
+  else (no)
+    :7. Display login error;
+  endif
+endif
+
+if (8. User clicks "Forgot Password") then (yes)
+  :9. Redirect to password reset;
+  stop
+  ' Path C: Redirected to password reset screen
+endif
+
+: [Retry]
+: User retries login with correct credentials;
+:2. Submit login again;
+--> [3.]
+
+@enduml

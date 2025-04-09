@@ -1,0 +1,29 @@
+@startuml
+title UC008 - Control Flow Diagram (Add Car Park to Favourites)
+start
+
+:1. User selects car park to add to favourites;
+:2. Submit request to add to favourites;
+
+:3. Check if car park is available;
+if (4. Is car park available?) then (yes)
+  :5. Add car park to favourites;
+  
+  :6. Confirm addition to user's profile;
+  :7. Display confirmation message ("Car park added to favourites");
+  --> [Success]
+else (no)
+  :8. Display "Car park is no longer available" message;
+  --> [Retry]
+endif
+
+if (9. Is car park already in favourites?) then (yes)
+  :10. Display "This car park is already in your favourites" message;
+  --> [Retry]
+else (no)
+  :11. Add car park to favourites list;
+  --> [Success]
+endif
+
+stop
+@enduml

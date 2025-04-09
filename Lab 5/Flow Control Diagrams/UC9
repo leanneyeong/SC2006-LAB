@@ -1,0 +1,28 @@
+@startuml
+title UC009 - Control Flow Diagram (Enable Notifications)
+start
+
+:1. User enables notifications;
+:2. Check user preferences;
+
+:3. Retrieve preferences from user profile;
+if (4. Are notifications enabled?) then (yes)
+  :5. Retrieve user's location;
+  :6. Fetch car park data based on location;
+  :7. Check for low availability in car parks;
+  if (8. Low availability detected?) then (yes)
+    :9. Create notification;
+    :10. Send push notification to user;
+    :11. User receives notification;
+    --> [Success]
+  else (no)
+    :12. No low availability detected;
+    --> [End]
+  endif
+else (no)
+  :13. Display message: "Notifications not enabled";
+  --> [Retry]
+endif
+
+stop
+@enduml

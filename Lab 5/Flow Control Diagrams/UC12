@@ -1,0 +1,28 @@
+@startuml
+title UC012 - Control Flow Diagram (Admin Approve/Reject Review)
+start
+
+:1. Admin selects "Review Request" to manage;
+:2. Request review data;
+
+:3. Fetch review data from database;
+if (4. Is review data available?) then (yes)
+  :5. Display review information to admin;
+  :6. Admin selects approve or reject;
+
+  if (7. Is review approved?) then (yes)
+    :8. Update review status in database;
+    :9. Display message ("Review approved");
+    --> [Success]
+  else (no)
+    :10. Reject review and update database;
+    :11. Display message ("Review rejected");
+    --> [Success]
+  endif
+else (no)
+  :12. Display message ("No review data found");
+  --> [Retry]
+endif
+
+stop
+@enduml
