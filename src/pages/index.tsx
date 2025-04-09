@@ -560,7 +560,7 @@ const ParkSMART: React.FC = () => {
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-2xl font-bold dark:text-white">
               {displayedSearchQuery ? (
-                <>Showing results for "{displayedSearchQuery}" <span className="text-base font-normal ml-2">({filteredLocations.length} carparks found)</span></>
+                <>Showing results for &quot;{displayedSearchQuery}&quot; <span className="text-base font-normal ml-2">({filteredLocations.length} carparks found)</span></>
               ) : (
                 <>All Carparks <span className="text-base font-normal ml-2">({filteredLocations.length} carparks)</span></>
               )}

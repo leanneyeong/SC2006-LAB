@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import { db } from '../../db';
 import carParkSchema from '../../db/schema/carparks-schema';
 import { eq, or } from 'drizzle-orm';  // Import 'or' instead of trying to use 'inArray'
+import { HousingDevelopmentBoard } from '../external/housing-development-board';
 dotenv.config();
 
 // Define interfaces for each data source
@@ -114,9 +115,6 @@ const getHDBCarparkCoordinates = (carpark_id: string, dbCarpark: any): { lat: nu
     if (area && areaCoordinates[area]) {
       return areaCoordinates[area];
     }
-    
-    // Use your default Singapore coordinates
-    return areaCoordinates['Singapore']; 
   };
 
 const generateHDBCarparkName = (blockId: string): string | undefined => {
@@ -140,34 +138,11 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 
 // UPDATED: Function to fetch HDB carpark data with FIXED database query
 export const getHDBCarparkAvailability = async (userLocation?: UserLocation): Promise<UnifiedCarparkSchema[]> => {
-  const url = "https://api.data.gov.sg/v1/transport/carpark-availability";
-  const options = { method: "GET" };
-  const results: UnifiedCarparkSchema[] = [];
-
-  try {
-    console.log("Fetching HDB carpark data...");
-    
-    // 1. Fetch real-time availability data from API
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      console.error(`HDB API error: Status ${response.status}`);
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log(`HDB API returned data with ${data.items?.[0]?.carpark_data?.length || 0} carparks`);
-
-    if (!data.items || !data.items[0] || !data.items[0].carpark_data) {
-      console.error("Invalid HDB API response format");
-      return [];
-    }
-
-    const items = data.items[0];
-    const timestamp = items.timestamp; // ISO string of the timestamp
-    const carpark_data = items.carpark_data;
+    const hdb = new HousingDevelopmentBoard()
+    const carpark_data = await hdb.getAvailability();
 
     // 2. Extract carpark numbers to query the database efficiently
-    const carparkNumbers = carpark_data.map((carpark: HDBCarparkSchema) => carpark.carpark_number);
+    const carparkNumbers = carpark_data.map((carpark) => carpark.carpark_number);
     console.log(`Found ${carparkNumbers.length} HDB carpark numbers`);
     
     // FIXED: Database query approach
@@ -265,7 +240,7 @@ export const getHDBCarparkAvailability = async (userLocation?: UserLocation): Pr
 
     // Sort by distance if user location is provided
     if (userLocation) {
-      results.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+      results.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     }
 
     console.log(`Returning ${results.length} HDB carpark entries`);
@@ -368,7 +343,7 @@ export const getLTACarparkAvailability = async (userLocation?: UserLocation): Pr
 
     // Sort by distance if user location is provided
     if (userLocation) {
-      results.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+      results.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     }
 
     console.log(`Returning ${results.length} LTA carpark entries`);
@@ -475,7 +450,7 @@ export const getURACarparkAvailability = async (userLocation?: UserLocation): Pr
 
     // Sort by distance if user location is provided
     if (userLocation) {
-      results.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+      results.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     }
 
     console.log(`Returning ${results.length} URA carpark entries`);

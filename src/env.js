@@ -8,6 +8,7 @@ export const env = createEnv({
    */
   server: {
     CLERK_WEBHOOK_SECRET: z.string(),
+    LTA_API_KEY: z.string(),
     DATABASE_URL: z
       .string()
       .url()
@@ -34,6 +35,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    LTA_API_KEY: process.env.LTA_API_KEY,
     CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,

@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import { env } from "~/env";
 
 interface CarparkAvailabilitySchema {
   CarParkID: string;
@@ -116,7 +115,7 @@ export const getLTACombinedCarparkAvailability = async (userLocation?: UserLocat
   const url = "https://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2";
   const options = {
     method: "GET",
-    headers: { "AccountKey": process.env.LTA_API_KEY as string },
+    headers: { "AccountKey": env.LTA_API_KEY as string },
   };
   const results: EnhancedCarparkSchema[] = [];
 
