@@ -112,33 +112,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             </Button>
           </form>
           
-          <div className="flex items-center ml-0 md:ml-4 space-x-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="ev-charging" 
-                checked={evCharging}
-                onCheckedChange={(checked) => setEvCharging(checked as boolean)}
-                className="border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-500"
-              />
-              <label htmlFor="ev-charging" className="text-sm font-medium">
-                EV Charging
-              </label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="sheltered" 
-                checked={shelteredCarpark}
-                onCheckedChange={(checked) => setShelteredCarpark(checked as boolean)}
-                className="border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-500"
-              />
-              <label htmlFor="sheltered" className="text-sm font-medium">
-                Sheltered Carpark
-              </label>
-            </div>
-            
-{/* Removed the location button as requested */}
-          </div>
+
           
           <div className="flex items-center ml-0 md:ml-auto space-x-4 relative">
             <DropdownMenu>
