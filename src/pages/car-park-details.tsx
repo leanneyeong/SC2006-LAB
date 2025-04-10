@@ -5,6 +5,7 @@ import { Navigation } from '~/components/global/navigation';
 import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
+import MapViewCarparkDetails from '~/components/map/map-view-carpark-details';
 
 interface ReviewProps {
   text: string;
@@ -345,11 +346,14 @@ const CarParkDetailPage: React.FC = () => {
             
             {/* Right Column - Map */}
             <div className="relative min-h-96 overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-sm dark:border-gray-600 dark:bg-gray-700">
-              <img 
+              {/* <img 
                 src="/api/placeholder/800/600"
                 alt="Google Map" 
                 className="h-full w-full object-cover"
-              />
+              /> */}
+
+              <MapViewCarparkDetails/>
+
               <div className="absolute bottom-4 right-4 flex space-x-2">
                 <Button 
                   className="bg-blue-500 text-white hover:bg-blue-600"

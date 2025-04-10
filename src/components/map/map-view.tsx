@@ -33,15 +33,17 @@ export default function MapView() {
   // Handle navigation to car-park-details page
   const handleViewDetails = (carpark) => {
     router.push({
-      pathname: '/car-park-details',
-      query: { 
-        id: carpark.CarParkID || carpark.Development.replace(/\s+/g, '-').toLowerCase(),
+      pathname: "/car-park-details",
+      query: {
+        id:
+          carpark.CarParkID ||
+          carpark.Development.replace(/\s+/g, "-").toLowerCase(),
         name: carpark.Development,
         area: carpark.Area,
         lots: carpark.AvailableLots,
         type: carpark.LotType,
-        agency: carpark.Agency
-      }
+        agency: carpark.Agency,
+      },
     });
   };
 
@@ -68,10 +70,14 @@ export default function MapView() {
             mapId={process.env.NEXT_PUBLIC_MAP_ID}
           >
             <MapControl position={ControlPosition.RIGHT_BOTTOM}>
-              <LocateButton currentLocation={currentLocation}/>
+              <LocateButton currentLocation={currentLocation} />
             </MapControl>
 
             <GeolocationMarker position={currentLocation} />
+
+            <MapControl position={ControlPosition.TOP_RIGHT}>
+              <CarparkDropdown carpark={selectedCarpark} />
+            </MapControl>
 
             {/* Origin Marker Component */}
             {/* <OriginMarker
@@ -289,15 +295,15 @@ const GeolocationMarker = ({ position }) => {
 const LocateButton = ({ currentLocation }) => {
   const map = useMap();
   return (
-  <button
-    className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
-    onClick={() => {
-      map?.panTo(currentLocation)
-      map?.setZoom(15)
-    }}
-  >
-    <Locate />
-  </button>
+    <button
+      className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
+      onClick={() => {
+        map?.panTo(currentLocation);
+        map?.setZoom(15);
+      }}
+    >
+      <Locate />
+    </button>
   );
 };
 
@@ -367,7 +373,12 @@ const CarparksMarker = ({
   );
 };
 
-const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }) => {
+const CarparkDetailsCard = ({
+  carpark,
+  onClose,
+  onShowDirection,
+  onViewDetails,
+}) => {
   return (
     <div
       style={{
@@ -401,7 +412,7 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }
 
       {/* Show Direction Button */}
       <div>
-        <Button 
+        <Button
           className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
           onClick={() => onViewDetails(carpark)}
         >
@@ -440,6 +451,65 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }
           <span className="font-medium">Agency:</span> {carpark.Agency || "N/A"}
         </p>
       </CardContent>
+    </div>
+  );
+};
+
+const CarparkDropdown = ({ carpark }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div
+      className={`mb-4 translate-x-[-55px] translate-y-[10px] rounded-2xl border shadow-md transition-all duration-300 ease-in-out`}
+      style={{ width: "300px" }} // Set a fixed width
+    >
+      <button
+        onClick={() => {
+          if (carpark) setIsOpen(!isOpen);
+        }}
+        className="flex w-full items-center justify-between rounded-2xl bg-white p-4 hover:bg-gray-100"
+      >
+        {carpark && (
+          <span className="text-sm font-semibold">{carpark.Development}</span>
+        )}
+
+        <svg
+          className={`h-5 w-5 transform transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="p-4 bg-gray-50 rounded-b-2xl">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div className="font-medium text-gray-600">Carpark No:</div>
+            <div className="text-gray-800">{carpark.CarParkID}</div>
+
+            <div className="font-medium text-gray-600">Area:</div>
+            <div className="text-gray-800">{carpark.Area}</div>
+
+            <div className="font-medium text-gray-600">Lots Available:</div>
+            <div className="text-gray-800">{carpark.AvailableLots}</div>
+
+            <div className="font-medium text-gray-600">Lot Type:</div>
+            <div className="text-gray-800">{carpark.LotType}</div>
+
+            <div className="font-medium text-gray-600">Agency:</div>
+            <div className="text-gray-800">{carpark.Agency}</div>
+          </div>
+        </div>
+)}
+
+
     </div>
   );
 };
