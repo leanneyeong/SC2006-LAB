@@ -155,6 +155,9 @@ dependencies:
   postgres:
     specifier: ^3.4.3
     version: 3.4.5
+  primereact:
+    specifier: ^10.9.4
+    version: 10.9.4(@types/react@18.3.19)(react-dom@18.2.0)(react@18.2.0)
   raw-body:
     specifier: ^3.0.0
     version: 3.0.0
@@ -3203,6 +3206,14 @@ packages:
     dependencies:
       '@types/react': 18.3.19
 
+  /@types/react-transition-group@4.4.12(@types/react@18.3.19):
+    resolution: {integrity: sha512-8TV6R3h2j7a91c+1DXdJi3Syo69zzIZbz7Lg5tORM5LEJG7X/E6a1V3drRyBRZq7/utz7A+c4OgYLiLcYGHG6w==}
+    peerDependencies:
+      '@types/react': '*'
+    dependencies:
+      '@types/react': 18.3.19
+    dev: false
+
   /@types/react@18.3.19:
     resolution: {integrity: sha512-fcdJqaHOMDbiAwJnXv6XCzX0jDW77yI3tJqYh1Byn8EL5/S628WRx9b/y3DnNe55zTukUQKrfYxiZls2dHcUMw==}
     dependencies:
@@ -6194,6 +6205,24 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
     dev: true
+
+  /primereact@10.9.4(@types/react@18.3.19)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-GMrelh07Wd1cwKjHpay3LCpwP346D43qBVkt8H/anGYC3z7kv5/AP0pizZv+aGQs2Fg5ufTTf+SI7IKWmyzgGg==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      '@types/react': ^17.0.0 || ^18.0.0 || ^19.0.0
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+    dependencies:
+      '@types/react': 18.3.19
+      '@types/react-transition-group': 4.4.12(@types/react@18.3.19)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      react-transition-group: 4.4.5(react-dom@18.2.0)(react@18.2.0)
+    dev: false
 
   /prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}

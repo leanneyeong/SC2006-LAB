@@ -18,6 +18,7 @@ import { carparkData, formatCarparkData } from "~/server/carpark/api";
 import { Button } from "../ui/button";
 import { CardContent } from "../ui/card";
 import { useRouter } from "next/router"; // Import router
+import DisplayPrice from "./display-price";
 
 export default function MapView() {
   const router = useRouter(); // Initialize router
@@ -68,6 +69,8 @@ export default function MapView() {
             defaultZoom={12}
             defaultCenter={origin}
             mapId={process.env.NEXT_PUBLIC_MAP_ID}
+            fullscreenControl={false}
+            streetViewControl={false}
           >
             <MapControl position={ControlPosition.RIGHT_BOTTOM}>
               <LocateButton currentLocation={currentLocation} />
@@ -460,14 +463,14 @@ const CarparkDropdown = ({ carpark }) => {
 
   return (
     <div
-      className={`mb-4 translate-x-[-55px] translate-y-[10px] rounded-2xl border shadow-md transition-all duration-300 ease-in-out`}
-      style={{ width: "300px" }} // Set a fixed width
+      className={`mb-4 translate-x-[-5px] translate-y-[5px] rounded-2xl border shadow-md transition-all duration-300 ease-in-out`}
+      style={{ width: "350px" }} // Set a fixed width
     >
       <button
         onClick={() => {
           if (carpark) setIsOpen(!isOpen);
         }}
-        className="flex w-full items-center justify-between rounded-2xl bg-white p-4 hover:bg-gray-100"
+        className="flex w-full items-center justify-between bg-white p-4 hover:bg-gray-100"
       >
         {carpark && (
           <span className="text-sm font-semibold">{carpark.Development}</span>
@@ -488,28 +491,48 @@ const CarparkDropdown = ({ carpark }) => {
         </svg>
       </button>
 
-      {isOpen && (
-        <div className="p-4 bg-gray-50 rounded-b-2xl">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            <div className="font-medium text-gray-600">Carpark No:</div>
-            <div className="text-gray-800">{carpark.CarParkID}</div>
+      {isOpen && carpark && (
+        <div className="max-h-60 overflow-y-auto bg-gray-50 p-4">
+          <table className="w-full text-left text-xs text-gray-700">
+            <tbody>
+              <tr>
+                <th className="py-1 pr-3 font-medium text-gray-600">
+                  Carpark No
+                </th>
+                <td className="py-1 text-gray-800">{carpark.CarParkID}</td>
+              </tr>
 
-            <div className="font-medium text-gray-600">Area:</div>
-            <div className="text-gray-800">{carpark.Area}</div>
+              <tr>
+                <th className="py-1 pr-3 font-medium text-gray-600">Area</th>
+                <td className="py-1 text-gray-800">{carpark.Area}</td>
+              </tr>
 
-            <div className="font-medium text-gray-600">Lots Available:</div>
-            <div className="text-gray-800">{carpark.AvailableLots}</div>
+              <tr>
+                <th className="py-1 pr-3 font-medium text-gray-600">
+                  Lots Available
+                </th>
+                <td className="py-1 text-gray-800">{carpark.AvailableLots}</td>
+              </tr>
 
-            <div className="font-medium text-gray-600">Lot Type:</div>
-            <div className="text-gray-800">{carpark.LotType}</div>
+              <tr>
+                <th className="py-1 pr-3 font-medium text-gray-600">
+                  Lot Type
+                </th>
+                <td className="py-1 text-gray-800">{carpark.LotType}</td>
+              </tr>
 
-            <div className="font-medium text-gray-600">Agency:</div>
-            <div className="text-gray-800">{carpark.Agency}</div>
-          </div>
+              <tr className="border-b">
+                <th className="py-1 pr-3 font-medium text-gray-600">Agency</th>
+                <td className="py-1 text-gray-800">{carpark.Agency}</td>
+              </tr>
+
+              <br/>
+            </tbody>
+          </table>
+          <DisplayPrice/>
+
         </div>
-)}
-
-
+      )}
     </div>
   );
 };

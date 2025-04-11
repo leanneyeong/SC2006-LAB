@@ -47,6 +47,7 @@ export const updateCarparkAvailability = async () => {
             // connect to db here to run sql
             // INSERT INTO availability_lot (lots_available, total_lots, update_datetime)
             // VALUES (lots_available, total_lots, update_datetime)
+            // WHERE carpark_id=carpark_id AND lot_type=lot_type
         }
       });
     });
