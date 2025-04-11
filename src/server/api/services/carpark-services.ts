@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+/*import dotenv from 'dotenv';
 import { db } from '../../db';
 import carParkSchema from '../../db/schema/carparks-schema';
 import { eq, or } from 'drizzle-orm';  // Import 'or' instead of trying to use 'inArray'

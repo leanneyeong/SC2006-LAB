@@ -2,7 +2,7 @@ import { pgTable, text, uuid, timestamp, geometry, integer } from "drizzle-orm/p
 import { CURRENT_TIMESTAMP } from "./schema-constants";
 
 const carParkSchema = pgTable(
-  "car_park",
+  "car_park_final",
   {
     id: uuid('id').primaryKey().defaultRandom(),
     carParkNo: text('car_park_no').notNull(),

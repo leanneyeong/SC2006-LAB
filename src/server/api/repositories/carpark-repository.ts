@@ -13,7 +13,10 @@ export class CarParkRepository {
             .select(getTableColumns(carParkSchema))
             .from(carParkSchema)
 
-            return results.map((result) =>  new CarPark({...result}))
+            return results.map((result) => {
+                // Type assertion to help TypeScript understand this is compatible
+                return new CarPark(result as any);
+            });
         } catch(err){
             const e = err as Error;
             throw new TRPCError({
@@ -25,16 +28,17 @@ export class CarParkRepository {
 
     public async updateMany(entities: CarPark[]){
         try{
-
-            const queries = entities.map((entity) => 
-                this.db
+            const queries = entities.map((entity) => {
+                const entityValue = entity.getValue();
+                
+                return this.db
                     .update(carParkSchema)
                     .set({
-                        ...entity.getValue(),
+                        ...entityValue as any, // Type assertion for compatibility
                         updatedAt: new Date()
                     })
-                    .where(eq(carParkSchema.id, entity.getValue().id))
-            )
+                    .where(eq(carParkSchema.id, entityValue.id));
+            });
             
             // @ts-expect-error - drizzle-orm batch operation type mismatch but operation works as expected
             await this.db.batch(queries);
