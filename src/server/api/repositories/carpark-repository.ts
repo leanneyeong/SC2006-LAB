@@ -28,25 +28,29 @@ export class CarParkRepository {
 
     public async updateMany(entities: CarPark[]){
         try{
-            const queries = entities.map((entity) => {
+            console.log(`Updating ${entities.length} carparks individually`);
+            
+            // Process each entity individually instead of using batch
+            for (const entity of entities) {
                 const entityValue = entity.getValue();
                 
-                return this.db
+                await this.db
                     .update(carParkSchema)
                     .set({
                         ...entityValue as any, // Type assertion for compatibility
+                        availableLots: entityValue.availableLots, // Explicitly set this field
                         updatedAt: new Date()
                     })
                     .where(eq(carParkSchema.id, entityValue.id));
-            });
+            }
             
-            // @ts-expect-error - drizzle-orm batch operation type mismatch but operation works as expected
-            await this.db.batch(queries);
+            console.log('All updates completed successfully');
         } catch(err){
+            console.error('Error updating carparks:', err);
             const e = err as Error;
             throw new TRPCError({
                 code:"INTERNAL_SERVER_ERROR",
-                message:e.message
+                message: e.message
             })
         }
     }
