@@ -15,7 +15,6 @@ export class HDBDataService {
         const rawHDBData = await this.hdb.getAvailability();
         console.log('Raw HDB Data:', rawHDBData);  // Log raw data
         const carParks = await carParkRepository.findAll();
-        console.log('Total Carparks:', carParks.length);  // Log total carparks
 
         const updatedCarParks : CarPark[] = []
 
