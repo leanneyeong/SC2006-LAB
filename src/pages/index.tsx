@@ -6,21 +6,23 @@ import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
 import { RefreshCw } from "lucide-react";
 import { api } from "~/utils/api"; // Import tRPC API
+import { useRouter } from "next/router"; // Import Next.js router
 
 // Updated interface for carpark data to match schema
 interface CarparkData {
   id: string;
-  name: string; // Now using address as name
+  name: string;
   carParkType: string;
   typeOfParkingSystem: string;
   availableLots: string;
-  pricing?: string; // Optional pricing information
+  pricing?: string;
   availabilityColor: string;
   carParkNo?: string;
 }
 
 // Main ParkSMART Component
 const ParkSMART: React.FC = () => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [displayedSearchQuery, setDisplayedSearchQuery] = useState<string>("");
   const [evCharging, setEvCharging] = useState<boolean>(true);
@@ -134,10 +136,36 @@ const ParkSMART: React.FC = () => {
     }, 1500);
   };
 
-  // View details handler
+  // View details handler - navigate to car-park-details page with full parking details
   const handleViewDetails = (parking: CarparkData) => {
-    console.log("View details:", parking.id);
-    // In a real implementation, this would navigate to details page
+    // Create a sample pricing data to demonstrate dynamic pricing
+    // In a real app, this would come from your API
+    const samplePricingData = {
+      weekday: {
+        morning: "0.60",
+        afternoon: "1.20",
+        evening: "0.60"
+      },
+      weekend: {
+        morning: "1.20",
+        afternoon: "1.50",
+        evening: "0.60"
+      }
+    };
+    
+    router.push({
+      pathname: '/car-park-details',
+      query: { 
+        id: parking.id,
+        name: parking.name,
+        carParkType: parking.carParkType,
+        typeOfParkingSystem: parking.typeOfParkingSystem,
+        availableLots: parking.availableLots,
+        availabilityColor: parking.availabilityColor,
+        pricing: JSON.stringify(samplePricingData),
+        carParkNo: parking.carParkNo
+      }
+    });
   };
 
   // Reset all filters
