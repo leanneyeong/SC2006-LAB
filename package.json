@@ -64,6 +64,7 @@
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.41.0",
     "embla-carousel-react": "^8.5.2",
+    "geolib": "^3.3.4",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.483.0",
     "micro": "^10.0.1",

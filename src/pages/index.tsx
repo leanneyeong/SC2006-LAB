@@ -8,6 +8,7 @@ import { RefreshCw } from "lucide-react";
 import { api } from "~/utils/api"; // Import tRPC API
 import HDBMapView from "~/components/map/hdb-map-view";
 import MapViewUpdated from "~/components/map/map-view2";
+import { getDistance } from "geolib"; // calculate distance bw 2 points
 
 // Updated interface for carpark data to match schema
 interface CarparkData {
@@ -21,10 +22,9 @@ interface CarparkData {
   carParkNo?: string;
   location: [number, number];
   distance: number;
-  lat: number
-  lng: number
+  lat: number;
+  lng: number;
 }
-
 
 interface Position {
   lat: number;
@@ -40,66 +40,68 @@ const ParkSMART: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
   const [currentSort, setCurrentSort] = useState<string>("");
-  const [filteredParkingLocations, setFilteredParkingLocations] = useState<CarparkData[]>([]);
+  const [filteredParkingLocations, setFilteredParkingLocations] = useState<
+    CarparkData[]
+  >([]);
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
 
   // get current location
-    useEffect(() => {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        const location = { lat: latitude, lng: longitude };
-        setCurrentLocation(location);
-      });
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      const location = { lat: latitude, lng: longitude };
+      setCurrentLocation(location);
     });
-  
+  });
+
   // Use tRPC to fetch carpark data
-  const { data: carparks, isLoading, refetch } = api.carPark.getCarparks.useQuery();
-  
+  const {
+    data: carparks,
+    isLoading,
+    refetch,
+  } = api.carPark.getCarparks.useQuery();
+
   // Use tRPC to refresh carpark availability data
   const refreshMutation = api.carPark.refreshAvailability.useMutation();
 
   // Fixed distances for consistency between server and client
   const mockDistances = ["2.45", "3.78", "1.23"];
 
-  function calculateDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLng = (lng2 - lng1) * (Math.PI / 180);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) *
-        Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // distance in kilometers
-  }
-
   // Unified filtering logic in a single useEffect
   useEffect(() => {
     if (carparks) {
       let filtered = [...carparks];
-      
+
       // Apply search filter if query exists
       if (displayedSearchQuery) {
-        filtered = filtered.filter(carpark => 
-          carpark.address.toLowerCase().includes(displayedSearchQuery.toLowerCase()) ||
-          carpark.carParkType.toLowerCase().includes(displayedSearchQuery.toLowerCase())
+        filtered = filtered.filter(
+          (carpark) =>
+            carpark.address
+              .toLowerCase()
+              .includes(displayedSearchQuery.toLowerCase()) ||
+            carpark.carParkType
+              .toLowerCase()
+              .includes(displayedSearchQuery.toLowerCase()),
         );
       }
-      
+
       // Apply sheltered filter if checked
       if (shelteredCarpark) {
-        filtered = filtered.filter(carpark => 
-          carpark.carParkType.toLowerCase().includes("multi-storey") || 
-          carpark.carParkType.toLowerCase().includes("basement")
+        filtered = filtered.filter(
+          (carpark) =>
+            carpark.carParkType.toLowerCase().includes("multi-storey") ||
+            carpark.carParkType.toLowerCase().includes("basement"),
         );
       }
-      
+
       // Apply sorting if a sort method is selected
       if (currentSort) {
         switch (currentSort) {
           case "availability":
-            filtered.sort((a, b) => (Number(b.availableLots) || 0) - (Number(a.availableLots) || 0));
+            filtered.sort(
+              (a, b) =>
+                (Number(b.availableLots) || 0) - (Number(a.availableLots) || 0),
+            );
             break;
           case "alphabetical":
             filtered.sort((a, b) => a.address.localeCompare(b.address));
@@ -112,16 +114,28 @@ const ParkSMART: React.FC = () => {
             break;
         }
       }
-      
+
       // Map the filtered data to the display format
-      const mappedData = filtered.map(carpark => {
+      const mappedData = filtered.map((carpark) => {
         const availableLots = Number(carpark.availableLots) || 0;
         let availabilityColor = "text-green-600";
         if (availableLots <= 5) availabilityColor = "text-yellow-600";
         if (availableLots <= 2) availabilityColor = "text-red-600";
 
-        let distance = calculateDistance(currentLocation?.lat, currentLocation?.lng, carpark.location[0], carpark.location[1])
-        
+        let distance = 0;
+        console.log('current location:', currentLocation)
+        if (currentLocation) {
+          distance = getDistance(
+            {
+              latitude: currentLocation?.lat,
+              longitude: currentLocation?.lng,
+            },
+            { latitude: carpark.location[1], longitude: carpark.location[0] },
+          );
+        }
+
+        distance = distance / 1000;  // convert m to km
+
         return {
           id: carpark.id,
           name: carpark.address,
@@ -137,7 +151,7 @@ const ParkSMART: React.FC = () => {
           lng: carpark.location[0],
         };
       });
-      
+
       setFilteredParkingLocations(mappedData);
     }
   }, [carparks, shelteredCarpark, displayedSearchQuery, currentSort]);
@@ -207,32 +221,49 @@ const ParkSMART: React.FC = () => {
 
         {/* <MapView /> */}
         {/* <HDBMapView carparks={filteredParkingLocations.slice(0, 20)}/> */}
-        <MapViewUpdated carparks_data={filteredParkingLocations}/>
+        <MapViewUpdated carparks_data={filteredParkingLocations} />
         {/* <MapViewUpdated carparks_data={filteredParkingLocations.slice(0, 200)}/> */}
 
         <main className="flex-grow bg-gray-50 p-4 dark:bg-gray-800">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-2xl font-bold dark:text-white">
               {displayedSearchQuery ? (
-                <>Showing results for &quot;{displayedSearchQuery}&quot; <span className="text-base font-normal ml-2">({filteredParkingLocations.length} carparks found)</span></>
+                <>
+                  Showing results for &quot;{displayedSearchQuery}&quot;{" "}
+                  <span className="ml-2 text-base font-normal">
+                    ({filteredParkingLocations.length} carparks found)
+                  </span>
+                </>
               ) : (
-                <>All Carparks <span className="text-base font-normal ml-2">({filteredParkingLocations.length} carparks)</span></>
+                <>
+                  All Carparks{" "}
+                  <span className="ml-2 text-base font-normal">
+                    ({filteredParkingLocations.length} carparks)
+                  </span>
+                </>
               )}
             </h2>
-            
+
             <div>
-              <Button 
+              <Button
                 size="sm"
-                variant="outline" 
+                variant="outline"
                 onClick={handleRefresh}
-                disabled={isRefreshing || isGettingLocation || refreshMutation.isLoading}
+                disabled={
+                  isRefreshing || isGettingLocation || refreshMutation.isLoading
+                }
                 className="flex items-center gap-1 border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
-                <RefreshCw size={16} className={`${isRefreshing || refreshMutation.isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  size={16}
+                  className={`${isRefreshing || refreshMutation.isLoading ? "animate-spin" : ""}`}
+                />
                 <span>
-                  {isRefreshing || refreshMutation.isLoading ? 'Refreshing...' : 
-                   isGettingLocation ? 'Getting location...' : 
-                   'Refresh'}
+                  {isRefreshing || refreshMutation.isLoading
+                    ? "Refreshing..."
+                    : isGettingLocation
+                      ? "Getting location..."
+                      : "Refresh"}
                 </span>
               </Button>
             </div>
@@ -243,12 +274,14 @@ const ParkSMART: React.FC = () => {
               <p className="text-lg dark:text-white">Loading carpark data...</p>
             </div>
           ) : filteredParkingLocations.length === 0 ? (
-            <div className="flex justify-center flex-col items-center p-12">
-              <p className="text-lg dark:text-white mb-4">
-                {searchQuery || shelteredCarpark ? `No car parking lots found matching your criteria` : "No car parking lots available"}
+            <div className="flex flex-col items-center justify-center p-12">
+              <p className="mb-4 text-lg dark:text-white">
+                {searchQuery || shelteredCarpark
+                  ? `No car parking lots found matching your criteria`
+                  : "No car parking lots available"}
               </p>
               {(searchQuery || shelteredCarpark) && (
-                <Button 
+                <Button
                   onClick={resetFilters}
                   className="bg-blue-500 text-white hover:bg-blue-600"
                 >
@@ -286,9 +319,11 @@ const ParkSMART: React.FC = () => {
                     {/* Display a fixed mock distance for UI purposes */}
                     <p>
                       <span className="font-medium">Distance:</span>{" "}
-                      <span className="text-blue-600">{mockDistances[index % mockDistances.length]} km</span>
+                      <span className="text-blue-600">
+                        {mockDistances[index % mockDistances.length]} km
+                      </span>
                     </p>
-                    <Button 
+                    <Button
                       className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
                       onClick={() => handleViewDetails(parking)}
                     >

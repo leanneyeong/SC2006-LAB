@@ -553,7 +553,7 @@ const CarparksMarker = ({
                 }}
               >
                 <div style={{ color: "black" }}>
-                  <p>Distance: {carpark.distance}</p>
+                  <p>Distance: {carpark.distance} km</p>
                   <p>Available Lots: {carpark.availableLots}</p>
                 </div>
               </InfoWindow>
