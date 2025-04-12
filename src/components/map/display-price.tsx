@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
-export default function DisplayPrice({ carpark_id }) {
-  const [value, setValue] = useState<string | null>(null);
+interface DisplayPriceProps {
+  carpark_id: string;
+}
+
+export default function DisplayPrice({ carpark_id }: DisplayPriceProps) {
+  const [value, setValue] = useState<string>('Car');
 
   return (
     <>
@@ -182,12 +186,12 @@ const PeakHourStandardRate = ({
 };
 
 const displayPeakHourParkingRateInfo = (carpark_id: string) => {
-  var weekdayStartOfPeakHour = 0,
-    weekdayEndOfPeakHour = 0,
-    satStartOfPeakHour = 0,
-    satEndOfPeakHour = 0,
-    sunStartOfPeakHour = 0,
-    sunEndOfPeakHour = 0;
+  let weekdayStartOfPeakHour = 0;
+  let weekdayEndOfPeakHour = 0;
+  let satStartOfPeakHour = 0;
+  let satEndOfPeakHour = 0;
+  let sunStartOfPeakHour = 0;
+  let sunEndOfPeakHour = 0;
 
   if (["ACB", "CY"].includes(carpark_id)) {
     weekdayStartOfPeakHour = 10;

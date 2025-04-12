@@ -5,30 +5,17 @@ import { TopBar } from "~/components/global/top-bar-home";
 import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
 import { RefreshCw } from "lucide-react"; // Removed Heart icon as we're using FavouriteButton
-import { api } from "~/utils/api"; // Import tRPC API
+import { api, RouterOutputs } from "~/utils/api"; // Import tRPC API
 import HDBMapView from "~/components/map/hdb-map-view";
 import MapViewUpdated from "~/components/map/map-view2";
 import { getDistance } from "geolib"; // calculate distance bw 2 points
 import { useRouter } from "next/router"; // Import Next.js router
 import { FavouriteButton } from "../components/global/favourite-button"; // Import the FavouriteButton component
+import getAvailabilityColour from "~/utils/get-availability-colour";
+import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
 
 // Updated interface for carpark data to match schema
-interface CarparkData {
-  id: string;
-  name: string;
-  carParkType: string;
-  typeOfParkingSystem: string;
-  availableLots: string;
-  pricing?: string;
-  availabilityColor: string;
-  carParkNo?: string;
-  isFavorite?: boolean; // Added to track favorite status
-  location: [number, number];
-  distance: number;
-  lat: number;
-  lng: number;
-}
-
+type CarparkData = RouterOutputs["carPark"]["getCarparks"][number]
 interface Position {
   lat: number;
   lng: number;
@@ -65,11 +52,7 @@ const ParkSMART: React.FC = () => {
     refetch,
   } = api.carPark.getCarparks.useQuery();
 
-  // Use tRPC to refresh carpark availability data
   const refreshMutation = api.carPark.refreshAvailability.useMutation();
-
-  // Fixed distances for consistency between server and client
-  const mockDistances = ["2.45", "3.78", "1.23"];
 
   // Unified filtering logic in a single useEffect
   useEffect(() => {
@@ -111,53 +94,17 @@ const ParkSMART: React.FC = () => {
             filtered.sort((a, b) => a.address.localeCompare(b.address));
             break;
           case "distance":
-            // This would be implemented with actual distance data
-            // For now, we'll keep the existing order
+            filtered.sort((a, b) => {
+              const distanceA = parseFloat(getDistanceBetweenCarPark(a.location)) || 9999;
+              const distanceB = parseFloat(getDistanceBetweenCarPark(b.location)) || 9999;
+              return distanceA - distanceB;
+            });
             break;
           default:
             break;
         }
       }
-
-      // Map the filtered data to the display format
-      const mappedData = filtered.map((carpark) => {
-        const availableLots = Number(carpark.availableLots) || 0;
-        let availabilityColor = "text-green-600";
-        if (availableLots <= 5) availabilityColor = "text-yellow-600";
-        if (availableLots <= 2) availabilityColor = "text-red-600";
-
-        let distance = 0;
-        console.log('current location:', currentLocation)
-        if (currentLocation) {
-          distance = getDistance(
-            {
-              latitude: currentLocation?.lat,
-              longitude: currentLocation?.lng,
-            },
-            { latitude: carpark.location[1], longitude: carpark.location[0] },
-          );
-        }
-
-        distance = distance / 1000;  // convert m to km
-
-        return {
-          id: carpark.id,
-          name: carpark.address,
-          carParkType: carpark.carParkType,
-          typeOfParkingSystem: carpark.typeOfParkingSystem,
-          availableLots: availableLots.toString(),
-          pricing: "Varies",
-          availabilityColor,
-          carParkNo: carpark.carParkNo,
-          isFavorite: false, // Default value for favorite status,
-          location: carpark.location,
-          distance: distance.toFixed(2),
-          lat: carpark.location[1],
-          lng: carpark.location[0],
-        };
-      });
-
-      setFilteredParkingLocations(mappedData);
+      setFilteredParkingLocations(filtered);
     }
   }, [carparks, shelteredCarpark, displayedSearchQuery, currentSort]);
 
@@ -184,14 +131,23 @@ const ParkSMART: React.FC = () => {
     }
   };
 
-  // Simulate location getting
+  // Get user location and sort by distance
   const getUserLocation = () => {
     setIsGettingLocation(true);
-    setTimeout(() => {
-      setIsGettingLocation(false);
-      // In a real app, we would use the browser's geolocation API
-      // and then sort carparks by distance from user
-    }, 1500);
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+        // Sort by distance
+        setCurrentSort("distance");
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setIsGettingLocation(false);
+      }
+    );
   };
 
   // View details handler - navigate to car-park-details page with full parking details
@@ -216,14 +172,15 @@ const ParkSMART: React.FC = () => {
       pathname: '/car-park-details',
       query: { 
         id: parking.id,
-        name: parking.name,
+        name: parking.address,
         carParkType: parking.carParkType,
         typeOfParkingSystem: parking.typeOfParkingSystem,
         availableLots: parking.availableLots,
-        availabilityColor: parking.availabilityColor,
         pricing: JSON.stringify(samplePricingData),
         carParkNo: parking.carParkNo,
-        isFavorite: parking.isFavorite ? "true" : "false"
+        isFavorite: false,
+        locationX: parking.location.x.toString(),
+        locationY: parking.location.y.toString()
       }
     });
   };
@@ -253,10 +210,8 @@ const ParkSMART: React.FC = () => {
           isGettingLocation={isGettingLocation}
         />
 
-        {/* <MapView /> */}
-        {/* <HDBMapView carparks={filteredParkingLocations.slice(0, 20)}/> */}
+        {/* Display map with all carpark markers */}
         <MapViewUpdated carparks_data={filteredParkingLocations} />
-        {/* <MapViewUpdated carparks_data={filteredParkingLocations.slice(0, 200)}/> */}
 
         <main className="flex-grow bg-gray-50 p-4 dark:bg-gray-800">
           <div className="mb-6 flex items-center justify-between">
@@ -331,7 +286,7 @@ const ParkSMART: React.FC = () => {
                   className="overflow-hidden border border-gray-200 dark:border-gray-600 dark:bg-gray-700"
                 >
                   <CardContent className="p-6 dark:text-white">
-                    <h3 className="mb-2 text-xl font-bold">{parking.name}</h3>
+                    <h3 className="mb-2 text-xl font-bold">{parking.address}</h3>
                     <p>
                       <span className="font-medium">Carpark Type:</span>{" "}
                       {parking.carParkType}
@@ -342,19 +297,19 @@ const ParkSMART: React.FC = () => {
                     </p>
                     <p>
                       <span className="font-medium">Availability:</span>{" "}
-                      <span className={parking.availabilityColor}>
+                      <span className={getAvailabilityColour(parking.availableLots)}>
                         {parking.availableLots}
                       </span>
                     </p>
                     <p>
                       <span className="font-medium">Pricing:</span>{" "}
-                      {parking.pricing}
+                      Varies
                     </p>
-                    {/* Display a fixed mock distance for UI purposes */}
+                    {/* Display real distance from current location */}
                     <p>
                       <span className="font-medium">Distance:</span>{" "}
                       <span className="text-blue-600">
-                        {mockDistances[index % mockDistances.length]} km
+                        {getDistanceBetweenCarPark(parking.location)} km
                       </span>
                     </p>
                   </CardContent>
@@ -369,7 +324,7 @@ const ParkSMART: React.FC = () => {
                       {/* Replaced the "Add to Favourites" button with FavouriteButton component */}
                       <FavouriteButton 
                         carParkId={parking.id}
-                        isFavourited={!!parking.isFavorite}
+                        isFavourited={!!true}
                       />
                     </div>
                   </CardFooter>

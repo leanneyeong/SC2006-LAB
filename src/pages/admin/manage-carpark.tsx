@@ -141,7 +141,7 @@ const CarparkManagement: React.FC = () => {
 
   // Handle navigation to different sections
   const handleNavigation = (path: string) => {
-    router.push(path);
+    void router.push(path);
   };
   
   // Handle edit button click

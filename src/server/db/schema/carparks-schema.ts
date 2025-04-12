@@ -7,7 +7,7 @@ const carParkSchema = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     carParkNo: text('car_park_no').notNull(),
     address: text('address').notNull(),
-    location: geometry('location').notNull(),
+    location: geometry('location', { type: 'point', mode: 'xy', srid: 4326 }).notNull(),
     carParkType: text('car_park_type').notNull(),
     typeOfParkingSystem: text('type_of_parking_system').notNull(),
     shortTermParking: text('short_term_parking').notNull(),

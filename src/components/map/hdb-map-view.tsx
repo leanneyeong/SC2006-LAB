@@ -15,6 +15,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Bookmark, Locate, InfoIcon, Star, X } from "lucide-react";
 import DisplayPrice from "./display-price";
 import DirectionsIcon from "@mui/icons-material/Directions";
+import { env } from "~/env";
 // import InfoIcon from '@mui/icons-material/Info';
 
 interface CarparkData {
@@ -25,8 +26,8 @@ interface CarparkData {
   availableLots: string;
   pricing?: string; // Optional pricing information
   availabilityColor: string;
-  carParkNo?: string;
-  location: [number, number];
+  carParkNo: string;
+  location: [number, number]; // [lng, lat]
   distance: number;
   lat: number;
   lng: number;
@@ -37,10 +38,14 @@ interface Position {
   lng: number;
 }
 
-export default function HDBMapView({ carparks }) {
+interface HDBMapViewProps {
+  carparks: CarparkData[];
+}
+
+export default function HDBMapView({ carparks }: HDBMapViewProps) {
   const sg_center = { lat: 1.2833, lng: 103.8333 };
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
-  const [selectedCarpark, setSelectedCarpark] = useState(null);
+  const [selectedCarpark, setSelectedCarpark] = useState<CarparkData | null>(null);
   const [showDirection, setShowDirection] = useState(false);
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
@@ -52,14 +57,13 @@ export default function HDBMapView({ carparks }) {
       const location = { lat: latitude, lng: longitude };
       setCurrentLocation(location);
     });
-  });
+  }, []);
 
   useEffect(() => {
-    // console.log(carparks);
-    // console.log(selectedCarpark)
-    console.log(carparks[0]);
-    // console.log(carparks[0].location[0]);
-  }, []);
+    if (carparks.length > 0) {
+      console.log(carparks[0]);
+    }
+  }, [carparks]);
 
   const DirectionButton = () => {
     const map = useMap();
@@ -81,7 +85,10 @@ export default function HDBMapView({ carparks }) {
     return (
       <button
         className="flex h-12 w-12 -translate-x-3 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-        onClick={() => {}}
+        onClick={() => {
+          // Implement favorite functionality
+          console.log("Favorite button clicked");
+        }}
       >
         <Star />
       </button>
@@ -93,7 +100,10 @@ export default function HDBMapView({ carparks }) {
     return (
       <button
         className="flex h-12 w-12 -translate-x-4 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-        onClick={() => {}}
+        onClick={() => {
+          // Implement info functionality
+          console.log("Info button clicked");
+        }}
       >
         <InfoIcon />
       </button>
@@ -117,12 +127,12 @@ export default function HDBMapView({ carparks }) {
 
   return (
     <div>
-      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+      <APIProvider apiKey={env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
         <div style={{ width: "100%", height: "70vh" }}>
           <Map
             defaultZoom={12}
             defaultCenter={sg_center}
-            mapId={process.env.NEXT_PUBLIC_MAP_ID}
+            mapId={env.NEXT_PUBLIC_MAP_ID}
             fullscreenControl={false}
             streetViewControl={false}
             tiltInteractionEnabled={false}
@@ -190,7 +200,12 @@ export default function HDBMapView({ carparks }) {
   );
 }
 
-const Directions = ({ origin, destination }) => {
+interface DirectionsProps {
+  origin: Position;
+  destination: Position;
+}
+
+const Directions = ({ origin, destination }: DirectionsProps) => {
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
   const [directionsService, setDirectionsService] =
@@ -208,22 +223,39 @@ const Directions = ({ origin, destination }) => {
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
 
-    directionsService
-      .route({
-        origin,
-        destination,
-        travelMode: google.maps.TravelMode.DRIVING,
-        provideRouteAlternatives: true,
-      })
-      .then((response) => {
+    const fetchDirections = async () => {
+      try {
+        const response = await directionsService.route({
+          origin,
+          destination,
+          travelMode: google.maps.TravelMode.DRIVING,
+          provideRouteAlternatives: true,
+        });
         directionsRenderer.setDirections(response);
-      });
+      } catch (error) {
+        console.error("Error fetching directions:", error);
+      }
+    };
 
-    return () => directionsRenderer.setDirections(null);
+    void fetchDirections();
+
+    return () => {
+      if (directionsRenderer) {
+        directionsRenderer.setDirections(null);
+      }
+    };
   }, [directionsService, directionsRenderer, origin, destination]);
 
   return null;
 };
+
+interface CarparkMarkersProps {
+  carparks: CarparkData[];
+  setSelectedCarpark: React.Dispatch<React.SetStateAction<CarparkData | null>>;
+  selectedCarpark: CarparkData | null;
+  setShowDirection: React.Dispatch<React.SetStateAction<boolean>>;
+  showDirection: boolean;
+}
 
 const CarparkMarkers = ({
   carparks,
@@ -231,7 +263,7 @@ const CarparkMarkers = ({
   selectedCarpark,
   setShowDirection,
   showDirection,
-}) => {
+}: CarparkMarkersProps) => {
   const map = useMap();
   return (
     <>
@@ -250,10 +282,12 @@ const CarparkMarkers = ({
                 setSelectedCarpark(carpark);
                 setShowDirection(false);
                 console.log(showDirection);
-                map?.panTo({
-                  lat: carpark.location[1],
-                  lng: carpark.location[0],
-                });
+                if (map) {
+                  map.panTo({
+                    lat: carpark.location[1],
+                    lng: carpark.location[0],
+                  });
+                }
               }}
             />
 
@@ -263,7 +297,10 @@ const CarparkMarkers = ({
                   lat: carpark.location[1],
                   lng: carpark.location[0],
                 }}
-                onCloseClick={() => {}}
+                onCloseClick={() => {
+                  // Handle close click if needed
+                  console.log("InfoWindow closed");
+                }}
                 headerContent={<h2 className="font-bold">{carpark.name}</h2>}
               >
                 <p>Distance: {carpark.distance}</p>
@@ -340,7 +377,11 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
   );
 };
 
-const CarparkDropdown = ({ carpark }) => {
+interface CarparkDropdownProps {
+  carpark: CarparkData | null;
+}
+
+const CarparkDropdown = ({ carpark }: CarparkDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

@@ -14,10 +14,7 @@ export class CarParkRepository {
             .select(getTableColumns(carParkSchema))
             .from(carParkSchema)
 
-            return results.map((result) => {
-                // Type assertion to help TypeScript understand this is compatible
-                return new CarPark(result as any);
-            });
+            return results.map((result) => new CarPark(result))
         } catch(err){
             const e = err as Error;
             throw new TRPCError({
@@ -27,34 +24,40 @@ export class CarParkRepository {
         }
     }
 
-    public async updateMany(entities: CarPark[]){
-        try{
-            console.log(`Updating ${entities.length} carparks individually`);
-            
-            // Process each entity individually instead of using batch
-            for (const entity of entities) {
-                const entityValue = entity.getValue();
-                
-                await this.db
+    public async updateMany(entities: CarPark[]) {
+        try {
+            // Create all update queries
+            const queries = entities.map((entity) => 
+                this.db
                     .update(carParkSchema)
                     .set({
-                        ...entityValue as any, // Type assertion for compatibility
-                        availableLots: entityValue.availableLots, // Explicitly set this field
+                        ...entity.getValue(),
                         updatedAt: new Date()
                     })
-                    .where(eq(carParkSchema.id, entityValue.id));
-            }
+                    .where(eq(carParkSchema.id, entity.getValue().id))
+            );
             
-            console.log('All updates completed successfully');
-        } catch(err){
-            console.error('Error updating carparks:', err);
+            // Process in batches of 20
+            const batchSize = 20;
+            
+            // Process queries in batches
+            for (let i = 0; i < queries.length; i += batchSize) {
+                const batch = queries.slice(i, i + batchSize);
+                if (batch.length > 0) {
+                    await Promise.all(
+                        batch.map(query => query.execute())
+                    );
+                }
+            }
+        } catch(err) {
             const e = err as Error;
             throw new TRPCError({
-                code:"INTERNAL_SERVER_ERROR",
+                code: "INTERNAL_SERVER_ERROR",
                 message: e.message
-            })
+            });
         }
     }
+
 
     public async findUserFavourites(
         userId: string
@@ -83,38 +86,20 @@ export class CarParkRepository {
 
     public async findOneById(id: string): Promise<CarPark> {
         try {
-            const userData = await this.db
+            const result = await this.db
                 .select()
                 .from(carParkSchema)
                 .where(eq(carParkSchema.id, id))
                 .limit(1)
             
-            if (!userData[0]) throw new TRPCError({
+            if (!result[0]) throw new TRPCError({
                 code: "NOT_FOUND",
                 message: "Unable to find CarPark"
             })
             
-            // Type assertion to match the structure expected by CarPark constructor
-            const carParkData = {
-                id: userData[0].id,
-                carParkNo: userData[0].carParkNo,
-                address: userData[0].address,
-                location: userData[0].location,
-                carParkType: userData[0].carParkType,
-                typeOfParkingSystem: userData[0].typeOfParkingSystem,
-                shortTermParking: userData[0].shortTermParking,
-                freeParking: userData[0].freeParking,
-                nightParking: userData[0].nightParking,
-                carParkDecks: userData[0].carParkDecks,
-                gantryHeight: userData[0].gantryHeight,
-                carParkBasement: userData[0].carParkBasement,
-                availableLots: userData[0].availableLots,
-                createdAt: userData[0].createdAt,
-                updatedAt: userData[0].updatedAt
-            };
             
             // Use type assertion since we can't import the interface
-            return new CarPark(carParkData as any);
+            return new CarPark(result[0]);
         } catch (err) {
             if (err instanceof TRPCError) throw err;
             const e = err as Error;

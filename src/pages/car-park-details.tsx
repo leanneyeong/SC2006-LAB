@@ -6,6 +6,7 @@ import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
 import { FavouriteButton } from '../components/global/favourite-button'; // Import the FavouriteButton component
+import getDistanceBetweenCarPark from '~/utils/get-distance-between-carpark';
 
 interface ReviewProps {
   text: string;
@@ -44,6 +45,10 @@ interface CarParkDetailProps {
   typeOfParkingSystem: string;
   availabilityColor: string;
   isFavourited: boolean;
+  location?: {
+    x: number;
+    y: number;
+  };
 }
 
 const CarParkDetailPage: React.FC = () => {
@@ -180,7 +185,9 @@ const CarParkDetailPage: React.FC = () => {
         availableLots,
         availabilityColor,
         pricing,
-        isFavourited
+        isFavourited,
+        locationX,
+        locationY
       } = router.query;
       
       // Parse pricing data if available
@@ -202,6 +209,12 @@ const CarParkDetailPage: React.FC = () => {
         (carParkType.toLowerCase().includes('multi-storey') || 
          carParkType.toLowerCase().includes('basement'));
       
+      // Parse location coordinates if available
+      const location = (locationX && locationY) ? {
+        x: parseFloat(locationX as string),
+        y: parseFloat(locationY as string)
+      } : undefined;
+      
       // Update the carpark details with the query parameters
       setCarParkDetail(prevDetails => ({
         ...prevDetails,
@@ -214,7 +227,8 @@ const CarParkDetailPage: React.FC = () => {
         carParkType: carParkType as string || 'Unknown',
         typeOfParkingSystem: typeOfParkingSystem as string || 'Unknown',
         availabilityColor: availabilityColor as string || 'text-green-600',
-        isFavourited: isFavourited === 'true'
+        isFavourited: isFavourited === 'true',
+        location: location
       }));
     }
   }, [router.isReady, router.query]);
@@ -298,9 +312,17 @@ const CarParkDetailPage: React.FC = () => {
                 <p className="mb-2 dark:text-white">
                   <span className="font-medium">Carpark Type:</span> {carParkDetail.carParkType}
                 </p>
-                <p className="mb-4 dark:text-white">
+                <p className="mb-2 dark:text-white">
                   <span className="font-medium">Parking System:</span> {carParkDetail.typeOfParkingSystem}
                 </p>
+                {carParkDetail.location && (
+                  <p className="mb-4 dark:text-white">
+                    <span className="font-medium">Distance:</span>{" "}
+                    <span className="text-blue-600">
+                      {getDistanceBetweenCarPark(carParkDetail.location)} km
+                    </span>
+                  </p>
+                )}
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <input 

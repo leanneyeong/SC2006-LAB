@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -144,8 +144,8 @@ const UserManagement: React.FC = () => {
   };
 
   // Handle navigation to different sections
-  const handleNavigation = (path: string) => {
-    router.push(path);
+  const handleNavigation = async (path: string) => {
+    await router.push(path);
   };
   
   // Handle edit button click

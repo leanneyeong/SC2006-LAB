@@ -28,6 +28,11 @@ import { CardContent } from "../ui/card";
 import { useRouter } from "next/router";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import DisplayPrice from "./display-price";
+import { env } from "~/env";
+import { RouterOutputs } from "~/utils/api";
+import getAvailabilityColour from "~/utils/get-availability-colour";
+import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
+import CarparksMarker from "./carpark-markers";
 
 // Define types for the carpark data
 interface Carpark {
@@ -41,20 +46,7 @@ interface Carpark {
   lng: number;
 }
 
-interface CarparkData {
-  id: string;
-  name: string; // Now using address as name
-  carParkType: string;
-  typeOfParkingSystem: string;
-  availableLots: string;
-  pricing?: string; // Optional pricing information
-  availabilityColor: string;
-  carParkNo?: string;
-  location: [number, number];
-  distance: number;
-  lat: number;
-  lng: number;
-}
+type CarparkData = RouterOutputs["carPark"]["getCarparks"][number]
 
 // Define position type
 interface Position {
@@ -62,7 +54,7 @@ interface Position {
   lng: number;
 }
 
-export default function MapViewUpdated({ carparks_data }) {
+export default function MapViewUpdated({ carparks_data }: { carparks_data: CarparkData[] }) {
   const router = useRouter();
   const origin = { lat: 1.2833, lng: 103.8333 };
   const [openWindowOrigin, setOpenWindowOrigin] = useState(false);
@@ -74,37 +66,41 @@ export default function MapViewUpdated({ carparks_data }) {
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
-  const [showMarkers, setShowMarkers] = useState(true);
+  const [showMarkers, setShowMarkers] = useState(true); // Ensure markers are visible by default
 
   // Handle navigation to car-park-details page
-  const handleViewDetails = (carpark: Carpark) => {
+  const handleViewDetails = (carpark: CarparkData) => {
     void router.push({
       pathname: "/car-park-details",
       query: {
-        id:
-          carpark.CarParkID ||
-          carpark.Development.replace(/\s+/g, "-").toLowerCase(),
-        name: carpark.Development,
-        area: carpark.Area,
-        lots: carpark.AvailableLots,
-        type: carpark.LotType,
-        agency: carpark.Agency,
+        id: carpark.carParkNo ?? carpark.address.replace(/\s+/g, "-").toLowerCase(),
+        name: carpark.address,
+        lots: carpark.availableLots,
+        type: carpark.carParkType,
       },
     });
   };
 
   useEffect(() => {
-    // setCarparks(formatCarparkData(carparkData) as Carpark[]);
-    // console.log(carparks)
-
     // get current user location
-    navigator.geolocation.getCurrentPosition((position) => {
-      const { latitude, longitude } = position.coords;
-      const location = { lat: latitude, lng: longitude };
-      //   console.log("Current Location:", location);
-      setCurrentLocation(location);
-    });
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const location = { lat: latitude, lng: longitude };
+        setCurrentLocation(location);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      }
+    );
   }, []);
+  
+  // Make sure carparks data is properly loaded
+  useEffect(() => {
+    if (carparks_data && carparks_data.length > 0) {
+      console.log(`Loaded ${carparks_data.length} carparks for map display`);
+    }
+  }, [carparks_data]);
 
   const DirectionButton = () => {
     const map = useMap();
@@ -125,7 +121,10 @@ export default function MapViewUpdated({ carparks_data }) {
     return (
       <button
         className="flex h-12 w-12 -translate-x-3 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-        onClick={() => {}}
+        onClick={() => {
+          // Implement favorite functionality
+          console.log("Favorite button clicked");
+        }}
       >
         <Star />
       </button>
@@ -137,7 +136,10 @@ export default function MapViewUpdated({ carparks_data }) {
     return (
       <button
         className="flex h-12 w-12 -translate-x-4 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-        onClick={() => {}}
+        onClick={() => {
+          // Implement info functionality
+          console.log("Info button clicked");
+        }}
       >
         <InfoIcon />
       </button>
@@ -162,7 +164,7 @@ export default function MapViewUpdated({ carparks_data }) {
   return (
     <div>
       <APIProvider
-        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+        apiKey={env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
         libraries={["places"]}
       >
         <div
@@ -229,8 +231,8 @@ export default function MapViewUpdated({ carparks_data }) {
             {!showMarkers && selectedCarpark && (
               <AdvancedMarker
                 position={{
-                  lat: selectedCarpark.lat,
-                  lng: selectedCarpark.lng,
+                  lat: selectedCarpark.location.y,
+                  lng: selectedCarpark.location.x,
                 }}
               />
             )}
@@ -247,7 +249,10 @@ export default function MapViewUpdated({ carparks_data }) {
             {showDirection && selectedCarpark && currentLocation && (
               <Directions
                 origin={currentLocation}
-                destination={selectedCarpark}
+                destination={{
+                  lat: selectedCarpark.location.x,
+                  lng: selectedCarpark.location.y
+                }}
                 setRoutes={setRoutes}
                 setRouteIndex={setRouteIndex}
                 routeIndex={routeIndex}
@@ -375,6 +380,8 @@ const DirectionDetailsCard = ({
   if (routes.length === 0) return null;
 
   const selectedRoute = routes[routeIndex];
+  if (selectedRoute?.legs.length === 0) return null;
+  
   const leg = selectedRoute?.legs[0];
 
   routes.map((route) => {
@@ -394,13 +401,13 @@ const DirectionDetailsCard = ({
     >
       {/* Replace with actual directions or map */}
       <h3>
-        <strong>{selectedRoute.summary}</strong>
+        <strong>{selectedRoute?.summary ?? "Route"}</strong>
       </h3>
       <p>
-        {leg.start_address.split(",")[0]} to {leg.end_address.split(",")[0]}
+        {leg?.start_address ? leg.start_address.split(",")[0] : "Start"} to {leg?.end_address ? leg.end_address.split(",")[0] : "Destination"}
       </p>
-      <p>Distance: {leg.distance.text}</p>
-      <p>Duration: {leg.duration.text}</p>
+      <p>Distance: {leg?.distance ? leg.distance.text : "Unknown"}</p>
+      <p>Duration: {leg?.duration ? leg.duration.text : "Unknown"}</p>
       <br></br>
 
       <h3>
@@ -517,52 +524,6 @@ const OriginMarker = ({
   );
 };
 
-// 🆕 CarparksMarker Component
-interface CarparksMarkerProps {
-  carparks: CarparkData[];
-  selectedCarpark: CarparkData | null;
-  onSelectCarpark: (carpark: CarparkData) => void;
-  onShowDirection: (show: boolean) => void;
-}
-
-const CarparksMarker = ({
-  carparks,
-  selectedCarpark,
-  onSelectCarpark,
-}: CarparksMarkerProps) => {
-  return (
-    <>
-      {carparks.map((carpark) => (
-        <React.Fragment key={carpark.carParkNo}>
-          <AdvancedMarker
-            position={{ lat: carpark.lat, lng: carpark.lng }}
-            onClick={() => onSelectCarpark(carpark)}
-          />
-
-          {selectedCarpark &&
-            selectedCarpark.carParkNo === carpark.carParkNo && (
-              <InfoWindow
-                position={{ lat: carpark.lat, lng: carpark.lng }}
-                headerContent={
-                  <strong>{carpark.name || "Unknown Carpark"}</strong>
-                }
-                onCloseClick={() => {
-                  // onSelectCarpark(null);
-                  // onShowDirection(false);
-                  // console.log("showDirection: false");
-                }}
-              >
-                <div style={{ color: "black" }}>
-                  <p>Distance: {carpark.distance} km</p>
-                  <p>Available Lots: {carpark.availableLots}</p>
-                </div>
-              </InfoWindow>
-            )}
-        </React.Fragment>
-      ))}
-    </>
-  );
-};
 
 interface CarparkDetailsCardProps {
   carpark: CarparkData;
@@ -635,11 +596,11 @@ const CarparkDetailsCard = ({
       <CardContent className="p-6 dark:text-white">
         <h3 className="mb-2 text-xl font-bold">{carpark.carParkNo}</h3>
         <p>
-          <span className="font-medium">Name:</span> {carpark.name || "Unknown"}
+          <span className="font-medium">Name:</span> {carpark.address || "Unknown"}
         </p>
         <p>
           <span className="font-medium">Availability:</span>{" "}
-          <span className={carpark.availabilityColor}>
+          <span className={getAvailabilityColour(carpark.availableLots)}>
             {carpark.availableLots || "Unknown"}
           </span>
         </p>
@@ -653,7 +614,11 @@ const CarparkDetailsCard = ({
   );
 };
 
-const CarparkDropdown = ({ carpark }) => {
+interface CarparkDropdownProps {
+  carpark: CarparkData | null;
+}
+
+const CarparkDropdown = ({ carpark }: CarparkDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -668,7 +633,7 @@ const CarparkDropdown = ({ carpark }) => {
         className="flex w-full items-center justify-between bg-white p-4 hover:bg-gray-100"
       >
         {carpark && (
-          <span className="text-sm font-semibold">{carpark.name}</span>
+          <span className="text-sm font-semibold">{carpark.address}</span>
         )}
 
         <svg
@@ -710,14 +675,14 @@ const CarparkDropdown = ({ carpark }) => {
                 <th className="py-1 pr-3 font-medium text-gray-600">
                   Lots Available
                 </th>
-                <td className={carpark.availabilityColor}>
+                <td className={getAvailabilityColour(carpark.availableLots)}>
                   {carpark.availableLots}
                 </td>
               </tr>
               <br />
             </tbody>
           </table>
-          <DisplayPrice carpark_id={carpark.carParkNo} />
+          <DisplayPrice carpark_id={carpark.carParkNo ?? ""} />
         </div>
       )}
     </div>

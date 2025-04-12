@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+/*import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Try one of these import paths - the one that matches your project structure
 import { getAllCarparkAvailability } from '../../server/api/services/car-park-service';
@@ -69,11 +69,14 @@ export default async function handler(
       }
     }
 
+    // Calculate the sum of available lots with proper typing
+    const filteredAvailableLots = filteredData.reduce((sum, cp) => sum + cp.availableLots, 0);
+
     // Optional: Update stats based on filtered data
     const stats = {
       ...carparkData.stats,
       filteredCount: filteredData.length,
-      filteredAvailableLots: filteredData.reduce((sum: number, cp: UnifiedCarparkSchema) => sum + cp.availableLots, 0)
+      filteredAvailableLots
     };
 
     // Return the data
@@ -85,4 +88,4 @@ export default async function handler(
     console.error('API error:', error);
     return res.status(500).json({ error: 'Failed to fetch carpark data' });
   }
-}
+}*/

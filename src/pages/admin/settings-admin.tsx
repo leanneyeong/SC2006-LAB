@@ -38,13 +38,8 @@ const ProfileSettings: React.FC = () => {
   };
 
   // Mutations with proper typing
-  const { mutateAsync: updateNameDetailsMutation } = api.user.updateNameDetails.useMutation() as {
-    mutateAsync: (params: NameUpdateParams) => Promise<unknown>;
-  };
-  
-  const { mutateAsync: updatePasswordMutation } = api.user.updatePassword.useMutation() as {
-    mutateAsync: (params: PasswordUpdateParams) => Promise<unknown>;
-  };
+  const updateNameMutation = api.user.updateNames.useMutation();
+  const updatePasswordMutation = api.user.updatePassword.useMutation();
 
   // Define types for form states
   interface PasswordFormState {
@@ -132,7 +127,7 @@ const ProfileSettings: React.FC = () => {
     const loadingToast = toast.loading('Updating name...');
     
     try {
-      await updateNameDetailsMutation({
+      await updateNameMutation.mutateAsync({
         firstName: nameForm.firstName,
         lastName: nameForm.lastName
       });
@@ -167,9 +162,8 @@ const ProfileSettings: React.FC = () => {
     const loadingToast = toast.loading('Updating password...');
     
     try {
-      await updatePasswordMutation({
+      await updatePasswordMutation.mutateAsync({
         password: passwordForm.newPassword,
-        confirmPassword: passwordForm.confirmPassword
       });
       
       toast.dismiss(loadingToast);
