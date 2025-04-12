@@ -29,7 +29,7 @@ const ParkSMART: React.FC = () => {
   const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
   const [currentSort, setCurrentSort] = useState<string>("");
   const [filteredParkingLocations, setFilteredParkingLocations] = useState<CarparkData[]>([]);
-
+  
   // Use tRPC to fetch carpark data
   const { data: carparks, isLoading, refetch } = api.carPark.getCarparks.useQuery();
   
@@ -39,42 +39,47 @@ const ParkSMART: React.FC = () => {
   // Fixed distances for consistency between server and client
   const mockDistances = ["2.45", "3.78", "1.23"];
 
-  // Process and format carpark data
+  // Unified filtering logic in a single useEffect
   useEffect(() => {
     if (carparks) {
-      const formattedCarparks: CarparkData[] = carparks.map(carpark => {
-        // Determine availability color based on available lots
-        // Make sure to convert to a number and handle potential undefined
-        const availableLots = Number(carpark.availableLots);
-        let availabilityColor = "text-green-600";
-        if (availableLots <= 5) availabilityColor = "text-yellow-600";
-        if (availableLots <= 2) availabilityColor = "text-red-600";
-        
-        return {
-          id: carpark.id,
-          name: carpark.address, // Use address as name
-          carParkType: carpark.carParkType,
-          typeOfParkingSystem: carpark.typeOfParkingSystem,
-          availableLots: availableLots.toString(), // Ensure it's a string
-          pricing: "Varies", // Placeholder - you might want to add actual pricing logic
-          availabilityColor,
-          carParkNo: carpark.carParkNo
-        };
-      });
+      let filtered = [...carparks];
       
-      setFilteredParkingLocations(formattedCarparks);
-    }
-  }, [carparks]);
-
-  // Filter parking locations based on search query
-  const filterParkingLocations = () => {
-    setDisplayedSearchQuery(searchQuery);
-    
-    if (!carparks) return;
-    
-    if (!searchQuery) {
-      // Reset to show all carparks
-      setFilteredParkingLocations(carparks.map(carpark => {
+      // Apply search filter if query exists
+      if (displayedSearchQuery) {
+        filtered = filtered.filter(carpark => 
+          carpark.address.toLowerCase().includes(displayedSearchQuery.toLowerCase()) ||
+          carpark.carParkType.toLowerCase().includes(displayedSearchQuery.toLowerCase())
+        );
+      }
+      
+      // Apply sheltered filter if checked
+      if (shelteredCarpark) {
+        filtered = filtered.filter(carpark => 
+          carpark.carParkType.toLowerCase().includes("multi-storey") || 
+          carpark.carParkType.toLowerCase().includes("basement")
+        );
+      }
+      
+      // Apply sorting if a sort method is selected
+      if (currentSort) {
+        switch (currentSort) {
+          case "availability":
+            filtered.sort((a, b) => (Number(b.availableLots) || 0) - (Number(a.availableLots) || 0));
+            break;
+          case "alphabetical":
+            filtered.sort((a, b) => a.address.localeCompare(b.address));
+            break;
+          case "distance":
+            // This would be implemented with actual distance data
+            // For now, we'll keep the existing order
+            break;
+          default:
+            break;
+        }
+      }
+      
+      // Map the filtered data to the display format
+      const mappedData = filtered.map(carpark => {
         const availableLots = Number(carpark.availableLots) || 0;
         let availabilityColor = "text-green-600";
         if (availableLots <= 5) availabilityColor = "text-yellow-600";
@@ -87,58 +92,23 @@ const ParkSMART: React.FC = () => {
           typeOfParkingSystem: carpark.typeOfParkingSystem,
           availableLots: availableLots.toString(),
           pricing: "Varies",
-          availabilityColor
+          availabilityColor,
+          carParkNo: carpark.carParkNo
         };
-      }));
-      return;
-    }
-    
-    // Filter based on search query (case insensitive)
-    const filtered = carparks.filter(carpark => 
-      carpark.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      carpark.carParkType.toLowerCase().includes(searchQuery.toLowerCase())
-    ).map(carpark => {
-      const availableLots = Number(carpark.availableLots) || 0;
-      let availabilityColor = "text-green-600";
-      if (availableLots <= 5) availabilityColor = "text-yellow-600";
-      if (availableLots <= 2) availabilityColor = "text-red-600";
+      });
       
-      return {
-        id: carpark.id,
-        name: carpark.address,
-        carParkType: carpark.carParkType,
-        typeOfParkingSystem: carpark.typeOfParkingSystem,
-        availableLots: availableLots.toString(),
-        pricing: "Varies",
-        availabilityColor
-      };
-    });
-    
-    setFilteredParkingLocations(filtered);
+      setFilteredParkingLocations(mappedData);
+    }
+  }, [carparks, shelteredCarpark, displayedSearchQuery, currentSort]);
+
+  // Handle search submission
+  const handleSearch = () => {
+    setDisplayedSearchQuery(searchQuery);
   };
 
-  // Handle sort dropdown selection
+  // Handle sort selection
   const handleSort = (sortBy: string) => {
     setCurrentSort(sortBy);
-    
-    let sorted = [...filteredParkingLocations];
-    
-    switch (sortBy) {
-      case "availability":
-        sorted.sort((a, b) => parseInt(b.availableLots) - parseInt(a.availableLots));
-        break;
-      case "distance":
-        // This would be implemented with actual distance data
-        // For now, we'll keep the existing order
-        break;
-      case "alphabetical":
-        sorted.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      default:
-        break;
-    }
-    
-    setFilteredParkingLocations(sorted);
   };
 
   // Refresh carpark data
@@ -170,6 +140,13 @@ const ParkSMART: React.FC = () => {
     // In a real implementation, this would navigate to details page
   };
 
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchQuery("");
+    setDisplayedSearchQuery("");
+    setShelteredCarpark(false);
+  };
+
   return (
     <Navigation>
       <div className="flex min-h-screen flex-col">
@@ -180,7 +157,7 @@ const ParkSMART: React.FC = () => {
           setEvCharging={setEvCharging}
           shelteredCarpark={shelteredCarpark}
           setShelteredCarpark={setShelteredCarpark}
-          onSearch={filterParkingLocations}
+          onSearch={handleSearch}
           onSort={handleSort}
           currentSort={currentSort}
           onGetLocation={getUserLocation}
@@ -224,14 +201,14 @@ const ParkSMART: React.FC = () => {
           ) : filteredParkingLocations.length === 0 ? (
             <div className="flex justify-center flex-col items-center p-12">
               <p className="text-lg dark:text-white mb-4">
-                {searchQuery ? `No car parking lots found matching "${searchQuery}"` : "No car parking lots available"}
+                {searchQuery || shelteredCarpark ? `No car parking lots found matching your criteria` : "No car parking lots available"}
               </p>
-              {searchQuery && (
+              {(searchQuery || shelteredCarpark) && (
                 <Button 
-                  onClick={() => { setSearchQuery(''); setDisplayedSearchQuery(''); filterParkingLocations(); }}
+                  onClick={resetFilters}
                   className="bg-blue-500 text-white hover:bg-blue-600"
                 >
-                  Clear Search
+                  Clear Filters
                 </Button>
               )}
             </div>

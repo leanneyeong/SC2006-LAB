@@ -24,7 +24,7 @@ interface TopBarProps {
   onSearch: () => void;
   onSort: (sortBy: string) => void;
   currentSort: string;
-  // NEW props for location handling
+  // Location handling props
   onGetLocation?: () => void;
   isGettingLocation?: boolean;
 }
@@ -61,6 +61,13 @@ export const TopBar: React.FC<TopBarProps> = ({
     if (e.key === 'Enter') {
       onSearch();
     }
+  };
+
+  // Handle checkbox change
+  const handleShelteredChange = (checked: boolean) => {
+    setShelteredCarpark(checked);
+    // Call search function immediately to apply filter
+    onSearch();
   };
 
   // Get display text for current sort
@@ -112,9 +119,23 @@ export const TopBar: React.FC<TopBarProps> = ({
             </Button>
           </form>
           
-
-          
           <div className="flex items-center ml-0 md:ml-auto space-x-4 relative">
+            {/* Moved the sheltered checkbox here */}
+            <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-md">
+              <Checkbox 
+                id="sheltered" 
+                checked={shelteredCarpark}
+                onCheckedChange={(checked) => handleShelteredChange(checked === true)}
+                className="text-blue-500 border-blue-500"
+              />
+              <label 
+                htmlFor="sheltered" 
+                className="text-sm font-medium text-blue-500 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Sheltered Carparks
+              </label>
+            </div>
+            
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center justify-between px-3 py-2 bg-white text-blue-500 rounded-md hover:bg-gray-100 transition-colors font-medium text-sm min-w-32">
                 <span>{getSortDisplayText()}</span>
@@ -145,6 +166,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            
             {/* UserButton - visible on desktop */}
             <div className="hidden md:block">
               <UserButton />
