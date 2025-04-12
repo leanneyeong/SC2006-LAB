@@ -148,9 +148,11 @@ dependencies:
     version: 4.1.0
   dotenv:
     specifier: ^16.4.5
+    specifier: ^16.4.5
     version: 16.4.7
   drizzle-orm:
     specifier: ^0.41.0
+    version: 0.41.0(postgres@3.4.5)
     version: 0.41.0(postgres@3.4.5)
   embla-carousel-react:
     specifier: ^8.5.2
@@ -4635,6 +4637,7 @@ packages:
       - supports-color
     dev: true
 
+  /drizzle-orm@0.41.0(postgres@3.4.5):
   /drizzle-orm@0.41.0(postgres@3.4.5):
     resolution: {integrity: sha512-7A4ZxhHk9gdlXmTdPj/lREtP+3u8KvZ4yEN6MYVxBzZGex5Wtdc+CWSbu7btgF6TB0N+MNPrvW7RKBbxJchs/Q==}
     peerDependencies:

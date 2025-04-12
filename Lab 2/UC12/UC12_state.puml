@@ -1,0 +1,9 @@
+@startuml
+hide empty description
+
+[*] --> AdminInterface
+AdminInterface --> ReviewRequestInterface : select reviewRequest
+ReviewRequestInterface --> UpdateReviewRequest : approve/reject reviewRequest
+UpdateReviewRequest --> [*]
+
+@enduml

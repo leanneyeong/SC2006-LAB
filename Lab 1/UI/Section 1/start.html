@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Parking System</title>
+    <link rel="stylesheet" href="start_styles.css">
+</head>
+<body>
+    <h1 class="title">ParkNow</h1>
+    <div class="container">
+        <h2>Welcome to Car Parking System</h2>
+        <div class="role-selection">
+            <button class="user-btn" onclick="selectRole('user')">User</button>
+            <button class="admin-btn" onclick="selectRole('admin')">Admin</button>
+        </div>
+    </div>
+
+    <script>
+        function selectRole(role) {
+            alert("You selected: " + role);
+        }
+        function redirectTo(action) {
+            alert("Redirecting to " + action + " page...");
+            // Here you can change window.location.href to the actual login/signup page
+        }
+    </script>
+</body>
+</html>

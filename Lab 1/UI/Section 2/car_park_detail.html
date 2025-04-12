@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Park Details</title>
+    <link rel="stylesheet" href="car_park_detail_styles.css">
+</head>
+<body>
+
+    <header>
+        <button onclick="history.back()">← Back to List</button>
+        <h1>City Center Parking</h1>
+    </header>
+
+    <main class="details-container">
+        <div class="left-half">
+            <h2>Booking Details:</h2>
+            <p>Date: <input type="date"> to <input type="date"></p>
+            <p>Time: <input type="time"> to <input type="time"></p>
+            <p>Price: $5/hr</p>
+            <p>Availability: 5 spots</p>
+            <label>
+                <input type="checkbox"> Sheltered
+            </label><br>
+            <label>
+                <input type="checkbox"> EV Charging
+            </label>
+
+            <!-- Image gallery section -->
+            <div class="image-gallery">
+                <div class="magnified-image">
+                    <img id="mainImage" src="image1.jpg" alt="Magnified View" />
+                </div>
+
+                <div class="gallery">
+                    <img src="cp1_sample.jpeg" alt="Image 1" onclick="changeImage('image1.jpg')" />
+                    <img src="cp1_sample.jpeg" alt="Image 2" onclick="changeImage('image2.jpg')" />
+                    <img src="image3.jpg" alt="Image 3" onclick="changeImage('image3.jpg')" />
+                    <img src="image4.jpg" alt="Image 4" onclick="changeImage('image4.jpg')" />
+                    <img src="image5.jpg" alt="Image 5" onclick="changeImage('image5.jpg')" />
+                </div>
+            </div>
+        </div>
+
+        <div class="right-half">
+            <!-- Placeholder for Google Maps (Replace 'map-placeholder.jpg' with your image file) -->
+            <div class="map-placeholder">Google Maps Placeholder</div>
+        </div>
+        
+        
+    </main>
+
+    <script>
+        function changeImage(image) {
+            document.getElementById("mainImage").src = image;
+        }
+    </script>
+
+    <script>
+    function goBackToList() {
+        window.location.href = 'search.html';
+    }
+    </script>
+
+
+</body>
+</html>

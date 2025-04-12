@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Car Parks</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>Available Car Parks</h1>
+        <div class="filters">
+            <select id="locationFilter">
+                <option value="">Select Location</option>
+                <option value="downtown">Downtown</option>
+                <option value="westside">Westside</option>
+                <option value="airport">Airport</option>
+            </select>
+
+            <select id="priceFilter">
+                <option value="">Sort by Price</option>
+                <option value="low">Low to High</option>
+                <option value="high">High to Low</option>
+            </select>
+
+            <select id="availabilityFilter">
+                <option value="">Filter by Availability</option>
+                <option value="available">Available</option>
+                <option value="full">Full</option>
+            </select>
+        </div>
+    </header>
+
+    <main>
+        <div class="car-park-container">
+            <div class="car-park-card available">
+                <h3>City Center Parking</h3>
+                <p>Location: Downtown</p>
+                <p>Price: $5/hr</p>
+                <p><span class="status">✔ Available (10 spots)</span></p>
+                <button>View Details</button>
+            </div>
+
+            <div class="car-park-card full">
+                <h3>Westside Mall Parking</h3>
+                <p>Location: Westside</p>
+                <p>Price: $3/hr</p>
+                <p><span class="status">✖ Full</span></p>
+                <button disabled>View Details</button>
+            </div>
+
+            <div class="car-park-card available">
+                <h3>Airport Parking</h3>
+                <p>Location: Near Airport</p>
+                <p>Price: $7/hr</p>
+                <p><span class="status">✔ Available (5 spots)</span></p>
+                <button>View Details</button>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
+
+<!--
+Design Adjustments:
+- Filter Bar at the top for quick sorting.
+- List of car parks displayed as cards (consistent with the home page).
+- Color-coded availability indicators (Green = Available, Red = Full).
+
+Key Features & Explanation
+- Filter dropdowns allow users to refine their search.
+- Same card layout as the home page for consistency.
+- Disabled "View Details" button for full car parks.
+-->

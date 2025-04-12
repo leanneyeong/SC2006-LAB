@@ -1,0 +1,13 @@
+@startuml
+
+[*] --> Idle
+Idle --> CheckingUserPreferences : User logs in
+CheckingUserPreferences --> FetchingNearbyCarparks : Preferences OK
+CheckingUserPreferences --> Idle : Preferences Disabled
+FetchingNearbyCarparks --> CheckingAvailability : Carparks Found
+FetchingNearbyCarparks --> Idle : No Carparks Found
+CheckingAvailability --> SendingNotification : Availability Low
+CheckingAvailability --> Idle : Availability Sufficient
+SendingNotification --> Idle : Notification Sent
+
+@enduml

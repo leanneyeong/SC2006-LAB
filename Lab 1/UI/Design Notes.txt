@@ -1,0 +1,46 @@
+-----MAIN CHANGES-----
+
+1. Color Scheme:
+- Switching to a modern blue/gray theme to match parking-related UI.
+- Using subtle gradients for a clean and modern look.
+
+2. Layout Tweaks:
+- Login/Signup/Profile forms will have a card-based UI instead of plain white boxes.
+- Dashboard & Car Park Listings will use grids/cards instead of simple tables.
+- Maps and navigation UI will have placeholder images/icons to represent future integrations.
+
+3. Icons & UI Enhancements:
+- Adding icons (for car parks, user profiles, alerts, etc.).
+- Including buttons with better spacing and hover effects.
+- Adjusting font sizes and spacing for a more professional feel.
+
+4. Mobile-Friendliness:
+- Ensuring all pages look good on both desktop and mobile using CSS Flexbox/Grid.
+
+-----Section 4-----
+Design Adjustmemts
+- Sidebar navigation for admins to quickly switch between sections.
+- Tables for car park & user management to present structured data.
+- Modals for adding/editing data instead of navigating away.
+
+-----Section 5-----
+Design Adjustments
+- Standardized form design for submitting reports & reviews.
+- Cards for displaying reviews to improve readability.
+- Table for admin review management to streamline moderation.
+
+Key Features & Explanation
+- Standardized form structure for better user experience.
+- Review cards for user feedback instead of simple lists.
+- Admin table layout for easy review moderation.
+
+-----Section 6-----
+Design Adjustments:
+- Dropdown menus for integration options (e.g., Waze, Google Maps).
+- Toggle switches for user settings (e.g., notifications, dark mode).
+- Clean settings page layout with sections.
+
+Key Features & Explanation
+- Dropdowns for integration & language selection to ensure flexibility.
+- Toggle switches for key app settings like notifications & dark mode.
+- Consistent layout across settings pages.

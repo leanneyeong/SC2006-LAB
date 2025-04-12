@@ -1,0 +1,24 @@
+@startuml
+actor User
+participant "CarParkController" as Controller
+participant "CarParkService" as Service
+participant "User" as User
+participant "FavouritesList" as Favourites
+
+User -> Controller : favouriteCarPark(carparkId)
+Controller -> Service : addFavourite(userId, carparkId)
+Service -> User : getUserProfile(userId)
+User -> Favourites : addCarPark(carparkId)
+Favourites --> Service : confirmAddition()
+Service --> Controller : "Car park added to favourites"
+Controller --> User : displayMessage("Added to Favourites")
+
+alt Car Park Already in Favourites
+    Controller --> User : "This car park is already in your favourites"
+end
+
+alt Car Park Not Available
+    Controller --> User : "Car park is no longer available"
+end
+
+@enduml

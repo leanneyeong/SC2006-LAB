@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Park Availability - Home</title>
+    <link rel="stylesheet" href="search_styles.css">
+    <script>
+        // Function to capture the selected filters and sort options and redirect to search.html
+        function searchFunction() {
+            const searchQuery = document.getElementById('searchBar').value;
+            const evCharging = document.getElementById('evCharging').checked;
+            const coveredCarpark = document.getElementById('coveredCarpark').checked;
+            const sortOption = document.getElementById('sortOptions').value;
+
+            // Construct the URL with query parameters
+            let url = `search.html?query=${encodeURIComponent(searchQuery)}&evCharging=${evCharging}&coveredCarpark=${coveredCarpark}&sort=${sortOption}`;
+
+            // Redirect to the search page with the query parameters
+            window.location.href = url;
+        }
+    </script>
+</head>
+<body>
+
+    <header>
+        <h1>Car Park Availability</h1>
+        <div class="search-container">
+            <input type="text" placeholder="Search for a car park..." id="searchBar">
+            <button class="search-btn" onclick="searchFunction()">Search</button>
+    
+            <!-- Filter section with checkboxes and sort dropdown -->
+            <div class="filters-container">
+                <div class="filter-options">
+                    <label><input type="checkbox" id="evCharging"> EV Charging</label>
+                    <label><input type="checkbox" id="coveredCarpark"> Covered Carpark</label>
+                </div>
+                <!-- Dropdown for sorting results -->
+                <select id="sortOptions">
+                    <option value="sort">Sort By</option>
+                    <option value="alphabetical">Sort By Alphabetical Order</option>
+                    <option value="distance">Sort by Distance</option>
+                    <option value="price">Sort by Price</option>
+                    <option value="availableLots">Sort by No. of Available Lots</option>
+                </select>
+                <button onclick="searchFunction()">Apply Filter</button>
+            </div>
+        </div>
+    </header>
+    
+    
+    <main>
+        <h2>Showing results for "user's input"</h2>
+    
+        <div class="car-park-container">
+            <!-- Example cards for available parking spots -->
+            <div class="car-park-card available">
+                <h3>Katong Parking</h3>
+                <p>Location: Katong</p>
+                <p>Price: $5/hr</p>
+                <p><span class="status">✔ Available (10 spots)</span></p>
+                <button>View Details</button>
+            </div>
+    
+            <div class="car-park-card full">
+                <h3>East Coast Park Parking</h3>
+                <p>Location: East Coast</p>
+                <p>Price: $3/hr</p>
+                <p><span class="status">✖ Full</span></p>
+                <button disabled>View Details</button>
+            </div>
+    
+            <div class="car-park-card available">
+                <h3>Orchard Parking</h3>
+                <p>Location: Orchard</p>
+                <p>Price: $7/hr</p>
+                <p><span class="status">✔ Available (5 spots)</span></p>
+                <button>View Details</button>
+            </div>
+        </div>
+    
+        <!-- Second Row -->
+        <div class="car-park-container">
+            <div class="car-park-card available">
+                <h3>Ang Mo Kio Parking</h3>
+                <p>Location: Ang Mo Kio</p>
+                <p>Price: $6/hr</p>
+                <p><span class="status">✔ Available (8 spots)</span></p>
+                <button>View Details</button>
+            </div>
+    
+            <div class="car-park-card full">
+                <h3>Uptown Parking</h3>
+                <p>Location: Uptown</p>
+                <p>Price: $4/hr</p>
+                <p><span class="status">✖ Full</span></p>
+                <button disabled>View Details</button>
+            </div>
+    
+            <div class="car-park-card available">
+                <h3>Downtown Parking</h3>
+                <p>Location: Downtown</p>
+                <p>Price: $3.50/hr</p>
+                <p><span class="status">✔ Available (12 spots)</span></p>
+                <button>View Details</button>
+            </div>
+        </div>
+    </main>
+    
+
+</body>
+</html>

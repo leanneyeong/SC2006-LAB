@@ -1,0 +1,16 @@
+@startuml
+actor       Admin                     as Foo1
+boundary    AdminInterface            as Foo2
+control     ReviewManagerController   as Foo3
+database    Database                  as Foo4
+
+Foo1 -> Foo2 : selects "Review Request"
+Foo2 -> Foo3 : request for reviewRequest
+Foo3 -> Foo4 : check DB
+Foo4 -> Foo3 : reviewRequest found/not found
+Foo3 -> Foo2 : display information
+
+Foo1 -> Foo2 : approve/reject
+Foo2 -> Foo3 : inform of approval/rejection
+Foo3 -> Foo4 : update review
+@enduml

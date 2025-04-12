@@ -1,0 +1,15 @@
+@startuml
+hide empty description
+
+[*] --> HomeScreen
+HomeScreen --> SearchInterface
+SearchInterface --> searchByGPS : search nearby carpark
+SearchInterface --> searchByLocation : enter address of carpark
+searchByGPS --> displayCarpark
+searchByLocation --> displayCarpark
+displayCarpark --> reviewInterface : click submit review
+reviewInterface --> reviewController : give review
+reviewController --> reviewRequestController : update new reviewRequest for approval
+reviewRequestController --> [*]
+
+@enduml

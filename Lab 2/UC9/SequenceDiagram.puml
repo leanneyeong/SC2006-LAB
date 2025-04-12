@@ -1,0 +1,32 @@
+@startuml
+
+actor User
+
+boundary "User Interface (UI)" as UI
+control "NotificationController" as NC
+control "LocationService" as LS
+control "CarparkAvailabilityService" as CAS
+boundary "PushNotificationService" as PNS
+entity "User" as U
+entity "CarPark" as CP
+entity "Notification" as N
+
+User -> UI: enableNotifications()
+UI -> NC: checkUserPreferences()
+NC -> U: getPreferences()
+U -> NC: return preferences
+
+alt Notifications & Location Enabled
+    NC -> LS: getCurrentLocation()
+    LS -> NC: return location
+    NC -> CAS: getCarParkData()
+    CAS -> NC: return List<CarPark>
+    
+    alt Low Availability Detected
+        NC -> N: createNotification()
+        NC -> PNS: sendPushNotification(username, message)
+        PNS -> User: receivePushNotification()
+    end
+end
+
+@enduml

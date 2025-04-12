@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>Navigate to Car Park</h1>
+        <button onclick="history.back()">← Back</button>
+    </header>
+
+    <main class="navigation-container">
+        <div class="nav-info">
+            <h2>Destination: City Center Parking</h2>
+            <p>Estimated Time: 10 min</p>
+            <button class="maps-btn" onclick="openGoogleMaps()">Open in Google Maps</button>
+        </div>
+
+        <div class="map-placeholder">
+            <p>Map View (Placeholder)</p>
+        </div>
+    </main>
+
+    <script>
+        function openGoogleMaps() {
+            window.open("https://www.google.com/maps", "_blank");
+        }
+    </script>
+
+</body>
+</html>
+
+<!--
+Design Adjustments:
+- Large map display for easy viewing.
+- Destination details shown above the map for clarity.
+- "Open in Google Maps" button for external navigation.
+ 
+Key Features & Explanation
+- Destination details shown above map for quick reference.
+- Map placeholder for later integration with Google Maps.
+- "Open in Google Maps" button to launch external navigation.
+-->

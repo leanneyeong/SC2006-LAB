@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Notifications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Parking Notification System</h1>
+
+    <button onclick="showAlert('Availability Alert', '[Placeholder] is now available!')">Availability Alert</button>
+    <button onclick="showAlert('Full Parking', 'This car park is full. Try another.')">Full Parking</button>
+    <button onclick="showAlert('General Notifications', '[Setting] has been updated')">General Notifications</button>
+
+    <script>
+        function showAlert(title, message) {
+            alert(title + "\n\n" + message);
+        }
+    </script>
+</body>
+</html>

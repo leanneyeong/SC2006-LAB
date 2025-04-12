@@ -1,0 +1,117 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    text-align: center;
+}
+
+header {
+    background-color: #007bff; /* Background color for the header */
+    color: white;
+    padding: 15px;
+}
+
+/* Style for the h1 element to create a rectangular box */
+header h1 {
+    display: inline-block;  /* Makes the background color fit the text */
+    background-color: #0056b3;  /* Background color for the box */
+    padding: 10px 20px;  /* Adds padding around the text */
+    border-radius: 5px;  /* Optional: rounds the corners of the box */
+}
+
+.search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
+#searchBar {
+    width: 500px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.search-btn {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.filters-container {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.filter-options {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#sortOptions {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+button {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: scale(1.1);
+}
+
+h2 {
+    margin-top: 20px;
+}
+
+.car-park-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.car-park-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    text-align: left;
+}
+
+.car-park-card h3 {
+    margin-top: 0;
+}
+
+.car-park-card .status {
+    font-weight: bold;
+}
+
+.available .status {
+    color: green;
+}
+
+.full .status {
+    color: red;
+}

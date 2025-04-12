@@ -1,0 +1,19 @@
+@startuml
+
+actor User
+entity UserInterface
+entity ReviewController
+entity CarParkAvailabilityService
+entity CarPark
+entity Review
+
+User -> UserInterface: displayReviews()
+UserInterface -> ReviewController: fetchReviews(carParkID)
+ReviewController -> CarParkAvailabilityService: getCarParkData(location)
+CarParkAvailabilityService -> CarPark: getReviews()
+CarPark -> Review: getReviews()
+Review -> ReviewController: return reviews
+ReviewController -> UserInterface: displayReviews(reviews)
+UserInterface -> User: show reviews
+
+@enduml
