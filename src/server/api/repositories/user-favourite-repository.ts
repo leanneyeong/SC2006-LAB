@@ -3,6 +3,7 @@ import { and, eq, getTableColumns, isNull } from "drizzle-orm";
 import userFavouriteSchema from "../../db/schema/user-favourite-schema";
 import { UserFavourite } from "../models/user-favourite";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { db } from "~/server/db";
 
 export class UserFavouriteRepository {
     constructor(private readonly db: PostgresJsDatabase) {}
@@ -116,3 +117,6 @@ export class UserFavouriteRepository {
     }
 
 }
+
+// Create and export an instance of UserFavouriteRepository
+export const userFavouriteRepository = new UserFavouriteRepository(db);

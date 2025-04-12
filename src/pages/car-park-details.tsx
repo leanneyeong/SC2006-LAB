@@ -5,6 +5,7 @@ import { Navigation } from '~/components/global/navigation';
 import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
+import { FavouriteButton } from '../components/global/favourite-button'; // Import the FavouriteButton component
 
 interface ReviewProps {
   text: string;
@@ -42,6 +43,7 @@ interface CarParkDetailProps {
   carParkType: string;
   typeOfParkingSystem: string;
   availabilityColor: string;
+  isFavourited: boolean;
 }
 
 const CarParkDetailPage: React.FC = () => {
@@ -63,7 +65,7 @@ const CarParkDetailPage: React.FC = () => {
     const periodPricing = isWeekend ? pricingData.weekend : pricingData.weekday;
     
     // Define time periods: morning (7-12), afternoon (12-18), evening (18-7)
-    let period;
+    let period: 'morning' | 'afternoon' | 'evening';
     if (hour >= 7 && hour < 12) {
       period = 'morning';
     } else if (hour >= 12 && hour < 18) {
@@ -87,6 +89,7 @@ const CarParkDetailPage: React.FC = () => {
     carParkType: 'Loading...',
     typeOfParkingSystem: 'Loading...',
     availabilityColor: 'text-green-600',
+    isFavourited: false,
     reviews: [
       {
         title: 'Convenient but PRICEY',
@@ -176,7 +179,8 @@ const CarParkDetailPage: React.FC = () => {
         typeOfParkingSystem,
         availableLots,
         availabilityColor,
-        pricing
+        pricing,
+        isFavourited
       } = router.query;
       
       // Parse pricing data if available
@@ -210,6 +214,7 @@ const CarParkDetailPage: React.FC = () => {
         carParkType: carParkType as string || 'Unknown',
         typeOfParkingSystem: typeOfParkingSystem as string || 'Unknown',
         availabilityColor: availabilityColor as string || 'text-green-600',
+        isFavourited: isFavourited === 'true'
       }));
     }
   }, [router.isReady, router.query]);
@@ -231,18 +236,6 @@ const CarParkDetailPage: React.FC = () => {
   // Handle the back button click
   const handleBackClick = () => {
     router.back();
-  };
-
-  // Handle leave review button click - Navigate to reviews page
-  const handleAddToFavouritesClick = () => {
-    // Pass the carpark name as a query parameter to identify which carpark is being reviewed
-    router.push({
-      pathname: '/reviews',
-      query: { 
-        carparkId: carParkDetail.id,
-        carparkName: carParkDetail.name
-      }
-    });
   };
 
   // Handle leave review button click - Navigate to reviews page
@@ -361,12 +354,10 @@ const CarParkDetailPage: React.FC = () => {
                 className="h-full w-full object-cover"
               />
               <div className="absolute bottom-4 right-4 flex space-x-2">
-              <Button 
-                  className="bg-blue-500 text-white hover:bg-blue-600"
-                  onClick={handleAddToFavouritesClick}
-                >
-                  Add To Favourites
-                </Button>                
+                <FavouriteButton 
+                  carParkId={carParkDetail.id}
+                  isFavourited={carParkDetail.isFavourited}
+                />
                 <Button 
                   className="bg-blue-500 text-white hover:bg-blue-600"
                   onClick={handleLeaveReviewClick}

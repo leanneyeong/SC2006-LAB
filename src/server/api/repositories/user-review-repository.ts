@@ -5,6 +5,7 @@ import userReviewSchema from "../../db/schema/user-review-schema";
 import { UserReview } from "../models/user-review";
 import userSchema from "~/server/db/schema/user-schema";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { db } from "~/server/db";
 
 export class UserReviewRepository {
     constructor(private readonly db: PostgresJsDatabase) {}
@@ -130,3 +131,6 @@ export class UserReviewRepository {
         }
     }
 }
+
+// Create and export an instance of UserReviewRepository
+export const userReviewRepository = new UserReviewRepository(db);

@@ -80,4 +80,48 @@ export class CarParkRepository {
             })
         }
     }
+
+    public async findOneById(id: string): Promise<CarPark> {
+        try {
+            const userData = await this.db
+                .select()
+                .from(carParkSchema)
+                .where(eq(carParkSchema.id, id))
+                .limit(1)
+            
+            if (!userData[0]) throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Unable to find CarPark"
+            })
+            
+            // Type assertion to match the structure expected by CarPark constructor
+            const carParkData = {
+                id: userData[0].id,
+                carParkNo: userData[0].carParkNo,
+                address: userData[0].address,
+                location: userData[0].location,
+                carParkType: userData[0].carParkType,
+                typeOfParkingSystem: userData[0].typeOfParkingSystem,
+                shortTermParking: userData[0].shortTermParking,
+                freeParking: userData[0].freeParking,
+                nightParking: userData[0].nightParking,
+                carParkDecks: userData[0].carParkDecks,
+                gantryHeight: userData[0].gantryHeight,
+                carParkBasement: userData[0].carParkBasement,
+                availableLots: userData[0].availableLots,
+                createdAt: userData[0].createdAt,
+                updatedAt: userData[0].updatedAt
+            };
+            
+            // Use type assertion since we can't import the interface
+            return new CarPark(carParkData as any);
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
+            const e = err as Error;
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: e.message
+            })
+        }
+    }
 }

@@ -4,9 +4,10 @@ import { Card, CardContent, CardFooter } from "~/components/ui/card"; // Added C
 import { TopBar } from "~/components/global/top-bar-home";
 import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
-import { RefreshCw, Heart } from "lucide-react"; // Added Heart icon
+import { RefreshCw } from "lucide-react"; // Removed Heart icon as we're using FavouriteButton
 import { api } from "~/utils/api"; // Import tRPC API
 import { useRouter } from "next/router"; // Import Next.js router
+import { FavouriteButton } from "../components/global/favourite-button"; // Import the FavouriteButton component
 
 // Updated interface for carpark data to match schema
 interface CarparkData {
@@ -178,16 +179,6 @@ const ParkSMART: React.FC = () => {
     setShelteredCarpark(false);
   };
 
-  // Add to favorites handler
-  const handleAddToFavorites = (id: string) => {
-    setFilteredParkingLocations(prevLocations => 
-      prevLocations.map(location => 
-        location.id === id 
-          ? { ...location, isFavorite: !location.isFavorite } 
-          : location
-      )
-    );
-  };
 
   return (
     <Navigation>
@@ -288,19 +279,18 @@ const ParkSMART: React.FC = () => {
                     </p>
                   </CardContent>
                   <CardFooter className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800">
-                  <div className="flex justify-end space-x-2">
+                    <div className="flex justify-end space-x-2">
                       <Button 
                         className="bg-blue-500 text-white hover:bg-blue-600"
                         onClick={() => handleViewDetails(parking)}
                       >
                         View Details
                       </Button>
-                      <Button 
-                        className="bg-blue-500 text-white hover:bg-blue-600"
-                        onClick={() => handleViewDetails(parking)}
-                      >
-                        Add to Favourites
-                      </Button>
+                      {/* Replaced the "Add to Favourites" button with FavouriteButton component */}
+                      <FavouriteButton 
+                        carParkId={parking.id}
+                        isFavourited={!!parking.isFavorite}
+                      />
                     </div>
                   </CardFooter>
                 </Card>
