@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { eq, getTableColumns } from "drizzle-orm";
+import { eq, getTableColumns, and, isNull } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import carParkSchema from "~/server/db/schema/carparks-schema";
+import userFavouriteSchema from "~/server/db/schema/user-favourite-schema";
 import { CarPark } from "../models/carpark";
 
 export class CarParkRepository {
@@ -51,6 +52,31 @@ export class CarParkRepository {
             throw new TRPCError({
                 code:"INTERNAL_SERVER_ERROR",
                 message: e.message
+            })
+        }
+    }
+
+    public async findUserFavourites(
+        userId: string
+    ) {
+        try{
+            const results = await this.db.select({
+                id: carParkSchema.id,
+                address: carParkSchema.address
+            })
+                .from(userFavouriteSchema)
+                .innerJoin(carParkSchema,eq(carParkSchema.id,userFavouriteSchema.carParkId))
+                .where(and(
+                    eq(userFavouriteSchema.userId,userId),
+                    isNull(userFavouriteSchema.deletedAt)
+                ))
+
+                return results
+        } catch(err){
+            const e = err as Error;
+            throw new TRPCError({
+                code:"INTERNAL_SERVER_ERROR",
+                message:e.message
             })
         }
     }

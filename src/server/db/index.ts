@@ -5,3 +5,5 @@ import { env } from "~/env.js";
 import * as schema from "./schema";
 
 export const db = drizzle(postgres(env.DATABASE_URL));
+
+
