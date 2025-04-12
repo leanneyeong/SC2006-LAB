@@ -156,7 +156,8 @@ const ParkSMART: React.FC = () => {
       }
     };
     
-    router.push({
+    // Fix: Handle the Promise returned by router.push
+    void router.push({
       pathname: '/car-park-details',
       query: { 
         id: parking.id,

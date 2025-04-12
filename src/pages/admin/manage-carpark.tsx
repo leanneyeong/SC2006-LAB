@@ -347,7 +347,7 @@ const CarparkManagement: React.FC = () => {
               <CardContent className="p-6">
                 {filteredCarparks.length === 0 ? (
                   <div className="my-4 text-center">
-                    <p className="text-gray-500">No carparks found matching "{searchQuery}"</p>
+                    <p className="text-gray-500">No carparks found matching &quot;{searchQuery}&quot;</p>
                   </div>
                 ) : (
                   <Table>

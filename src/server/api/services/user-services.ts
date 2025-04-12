@@ -5,14 +5,14 @@ import { UserRepository } from "../repositories/user-repository";
 import { CarParkRepository } from "../repositories/carpark-repository";
 import { clerkClient } from "@clerk/nextjs/server";
 import FavouriteCarPark from "../types/favourite-carpark";
-import { UserReviewRepository } from "../repositories/user-review-repository.";
+import { UserReviewRepository } from "../repositories/user-review-repository";
 import { UserFavouriteRepository } from "../repositories/user-favourite-repository";
 
 export class UserService {
-  private carParkRepository: CarParkRepository
-  private userRepository: UserRepository
-  private userReviewRepository: UserReviewRepository
-  private userFavouriteRepository: UserFavouriteRepository
+  private carParkRepository: CarParkRepository;
+  private userRepository: UserRepository;
+  private userReviewRepository: UserReviewRepository;
+  private userFavouriteRepository: UserFavouriteRepository;
 
   constructor(
       carParkRepository: CarParkRepository,
@@ -29,59 +29,57 @@ export class UserService {
   public async getFavouriteCarParks(userId: string): Promise<FavouriteCarPark[]> {
     const userFavourites = await this.carParkRepository.findUserFavourites(userId);
     
-    // Assuming carPark is of type CarPark, which doesn't include isFavourited
+    // Ensuring the return type matches FavouriteCarPark
     return userFavourites.map((carPark) => {
-      // Ensure that the returned object matches the FavouriteCarPark type
       return {
         ...carPark,
         isFavourited: true
-      } as FavouriteCarPark; // Cast the result to the correct type
+      } as FavouriteCarPark;
     });
   }
   
-
   public async updateNames(
       userId: string,
       firstName: string,
       lastName: string
-  ){
-      try{
+  ): Promise<void> {
+      try {
           const user = await this.userRepository.findOneByUserId(userId);
-          const updatedUser = user.setNames(firstName,lastName);
+          const updatedUser = user.setNames(firstName, lastName);
 
           await this.userRepository.update(updatedUser);
           return;
-      } catch(err){
+      } catch(err) {
           if(err instanceof TRPCError) throw err;
 
           const e = err as Error;
           throw new TRPCError({
-              code:"INTERNAL_SERVER_ERROR",
-              message:e.message
-          })
+              code: "INTERNAL_SERVER_ERROR",
+              message: e.message
+          });
       }
   }
 
   public async updateMainSettings(
       userId: string,
       isDarkMode: boolean
-  )  {
-      try{
-          const user = await this.userRepository.findOneByUserId(userId)
+  ): Promise<void> {
+      try {
+          const user = await this.userRepository.findOneByUserId(userId);
           const updatedUser = user.setMainSettings(
              isDarkMode
-          )
+          );
 
           await this.userRepository.update(updatedUser);
           return;
-      } catch(err){
+      } catch(err) {
           if(err instanceof TRPCError) throw err;
 
           const e = err as Error;
           throw new TRPCError({
-              code:"INTERNAL_SERVER_ERROR",
-              message:e.message
-          })
+              code: "INTERNAL_SERVER_ERROR",
+              message: e.message
+          });
       }
   }
 
@@ -90,91 +88,89 @@ export class UserService {
       firstName: string | null,
       lastName: string | null,
       email: string,
-  ){
-      try{
+  ): Promise<{ status: number } | void> {
+      try {
           const existingUser = await this.userRepository.findOneByUserIdOrNull(userId);
 
           if (existingUser) return { status: 200 };
       
           const currentDate = new Date();
           const newUser = new User({
-          id: userId,
-          email,
-          firstName: firstName ?? "NOT SET",
-          lastName: lastName ?? "NOT SET",
-          isDarkMode: false,
-          createdAt: currentDate,
-          deletedAt: null, 
-          updatedAt: currentDate
+            id: userId,
+            email,
+            firstName: firstName ?? "NOT SET",
+            lastName: lastName ?? "NOT SET",
+            isDarkMode: false,
+            createdAt: currentDate,
+            deletedAt: null, 
+            updatedAt: currentDate
           });
 
           await this.userRepository.save(newUser);
           return;
-      } catch(err){
+      } catch(err) {
           if(err instanceof TRPCError) throw err;
 
           const e = err as Error;
           throw new TRPCError({
-              code:"INTERNAL_SERVER_ERROR",
-              message:e.message
-          })
+              code: "INTERNAL_SERVER_ERROR",
+              message: e.message
+          });
       }
   }
 
-  public async deleteUser(userId: string){
-      try{
+  public async deleteUser(userId: string): Promise<void> {
+      try {
           const user = await this.userRepository.findOneByUserId(userId);
-          const deletedUser = user.delete()
+          const deletedUser = user.delete();
 
           await Promise.all([
-              clerk.users.deleteUser(userId),
+              clerkClient.users.deleteUser(userId),
               this.userRepository.update(deletedUser),
               this.userReviewRepository.deleteByUserId(userId),
               this.userFavouriteRepository.deleteByUserId(userId)
-          ])
+          ]);
 
           return;
-      } catch(err){
+      } catch(err) {
           if(err instanceof TRPCError) throw err;
 
           const e = err as Error;
           throw new TRPCError({
-              code:"INTERNAL_SERVER_ERROR",
-              message:e.message
-          })
+              code: "INTERNAL_SERVER_ERROR",
+              message: e.message
+          });
       }
   }
 
-  public async getUser(userId: string) : Promise<UserDetails>{
-      try{
-          const [user,currentParking] = await Promise.all([
-              await this.userRepository.findOneByUserId(userId),
-          ])
+  public async getUser(userId: string): Promise<UserDetails> {
+      try {
+          const user = await this.userRepository.findOneByUserId(userId);
   
           return {
               ...user.getValue(),
-          }
-      } catch(err){
+          };
+      } catch(err) {
           if(err instanceof TRPCError) throw err;
 
           const e = err as Error;
           throw new TRPCError({
-              code:"INTERNAL_SERVER_ERROR",
-              message:e.message
-          })
+              code: "INTERNAL_SERVER_ERROR",
+              message: e.message
+          });
       }
   }
 
   public async updatePassword(
       userId: string,
       password: string
-  ) {
-      try{
-          await clerk.users.updateUser(userId,{
+  ): Promise<void> {
+      try {
+          await clerkClient.users.updateUser(userId, {
               password: password
-          })
+          });
           return;
-      } catch(err){
+      } catch(err) {
           if (typeof err === 'object' && err !== null && 'errors' in err) {
             // This is likely a Clerk API error
             const clerkError = err as { errors: { message: string }[] };

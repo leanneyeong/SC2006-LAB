@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { clerkClient } from '@clerk/nextjs/server';
 
 // Make sure these environment variables are properly defined in your .env file
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 
 // This function should be called after a user signs up with Clerk
 export async function syncUserToSupabase(clerkUserId: string) {
@@ -23,10 +23,10 @@ export async function syncUserToSupabase(clerkUserId: string) {
     .from('users')
     .upsert({
       clerk_id: clerkUserId,
-      email: clerkUser.emailAddresses[0]?.emailAddress || null,
-      first_name: clerkUser.firstName || null,
-      last_name: clerkUser.lastName || null,
-      avatar_url: clerkUser.imageUrl || null,
+      email: clerkUser.emailAddresses[0]?.emailAddress ?? null,
+      first_name: clerkUser.firstName ?? null,
+      last_name: clerkUser.lastName ?? null,
+      avatar_url: clerkUser.imageUrl ?? null,
     }, {
       onConflict: 'clerk_id'
     });

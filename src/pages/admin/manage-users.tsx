@@ -313,7 +313,7 @@ const UserManagement: React.FC = () => {
               <CardContent className="p-6">
                 {filteredUsers.length === 0 ? (
                   <div className="my-4 text-center">
-                    <p className="text-gray-500">No users found matching "{searchQuery}"</p>
+                    <p className="text-gray-500">No users found matching &quot;{searchQuery}&quot;</p>
                   </div>
                 ) : (
                   <Table>

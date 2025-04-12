@@ -25,6 +25,31 @@ interface CarParkInfo {
 }
 
 /**
+ * Car park information with parsed location coordinates
+ */
+interface EnhancedCarParkInfo extends Omit<CarParkInfo, 'Location'> {
+  /** Latitude coordinate */
+  lat: number;
+  
+  /** Longitude coordinate */
+  lng: number;
+}
+
+/**
+ * Simplified car park availability information
+ */
+interface SimplifiedCarParkInfo {
+  /** Unique identifier for the car park */
+  CarParkID: string;
+  
+  /** Type of parking lot */
+  LotType: string;
+  
+  /** Number of available parking lots */
+  AvailableLots: number;
+}
+
+/**
  * Root structure of the car park availability data
  */
 interface CarParkAvailabilityResponse {
@@ -35,9 +60,15 @@ interface CarParkAvailabilityResponse {
   value: CarParkInfo[];
 }
 
-export const carparkData = require("./data.json") as CarParkAvailabilityResponse;
+// Import data using ES module syntax instead of require
+import carparkDataJson from './data.json';
+export const carparkData: CarParkAvailabilityResponse = carparkDataJson as CarParkAvailabilityResponse;
 
-export const getCarparkAvailability = async () => {
+/**
+ * Fetches car park availability data from LTA Datamall API
+ * @returns Promise with car park availability data
+ */
+export const getCarparkAvailability = async (): Promise<CarParkAvailabilityResponse> => {
   // get carpark availability data from LTA Datamall API
   const LTA_API_KEY = "8AEv+OxXR1CFUZ+NJS8kag==";
   const url =
@@ -48,31 +79,62 @@ export const getCarparkAvailability = async () => {
       method: "POST",
       headers: { AccountKey: LTA_API_KEY },
     });
-    const json = await response.json();
-    // console.log(json);
-    // console.log(json.value[0])
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const json = await response.json() as CarParkAvailabilityResponse;
     return json;
   } catch (error) {
     console.log(error);
+    // Return empty response in case of error
+    return { "odata.metadata": "", value: [] };
   }
 };
 
-export const getUpdatedAvailabilityLot = () => {
-  // const carparkData = await getCarparkAvailability();
+/**
+ * Returns simplified carpark availability information
+ * @returns Array of simplified car park info objects
+ */
+export const getUpdatedAvailabilityLot = (): SimplifiedCarParkInfo[] => {
   return carparkData.value.map(carpark => {
     return {
       CarParkID: carpark.CarParkID,
       LotType: carpark.LotType,
       AvailableLots: carpark.AvailableLots,
-    }
-  })
-}
+    };
+  });
+};
 
-export const formatCarparkData = (carparkData : CarParkAvailabilityResponse) => {
+/**
+ * Formats carpark data by splitting location string into latitude and longitude
+ * @param carparkData The raw carpark data
+ * @returns Array of enhanced car park info with parsed coordinates
+ */
+export const formatCarparkData = (carparkData: CarParkAvailabilityResponse): EnhancedCarParkInfo[] => {
   // carpark location given in api is string
   // need to split into lat/lng and change type to float
   return carparkData.value.map(carpark => {
-    const [lat, lng] = carpark.Location ? carpark.Location.split(" ").map(parseFloat) : [0, 0];
-    return { ...carpark, lat, lng };
-  })
-}
+    let lat = 0;
+    let lng = 0;
+    
+    if (carpark.Location && typeof carpark.Location === 'string') {
+      const coords = carpark.Location.split(" ");
+      if (coords.length >= 2) {
+        // Ensure coords are strings before parsing
+        const parsedLat = parseFloat(String(coords[0]));
+        const parsedLng = parseFloat(String(coords[1]));
+        
+        lat = !isNaN(parsedLat) ? parsedLat : 0;
+        lng = !isNaN(parsedLng) ? parsedLng : 0;
+      }
+    }
+    
+    return { 
+      ...carpark,
+      lat,
+      lng
+    };
+  });
+};

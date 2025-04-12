@@ -187,7 +187,7 @@ const CarParkDetailPage: React.FC = () => {
       let pricingData: PricingData | undefined;
       if (pricing && typeof pricing === 'string') {
         try {
-          pricingData = JSON.parse(pricing);
+          pricingData = JSON.parse(pricing) as PricingData;
         } catch (error) {
           console.error('Error parsing pricing data:', error);
         }
@@ -235,13 +235,13 @@ const CarParkDetailPage: React.FC = () => {
 
   // Handle the back button click
   const handleBackClick = () => {
-    router.back();
+    void router.back();
   };
 
   // Handle leave review button click - Navigate to reviews page
   const handleLeaveReviewClick = () => {
     // Pass the carpark name as a query parameter to identify which carpark is being reviewed
-    router.push({
+    void router.push({
       pathname: '/reviews',
       query: { 
         carparkId: carParkDetail.id,
@@ -253,7 +253,7 @@ const CarParkDetailPage: React.FC = () => {
   // Handle get directions button click
   const handleGetDirectionsClick = () => {
     // Redirect to a directions page with carpark id
-    router.push({
+    void router.push({
       pathname: '/directions',
       query: { 
         carparkId: carParkDetail.id,

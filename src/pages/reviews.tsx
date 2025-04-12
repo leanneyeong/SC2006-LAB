@@ -112,16 +112,25 @@ const LeaveReviewPage: React.FC = () => {
     }
   ];
 
+  // Helper function to ensure string type from query parameters
+  const getQueryParamAsString = (param: string | string[] | undefined): string => {
+    if (!param) return '';
+    return Array.isArray(param) ? param[0] : param;
+  };
+
   // Fetch car park details from query parameters when the component mounts
   useEffect(() => {
     if (router.isReady) {
-      const { carparkName, carparkLocation, lots, type } = router.query;
+      const carparkName = getQueryParamAsString(router.query.carparkName);
+      const carparkLocation = getQueryParamAsString(router.query.carparkLocation);
+      const lots = getQueryParamAsString(router.query.lots);
+      const type = getQueryParamAsString(router.query.type);
       
       // Get carpark details from query params or use default values
       setCarPark(prevState => ({
         ...prevState,
-        name: carparkName as string || 'Unknown Carpark',
-        location: carparkLocation as string || 'Unknown Location',
+        name: carparkName || 'Unknown Carpark',
+        location: carparkLocation || 'Unknown Location',
         // If lots and type are provided, use them, otherwise use a default value
         availability: lots && type ? `${lots} ${type}` : (
           lots ? `${lots} Lots` : (
