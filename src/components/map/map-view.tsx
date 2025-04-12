@@ -11,28 +11,46 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { HeadingIcon, Locate, LocateFixed } from "lucide-react";
+import { Locate } from "lucide-react";
 import React, { useMemo } from "react";
 import { useEffect, useState } from "react";
 import { carparkData, formatCarparkData } from "~/server/carpark/api";
 import { Button } from "../ui/button";
 import { CardContent } from "../ui/card";
-import { useRouter } from "next/router"; // Import router
+import { useRouter } from "next/router";
+
+// Define types for the carpark data
+interface Carpark {
+  CarParkID: string;
+  Development: string;
+  Area: string;
+  AvailableLots: string;
+  LotType: string;
+  Agency: string;
+  lat: number;
+  lng: number;
+}
+
+// Define position type
+interface Position {
+  lat: number;
+  lng: number;
+}
 
 export default function MapView() {
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const origin = { lat: 1.2833, lng: 103.8333 };
   const [openWindowOrigin, setOpenWindowOrigin] = useState(false);
-  const [carparks, setCarparks] = useState([]);
-  const [selectedCarpark, setSelectedCarpark] = useState(null);
+  const [carparks, setCarparks] = useState<Carpark[]>([]);
+  const [selectedCarpark, setSelectedCarpark] = useState<Carpark | null>(null);
   const [showDirection, setShowDirection] = useState(false);
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
-  const [currentLocation, setCurrentLocation] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
 
   // Handle navigation to car-park-details page
-  const handleViewDetails = (carpark) => {
-    router.push({
+  const handleViewDetails = (carpark: Carpark) => {
+    void router.push({
       pathname: '/car-park-details',
       query: { 
         id: carpark.CarParkID || carpark.Development.replace(/\s+/g, '-').toLowerCase(),
@@ -46,7 +64,7 @@ export default function MapView() {
   };
 
   useEffect(() => {
-    setCarparks(formatCarparkData(carparkData));
+    setCarparks(formatCarparkData(carparkData) as Carpark[]);
     // console.log(carparks)
 
     // get current user location
@@ -71,7 +89,7 @@ export default function MapView() {
               <LocateButton currentLocation={currentLocation}/>
             </MapControl>
 
-            <GeolocationMarker position={currentLocation} />
+            {currentLocation && <GeolocationMarker position={currentLocation} />}
 
             {/* Origin Marker Component */}
             {/* <OriginMarker
@@ -91,7 +109,7 @@ export default function MapView() {
               onShowDirection={setShowDirection}
             />
 
-            {showDirection && selectedCarpark && (
+            {showDirection && selectedCarpark && currentLocation && (
               <Directions
                 origin={currentLocation}
                 destination={selectedCarpark}
@@ -145,13 +163,21 @@ export default function MapView() {
   );
 }
 
+interface DirectionsProps {
+  origin: Position;
+  destination: Position;
+  setRoutes: React.Dispatch<React.SetStateAction<google.maps.DirectionsRoute[]>>;
+  setRouteIndex: React.Dispatch<React.SetStateAction<number>>;
+  routeIndex: number;
+}
+
 const Directions = ({
   origin,
   destination,
   setRoutes,
   setRouteIndex,
   routeIndex,
-}) => {
+}: DirectionsProps) => {
   // https://www.youtube.com/watch?v=tFjOIZGCvuQ&list=PL2rFahu9sLJ2QuJaKKYDaJp0YqjFCDCtN&index=3
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
@@ -167,9 +193,9 @@ const Directions = ({
   }, [routesLibrary, map]);
 
   useEffect(() => {
-    if (!directionsService || !directionsRenderer) return;
+    if (!directionsService || !directionsRenderer || !origin || !destination) return;
 
-    directionsService
+    void directionsService
       .route({
         origin,
         destination,
@@ -179,31 +205,40 @@ const Directions = ({
       .then((response) => {
         directionsRenderer.setDirections(response);
         setRoutes(response.routes);
-      });
+      })
+      .catch(err => console.error("Directions request failed:", err));
+      
     return () => directionsRenderer.setMap(null);
-  }, [directionsService, directionsRenderer]);
+  }, [directionsService, directionsRenderer, origin, destination, setRoutes]);
 
   useEffect(() => {
     if (!directionsRenderer) return;
     directionsRenderer.setRouteIndex(routeIndex);
-  });
+  }, [directionsRenderer, routeIndex]);
 
   return null;
 };
 
-const DirectionDetailsCard = ({ routes, routeIndex, setRouteIndex }) => {
+interface DirectionDetailsCardProps {
+  routes: google.maps.DirectionsRoute[];
+  routeIndex: number;
+  setRouteIndex: React.Dispatch<React.SetStateAction<number>>;
+}
+
+const DirectionDetailsCard = ({ routes, routeIndex, setRouteIndex }: DirectionDetailsCardProps) => {
   console.log(routes);
   console.log(routeIndex);
 
   // sometimes api got problem, idk why but this works
-  if (routes.length === 0) return;
+  if (routes.length === 0) return null;
 
   const selectedRoute = routes[routeIndex];
   const leg = selectedRoute?.legs[0];
 
-  routes.map((route, index) => {
+  routes.map((route) => {
     console.log(route.summary);
   });
+  
   return (
     <div
       style={{
@@ -248,12 +283,16 @@ const DirectionDetailsCard = ({ routes, routeIndex, setRouteIndex }) => {
   );
 };
 
-const GeolocationMarker = ({ position }) => {
+interface GeolocationMarkerProps {
+  position: Position;
+}
+
+const GeolocationMarker = ({ position }: GeolocationMarkerProps) => {
   // https://github.com/visgl/react-google-maps/discussions/552
   const map = useMap();
 
   const geolocationMarker = useMemo(() => {
-    if (!map) return null;
+    if (!map || !position) return null;
 
     const marker = new google.maps.Marker({
       position,
@@ -272,7 +311,7 @@ const GeolocationMarker = ({ position }) => {
   }, [map, position]);
 
   useEffect(() => {
-    if (geolocationMarker) {
+    if (geolocationMarker && map) {
       geolocationMarker.marker.setMap(map);
     }
 
@@ -286,14 +325,20 @@ const GeolocationMarker = ({ position }) => {
   return null;
 };
 
-const LocateButton = ({ currentLocation }) => {
+interface LocateButtonProps {
+  currentLocation: Position | null;
+}
+
+const LocateButton = ({ currentLocation }: LocateButtonProps) => {
   const map = useMap();
   return (
   <button
     className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
     onClick={() => {
-      map?.panTo(currentLocation)
-      map?.setZoom(15)
+      if (map && currentLocation) {
+        map.panTo(currentLocation);
+        map.setZoom(15);
+      }
     }}
   >
     <Locate />
@@ -302,7 +347,14 @@ const LocateButton = ({ currentLocation }) => {
 };
 
 // 🆕 OriginMarker Component
-const OriginMarker = ({ position, openWindow, onClick, onClose }) => {
+interface OriginMarkerProps {
+  position: Position;
+  openWindow: boolean;
+  onClick: () => void;
+  onClose: () => void;
+}
+
+const OriginMarker = ({ position, openWindow, onClick, onClose }: OriginMarkerProps) => {
   return (
     <>
       <AdvancedMarker position={position} onClick={onClick}>
@@ -319,12 +371,18 @@ const OriginMarker = ({ position, openWindow, onClick, onClose }) => {
 };
 
 // 🆕 CarparksMarker Component
+interface CarparksMarkerProps {
+  carparks: Carpark[];
+  selectedCarpark: Carpark | null;
+  onSelectCarpark: (carpark: Carpark) => void;
+  onShowDirection: (show: boolean) => void;
+}
+
 const CarparksMarker = ({
   carparks,
   selectedCarpark,
   onSelectCarpark,
-  onShowDirection,
-}) => {
+}: CarparksMarkerProps) => {
   return (
     <>
       {carparks.map((carpark) => (
@@ -367,7 +425,14 @@ const CarparksMarker = ({
   );
 };
 
-const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }) => {
+interface CarparkDetailsCardProps {
+  carpark: Carpark;
+  onClose: () => void;
+  onShowDirection: (show: boolean) => void;
+  onViewDetails: (carpark: Carpark) => void;
+}
+
+const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }: CarparkDetailsCardProps) => {
   return (
     <div
       style={{
@@ -447,9 +512,4 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }
 const mapStyle = {
   width: "100%",
   height: "70vh",
-};
-
-const directions = {
-  width: "20vw",
-  height: "20vh",
 };
