@@ -1,47 +1,47 @@
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { userService } from "../services";
+import UserDetails from "../types/user-details";
 
 export const userRouter = createTRPCRouter({
-    get: protectedProcedure
-    .query(async({ctx})=>{
-        return await userService.getUserDetails(ctx.auth.userId)
-    }),
-    updateNameDetails: protectedProcedure
+    getFavouriteCarParks: protectedProcedure
+    .query(async ({ctx}) => await userService.getFavouriteCarParks(ctx.auth.userId)),
+    updateNames: protectedProcedure
     .input(z.object({
         firstName: z.string(),
         lastName: z.string()
     }))
-    .mutation(async ({ctx ,input}) => {
-        return await userService.updateNameDetails(
-            ctx.auth.userId,
-            input.firstName,
-            input.lastName
-        )
-    }),
+    .mutation(async ({ctx,input}) => await userService.updateNames(
+        ctx.auth.userId,
+        input.firstName,
+        input.lastName
+    )),
+    updateMainSettings: protectedProcedure
+    .input(z.object({
+        isNotificationsEnabled:z.boolean(),
+        isDarkMode: z.boolean()
+    }))
+    .mutation(async ({ctx,input}) => await userService.updateMainSettings(
+        ctx.auth.userId,
+        input.isDarkMode
+    )),
+    setHomeCarPark: protectedProcedure
+    .input(z.object({
+        id: z.string()
+    }))
+    .mutation(async ({ctx}) => await userService.deleteUser(ctx.auth.userId)),
+    get: protectedProcedure
+    .query(async ({ctx}): Promise<UserDetails> => await userService.getUser(ctx.auth.userId)),
     updatePassword: protectedProcedure
     .input(z.object({
-        password: z
-          .string()
-          .min(8, "Password must be at least 8 characters")
-          .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-          .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-          .regex(/[0-9]/, "Password must contain at least one number")
-          .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-        confirmPassword: z.string()
-      }).refine(data => data.password === data.confirmPassword, {
-        message: "Passwords don't match",
-        path: ["confirmPassword"] // This specifies which field the error is associated with
-      }))
-    .mutation(async ({ctx, input}) =>{
-        return await userService.updatePassword(
-            ctx.auth.userId,
-            input.password
-        )
-    })
+        password: z.string(),
+    }))
+    .mutation(async ({ctx,input}) => await userService.updatePassword(
+        ctx.auth.userId,
+        input.password
+    ))
 });
 

@@ -11,15 +11,35 @@ import { Eye, EyeOff, User, Lock, Moon, Sun, Check, Loader2 } from 'lucide-react
 import { api } from '~/utils/api';
 import { TopBar } from '~/components/global/top-bar-others';
 
+// Define proper return types for API calls
+interface UserData {
+  firstName: string | null;
+  lastName: string | null;
+  // Add other user fields as needed
+}
+
+interface NameUpdateParams {
+  firstName: string;
+  lastName: string;
+}
+
+interface PasswordUpdateParams {
+  password: string;
+  confirmPassword: string;
+}
+
 const ProfileSettings: React.FC = () => {
   const router = useRouter();
   
-  // User data query
-  const { data: userData, isLoading: isUserLoading } = api.user.get.useQuery();
+  // User data query with proper typing
+  const { data: userData, isLoading: isUserLoading } = api.user.get.useQuery() as {
+    data: UserData | undefined;
+    isLoading: boolean;
+  };
 
-  // Mutations
-  const { mutateAsync: updateNameDetailsMutation } = api.user.updateNameDetails.useMutation();
-  const { mutateAsync: updatePasswordMutation } = api.user.updatePassword.useMutation();
+  // Mutations with proper typing
+  const updateNameMutation = api.user.updateNames.useMutation();
+  const updatePasswordMutation = api.user.updatePassword.useMutation();
 
   // Define types for form states
   interface PasswordFormState {
@@ -50,8 +70,8 @@ const ProfileSettings: React.FC = () => {
   useEffect(() => {
     if (userData) {
       setNameForm({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || ''
+        firstName: userData.firstName ?? '',
+        lastName: userData.lastName ?? ''
       });
     }
   }, [userData]);
@@ -107,7 +127,7 @@ const ProfileSettings: React.FC = () => {
     const loadingToast = toast.loading('Updating name...');
     
     try {
-      await updateNameDetailsMutation({
+      await updateNameMutation.mutateAsync({
         firstName: nameForm.firstName,
         lastName: nameForm.lastName
       });
@@ -142,9 +162,8 @@ const ProfileSettings: React.FC = () => {
     const loadingToast = toast.loading('Updating password...');
     
     try {
-      await updatePasswordMutation({
+      await updatePasswordMutation.mutateAsync({
         password: passwordForm.newPassword,
-        confirmPassword: passwordForm.confirmPassword
       });
       
       toast.dismiss(loadingToast);

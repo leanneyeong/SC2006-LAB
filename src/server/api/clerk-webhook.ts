@@ -9,11 +9,26 @@ export const config = {
   },
 };
 
+// Define a more specific type for Clerk user data
+interface ClerkUserData {
+  id: string;
+  email_addresses?: Array<{
+    email_address: string;
+    verification?: {
+      status: string;
+    };
+  }>;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  profile_image_url?: string;
+  created_at?: string;
+  updated_at?: string;
+  // Add other specific fields as needed
+}
+
 interface WebhookEvent {
-  data: {
-    id: string;
-    [key: string]: any;
-  };
+  data: ClerkUserData;
   type: string;
   object: string;
 }

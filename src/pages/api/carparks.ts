@@ -1,8 +1,7 @@
-// pages/api/carparks.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
+/*import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Try one of these import paths - the one that matches your project structure
-import { getAllCarparkAvailability } from '../../server/api/services/carpark-services';
+import { getAllCarparkAvailability } from '../../server/api/services/car-park-service';
 // OR if your tsconfig.json has baseUrl set to "src"
 // import { getAllCarparkAvailability } from 'server/api/services/carpark-services';
 
@@ -14,28 +13,52 @@ interface UnifiedCarparkSchema {
   // Add other properties as needed
 }
 
-type ErrorResponse = {
+// Define the structure of your stats object
+interface CarparkStats {
+  totalCount: number;
+  totalAvailableLots: number;
+  lastUpdated: string;
+  // Add other stat properties as needed
+}
+
+// Define the complete response structure
+interface CarparkResponse {
+  carparks: UnifiedCarparkSchema[];
+  stats: CarparkStats & {
+    filteredCount?: number;
+    filteredAvailableLots?: number;
+  };
+}
+
+// Define service response type
+interface CarparkServiceResponse {
+  carparks: UnifiedCarparkSchema[];
+  stats: CarparkStats;
+}
+
+// Define error response type
+interface ErrorResponse {
   error: string;
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<any | ErrorResponse>
+  res: NextApiResponse<CarparkResponse | ErrorResponse>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Get the carpark data
-    const carparkData = await getAllCarparkAvailability();
+    // Get the carpark data with proper typing
+    const carparkData: CarparkServiceResponse = await getAllCarparkAvailability();
 
     // Optional: Filter by query parameters
     const { agency, minLots } = req.query;
-    let filteredData = carparkData.carparks as UnifiedCarparkSchema[];
+    let filteredData = carparkData.carparks;
 
     if (agency) {
-      const agencyFilter = String(agency).toUpperCase();
+      const agencyFilter = String(agency).toUpperCase() as 'HDB' | 'LTA' | 'URA';
       filteredData = filteredData.filter(carpark => carpark.agency === agencyFilter);
     }
 
@@ -46,11 +69,14 @@ export default async function handler(
       }
     }
 
+    // Calculate the sum of available lots with proper typing
+    const filteredAvailableLots = filteredData.reduce((sum, cp) => sum + cp.availableLots, 0);
+
     // Optional: Update stats based on filtered data
     const stats = {
       ...carparkData.stats,
       filteredCount: filteredData.length,
-      filteredAvailableLots: filteredData.reduce((sum: number, cp: UnifiedCarparkSchema) => sum + cp.availableLots, 0)
+      filteredAvailableLots
     };
 
     // Return the data
@@ -62,4 +88,4 @@ export default async function handler(
     console.error('API error:', error);
     return res.status(500).json({ error: 'Failed to fetch carpark data' });
   }
-}
+}*/

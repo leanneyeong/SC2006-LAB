@@ -5,6 +5,8 @@ import { Navigation } from '~/components/global/navigation';
 import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
+import { FavouriteButton } from '../components/global/favourite-button'; // Import the FavouriteButton component
+import getDistanceBetweenCarPark from '~/utils/get-distance-between-carpark';
 
 interface ReviewProps {
   text: string;
@@ -31,26 +33,28 @@ interface PricingData {
 }
 
 interface CarParkDetailProps {
+  id: string;
   name: string;
-  location: string;
   price: string;
-  availability: string;
+  availableLots: string;
   sheltered: boolean;
-  evCharging: boolean;
   rating: number;
   reviews: ReviewProps[];
-  pricing?: PricingData; // Add pricing data
+  pricing?: PricingData;
+  carParkType: string;
+  typeOfParkingSystem: string;
+  availabilityColor: string;
+  isFavourited: boolean;
+  location?: {
+    x: number;
+    y: number;
+  };
 }
 
 const CarParkDetailPage: React.FC = () => {
   const router = useRouter();
   
-  // Add state for TopBar component
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [evCharging, setEvCharging] = useState<boolean>(true);
-  const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
-  
-  // Add state for current time
+  // State for current time
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   
   // Function to calculate current price based on time and pricing data
@@ -66,7 +70,7 @@ const CarParkDetailPage: React.FC = () => {
     const periodPricing = isWeekend ? pricingData.weekend : pricingData.weekday;
     
     // Define time periods: morning (7-12), afternoon (12-18), evening (18-7)
-    let period;
+    let period: 'morning' | 'afternoon' | 'evening';
     if (hour >= 7 && hour < 12) {
       period = 'morning';
     } else if (hour >= 12 && hour < 18) {
@@ -81,13 +85,16 @@ const CarParkDetailPage: React.FC = () => {
   
   // State for carpark details with multiple reviews
   const [carParkDetail, setCarParkDetail] = useState<CarParkDetailProps>({
+    id: '',
     name: 'Loading...',
-    location: '',
-    price: '',
-    availability: '',
+    price: '$0.60/hr',
+    availableLots: '0',
     sheltered: false,
-    evCharging: false,
     rating: 4,
+    carParkType: 'Loading...',
+    typeOfParkingSystem: 'Loading...',
+    availabilityColor: 'text-green-600',
+    isFavourited: false,
     reviews: [
       {
         title: 'Convenient but PRICEY',
@@ -138,30 +145,10 @@ const CarParkDetailPage: React.FC = () => {
           date: '12/04/23',
           image: '/images/avatar.jpg'
         }
-      },
-      {
-        title: 'Expensive but Worth It',
-        text: 'Yes, it\'s on the pricier side but the convenience and central location make it worth every dollar. Always my go-to when visiting this area.',
-        rating: 5,
-        reviewer: {
-          name: 'David Chen',
-          date: '05/05/23',
-          image: '/images/avatar.jpg'
-        }
-      },
-      {
-        title: 'Good for Short Visits',
-        text: 'The hourly rate adds up quickly, so it\'s not ideal for all-day parking. However, for quick errands or short meetings in the area, this car park is perfect.',
-        rating: 4,
-        reviewer: {
-          name: 'Linda Kwok',
-          date: '18/06/23',
-          image: '/images/avatar.jpg'
-        }
       }
     ]
   });
-  
+
   // Set up timer to update the price every minute
   useEffect(() => {
     // Update time immediately
@@ -187,33 +174,61 @@ const CarParkDetailPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [carParkDetail.pricing]); // Re-run if pricing data changes
 
-  // Get query parameters when the component mounts and handle pricing data
+  // Get query parameters when the component mounts and handle data
   useEffect(() => {
     if (router.isReady) {
-      // Extract carpark details from the query parameters
-      const { name, area, lots, type, agency, pricingData } = router.query;
+      const {
+        id,
+        name,
+        carParkType,
+        typeOfParkingSystem,
+        availableLots,
+        availabilityColor,
+        pricing,
+        isFavourited,
+        locationX,
+        locationY
+      } = router.query;
       
       // Parse pricing data if available
-      let pricing: PricingData | undefined;
-      if (pricingData && typeof pricingData === 'string') {
+      let pricingData: PricingData | undefined;
+      if (pricing && typeof pricing === 'string') {
         try {
-          pricing = JSON.parse(pricingData);
+          pricingData = JSON.parse(pricing) as PricingData;
         } catch (error) {
           console.error('Error parsing pricing data:', error);
         }
       }
       
       // Calculate current price based on time and pricing data
-      const currentPrice = calculateCurrentPrice(pricing);
+      const currentPrice = calculateCurrentPrice(pricingData);
+      
+      // Check if carpark is sheltered based on carpark type
+      const isSheltered = 
+        typeof carParkType === 'string' && 
+        (carParkType.toLowerCase().includes('multi-storey') || 
+         carParkType.toLowerCase().includes('basement'));
+      
+      // Parse location coordinates if available
+      const location = (locationX && locationY) ? {
+        x: parseFloat(locationX as string),
+        y: parseFloat(locationY as string)
+      } : undefined;
       
       // Update the carpark details with the query parameters
       setCarParkDetail(prevDetails => ({
         ...prevDetails,
+        id: id as string || '',
         name: name as string || 'Unknown Carpark',
-        location: area as string || 'Unknown Location',
-        availability: `${lots || 0} Lots`,
+        availableLots: availableLots as string || '0',
         price: currentPrice,
-        pricing: pricing,
+        sheltered: isSheltered,
+        pricing: pricingData,
+        carParkType: carParkType as string || 'Unknown',
+        typeOfParkingSystem: typeOfParkingSystem as string || 'Unknown',
+        availabilityColor: availabilityColor as string || 'text-green-600',
+        isFavourited: isFavourited === 'true',
+        location: location
       }));
     }
   }, [router.isReady, router.query]);
@@ -234,25 +249,31 @@ const CarParkDetailPage: React.FC = () => {
 
   // Handle the back button click
   const handleBackClick = () => {
-    router.back();
+    void router.back();
   };
 
   // Handle leave review button click - Navigate to reviews page
   const handleLeaveReviewClick = () => {
     // Pass the carpark name as a query parameter to identify which carpark is being reviewed
-    router.push({
+    void router.push({
       pathname: '/reviews',
       query: { 
-        carparkName: carParkDetail.name,
-        carparkLocation: carParkDetail.location
+        carparkId: carParkDetail.id,
+        carparkName: carParkDetail.name
       }
     });
   };
 
   // Handle get directions button click
   const handleGetDirectionsClick = () => {
-    // You can implement navigation to a directions page or open a map app
-    window.open(`https://maps.google.com/?q=${encodeURIComponent(carParkDetail.location)}`, '_blank');
+    // Redirect to a directions page with carpark id
+    void router.push({
+      pathname: '/directions',
+      query: { 
+        carparkId: carParkDetail.id,
+        carparkName: carParkDetail.name
+      }
+    });
   };
 
   return (
@@ -282,15 +303,26 @@ const CarParkDetailPage: React.FC = () => {
               <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-600 dark:bg-gray-700">
                 <h3 className="mb-4 text-xl font-bold dark:text-white">Car Park Details:</h3>
                 <p className="mb-2 dark:text-white">
-                  <span className="font-medium">Location:</span> {carParkDetail.location}
-                </p>
-                <p className="mb-2 dark:text-white">
                   <span className="font-medium">Price:</span> {carParkDetail.price}
                 </p>
                 <p className="mb-4 dark:text-white">
                   <span className="font-medium">Availability:</span>{' '}
-                  <span className="text-green-600">{carParkDetail.availability}</span>
+                  <span className={carParkDetail.availabilityColor}>{carParkDetail.availableLots} Lots</span>
                 </p>
+                <p className="mb-2 dark:text-white">
+                  <span className="font-medium">Carpark Type:</span> {carParkDetail.carParkType}
+                </p>
+                <p className="mb-2 dark:text-white">
+                  <span className="font-medium">Parking System:</span> {carParkDetail.typeOfParkingSystem}
+                </p>
+                {carParkDetail.location && (
+                  <p className="mb-4 dark:text-white">
+                    <span className="font-medium">Distance:</span>{" "}
+                    <span className="text-blue-600">
+                      {getDistanceBetweenCarPark(carParkDetail.location)} km
+                    </span>
+                  </p>
+                )}
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <input 
@@ -301,25 +333,18 @@ const CarParkDetailPage: React.FC = () => {
                     />
                     <span className="dark:text-white">Sheltered</span>
                   </div>
-                  <div className="flex items-center">
-                    <input 
-                      type="checkbox" 
-                      checked={carParkDetail.evCharging} 
-                      readOnly 
-                      className="form-checkbox mr-2 h-4 w-4 text-blue-500"
-                    />
-                    <span className="dark:text-white">EV Parking</span>
-                  </div>
                 </div>
               </div>
               
               {/* Reviews with ScrollArea */}
               <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-600 dark:bg-gray-700">
+                
                 <h3 className="mb-4 text-xl font-bold dark:text-white">Reviews:</h3>
                 <ScrollArea className="h-64 pr-4">
                   <div className="space-y-6">
                     {carParkDetail.reviews.map((review, index) => (
                       <div key={index} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0 dark:border-gray-600">
+                        
                         <div className="mb-2 flex">
                           {renderStars(review.rating)}
                         </div>
@@ -347,16 +372,20 @@ const CarParkDetailPage: React.FC = () => {
             <div className="relative min-h-96 overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-sm dark:border-gray-600 dark:bg-gray-700">
               <img 
                 src="/api/placeholder/800/600"
-                alt="Google Map" 
+                alt="Map view of carpark location" 
                 className="h-full w-full object-cover"
               />
               <div className="absolute bottom-4 right-4 flex space-x-2">
+                <FavouriteButton 
+                  carParkId={carParkDetail.id}
+                  isFavourited={carParkDetail.isFavourited}
+                />
                 <Button 
                   className="bg-blue-500 text-white hover:bg-blue-600"
                   onClick={handleLeaveReviewClick}
                 >
                   Leave Review
-                </Button>
+                </Button>                
                 <Button 
                   className="bg-blue-500 text-white hover:bg-blue-600"
                   onClick={handleGetDirectionsClick}

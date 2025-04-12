@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -144,8 +144,8 @@ const UserManagement: React.FC = () => {
   };
 
   // Handle navigation to different sections
-  const handleNavigation = (path: string) => {
-    router.push(path);
+  const handleNavigation = async (path: string) => {
+    await router.push(path);
   };
   
   // Handle edit button click
@@ -313,7 +313,7 @@ const UserManagement: React.FC = () => {
               <CardContent className="p-6">
                 {filteredUsers.length === 0 ? (
                   <div className="my-4 text-center">
-                    <p className="text-gray-500">No users found matching "{searchQuery}"</p>
+                    <p className="text-gray-500">No users found matching &quot;{searchQuery}&quot;</p>
                   </div>
                 ) : (
                   <Table>

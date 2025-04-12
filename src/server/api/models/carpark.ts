@@ -1,3 +1,4 @@
+import Location from "../types/location"
 interface CarParkProps {
     id: string
     carParkNo: string

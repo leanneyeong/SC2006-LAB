@@ -1,10 +1,12 @@
 export interface UserProps {
     id: string;
-    firstName: string,
-    lastName: string
     email: string;
+    firstName: string,
+    lastName: string;
+    isDarkMode: boolean;
     createdAt: Date;
     updatedAt: Date;
+    deletedAt: Date;
 }
 
 export class User{
@@ -14,14 +16,25 @@ export class User{
         return this.props;
     }
 
-    public setNames(
-        firstName: string,
-        lastName: string
-    ) {
+    public delete(): User{
+        return new User({
+            ...this.props,
+            deletedAt: new Date()
+        });
+    }
+
+    public setNames(firstName: string,lastName: string): User {
         return new User({
             ...this.props,
             firstName,
             lastName
+        });
+    }
+
+    public setMainSettings(isDarkMode: boolean) {
+        return new User({
+            ...this.props,
+            isDarkMode
         })
     }
 }
