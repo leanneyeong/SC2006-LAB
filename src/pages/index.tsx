@@ -6,6 +6,8 @@ import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
 import { RefreshCw } from "lucide-react";
 import { api } from "~/utils/api"; // Import tRPC API
+import HDBMapView from "~/components/map/hdb-map-view";
+import MapViewUpdated from "~/components/map/map-view2";
 
 // Updated interface for carpark data to match schema
 interface CarparkData {
@@ -17,6 +19,16 @@ interface CarparkData {
   pricing?: string; // Optional pricing information
   availabilityColor: string;
   carParkNo?: string;
+  location: [number, number];
+  distance: number;
+  lat: number
+  lng: number
+}
+
+
+interface Position {
+  lat: number;
+  lng: number;
 }
 
 // Main ParkSMART Component
@@ -29,6 +41,16 @@ const ParkSMART: React.FC = () => {
   const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
   const [currentSort, setCurrentSort] = useState<string>("");
   const [filteredParkingLocations, setFilteredParkingLocations] = useState<CarparkData[]>([]);
+  const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
+
+  // get current location
+    useEffect(() => {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        const location = { lat: latitude, lng: longitude };
+        setCurrentLocation(location);
+      });
+    });
   
   // Use tRPC to fetch carpark data
   const { data: carparks, isLoading, refetch } = api.carPark.getCarparks.useQuery();
@@ -38,6 +60,19 @@ const ParkSMART: React.FC = () => {
 
   // Fixed distances for consistency between server and client
   const mockDistances = ["2.45", "3.78", "1.23"];
+
+  function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLng = (lng2 - lng1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // distance in kilometers
+  }
 
   // Unified filtering logic in a single useEffect
   useEffect(() => {
@@ -84,6 +119,8 @@ const ParkSMART: React.FC = () => {
         let availabilityColor = "text-green-600";
         if (availableLots <= 5) availabilityColor = "text-yellow-600";
         if (availableLots <= 2) availabilityColor = "text-red-600";
+
+        let distance = calculateDistance(currentLocation?.lat, currentLocation?.lng, carpark.location[0], carpark.location[1])
         
         return {
           id: carpark.id,
@@ -93,7 +130,11 @@ const ParkSMART: React.FC = () => {
           availableLots: availableLots.toString(),
           pricing: "Varies",
           availabilityColor,
-          carParkNo: carpark.carParkNo
+          carParkNo: carpark.carParkNo,
+          location: carpark.location,
+          distance: distance.toFixed(2),
+          lat: carpark.location[1],
+          lng: carpark.location[0],
         };
       });
       
@@ -164,7 +205,10 @@ const ParkSMART: React.FC = () => {
           isGettingLocation={isGettingLocation}
         />
 
-        <MapView />
+        {/* <MapView /> */}
+        {/* <HDBMapView carparks={filteredParkingLocations.slice(0, 20)}/> */}
+        <MapViewUpdated carparks_data={filteredParkingLocations}/>
+        {/* <MapViewUpdated carparks_data={filteredParkingLocations.slice(0, 200)}/> */}
 
         <main className="flex-grow bg-gray-50 p-4 dark:bg-gray-800">
           <div className="mb-6 flex items-center justify-between">
