@@ -1,9 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { eq, getTableColumns, and, isNull } from "drizzle-orm";
+import { eq, getTableColumns, and, isNull, sql, exists } from "drizzle-orm";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import carParkSchema from "~/server/db/schema/carparks-schema";
 import userFavouriteSchema from "~/server/db/schema/user-favourite-schema";
 import { CarPark } from "../models/carpark";
+import Location from "../types/location";
 
 export class CarParkRepository {
     constructor(private readonly db: PostgresJsDatabase) {}
@@ -15,6 +16,45 @@ export class CarParkRepository {
             .from(carParkSchema)
 
             return results.map((result) => new CarPark(result))
+        } catch(err){
+            const e = err as Error;
+            throw new TRPCError({
+                code:"INTERNAL_SERVER_ERROR",
+                message: e.message
+            })
+        }
+    }
+
+    public async findNearby(location: Location, userId: string){
+        try{
+            const sqlPoint = sql`ST_SetSRID(ST_MakePoint(${location.x}, ${location.y}), 4326)`;
+
+            const results = await this.db
+            .select({
+              ...getTableColumns(carParkSchema),
+              distance: sql`ST_Distance(
+                ${carParkSchema.location}::geometry,
+                ${sqlPoint}
+              )`,
+              isFavourited: sql<boolean>`
+                CASE WHEN ${userFavouriteSchema.id} IS NOT NULL THEN TRUE ELSE FALSE END
+              `.as('is_favourited')
+            })
+            .from(carParkSchema)
+            .leftJoin(
+              userFavouriteSchema,
+              and(
+                eq(userFavouriteSchema.carParkId, carParkSchema.id),
+                eq(userFavouriteSchema.userId, userId),
+                isNull(userFavouriteSchema.deletedAt)
+              )
+            )
+            .orderBy(sql`${carParkSchema.location}::geometry <-> ${sqlPoint}`)
+            .limit(20);
+
+              
+
+            return results
         } catch(err){
             const e = err as Error;
             throw new TRPCError({

@@ -5,7 +5,7 @@ import Location from "~/server/api/types/location";
 let currentUserLocation: { latitude: number; longitude: number } | null = null;
 
 // Update current location when available
-if (typeof navigator !== 'undefined' && navigator.geolocation) {
+if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
     (position) => {
       const { latitude, longitude } = position.coords;

@@ -50,7 +50,10 @@ const ParkSMART: React.FC = () => {
     data: carparks,
     isLoading,
     refetch,
-  } = api.carPark.getCarparks.useQuery();
+  } = api.carPark.getCarparks.useQuery({
+    x: currentLocation?.lng ?? 0,
+    y: currentLocation?.lat ?? 0
+  });
 
   const refreshMutation = api.carPark.refreshAvailability.useMutation();
 
@@ -324,7 +327,7 @@ const ParkSMART: React.FC = () => {
                       {/* Replaced the "Add to Favourites" button with FavouriteButton component */}
                       <FavouriteButton 
                         carParkId={parking.id}
-                        isFavourited={!!true}
+                        isFavourited={parking.isFavourited}
                       />
                     </div>
                   </CardFooter>

@@ -23,10 +23,15 @@ const setFavouriteMethod = carParkService.setFavourite.bind(carParkService);
 const createReviewMethod = carParkService.createReview.bind(carParkService);
 
 export const carParkRouter = createTRPCRouter({
-    getCarparks: publicProcedure
-        .query(async () => {
-            const carparks = await carParkRepository.findAll();
-            return carparks.map(carpark => carpark.getValue());
+    getCarparks: protectedProcedure
+        .input(z.object({
+            x: z.number(),
+             y: z.number()
+
+        }))
+        .query(async ({input,ctx}) => {
+            const carparks = await carParkRepository.findNearby({x:input.x,y:input.y}, ctx.auth.userId)
+            return carparks;
         }),
         
     refreshAvailability: protectedProcedure

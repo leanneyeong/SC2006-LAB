@@ -60,7 +60,6 @@ export class CarParkService{
             }
             //User wants to set to not favourited but already favourited
             else if(!isFavourited && existingFavourite){
-                console.log("HERE")
                 await this.userFavouriteRepository.update(existingFavourite.delete())
             }
             // User wants to set to favourite but is not favourited
