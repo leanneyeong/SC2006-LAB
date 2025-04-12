@@ -234,6 +234,18 @@ const CarParkDetailPage: React.FC = () => {
   };
 
   // Handle leave review button click - Navigate to reviews page
+  const handleAddToFavouritesClick = () => {
+    // Pass the carpark name as a query parameter to identify which carpark is being reviewed
+    router.push({
+      pathname: '/reviews',
+      query: { 
+        carparkId: carParkDetail.id,
+        carparkName: carParkDetail.name
+      }
+    });
+  };
+
+  // Handle leave review button click - Navigate to reviews page
   const handleLeaveReviewClick = () => {
     // Pass the carpark name as a query parameter to identify which carpark is being reviewed
     router.push({
@@ -311,11 +323,13 @@ const CarParkDetailPage: React.FC = () => {
               
               {/* Reviews with ScrollArea */}
               <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-600 dark:bg-gray-700">
+                
                 <h3 className="mb-4 text-xl font-bold dark:text-white">Reviews:</h3>
                 <ScrollArea className="h-64 pr-4">
                   <div className="space-y-6">
                     {carParkDetail.reviews.map((review, index) => (
                       <div key={index} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0 dark:border-gray-600">
+                        
                         <div className="mb-2 flex">
                           {renderStars(review.rating)}
                         </div>
@@ -347,12 +361,18 @@ const CarParkDetailPage: React.FC = () => {
                 className="h-full w-full object-cover"
               />
               <div className="absolute bottom-4 right-4 flex space-x-2">
+              <Button 
+                  className="bg-blue-500 text-white hover:bg-blue-600"
+                  onClick={handleAddToFavouritesClick}
+                >
+                  Add To Favourites
+                </Button>                
                 <Button 
                   className="bg-blue-500 text-white hover:bg-blue-600"
                   onClick={handleLeaveReviewClick}
                 >
                   Leave Review
-                </Button>
+                </Button>                
                 <Button 
                   className="bg-blue-500 text-white hover:bg-blue-600"
                   onClick={handleGetDirectionsClick}

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
+import { Card, CardContent, CardFooter } from "~/components/ui/card"; // Added CardFooter
 import { TopBar } from "~/components/global/top-bar-home";
 import { Navigation } from "~/components/global/navigation";
 import MapView from "~/components/map/map-view";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Heart } from "lucide-react"; // Added Heart icon
 import { api } from "~/utils/api"; // Import tRPC API
 import { useRouter } from "next/router"; // Import Next.js router
 
@@ -18,6 +18,7 @@ interface CarparkData {
   pricing?: string;
   availabilityColor: string;
   carParkNo?: string;
+  isFavorite?: boolean; // Added to track favorite status
 }
 
 // Main ParkSMART Component
@@ -95,7 +96,8 @@ const ParkSMART: React.FC = () => {
           availableLots: availableLots.toString(),
           pricing: "Varies",
           availabilityColor,
-          carParkNo: carpark.carParkNo
+          carParkNo: carpark.carParkNo,
+          isFavorite: false // Default value for favorite status
         };
       });
       
@@ -163,7 +165,8 @@ const ParkSMART: React.FC = () => {
         availableLots: parking.availableLots,
         availabilityColor: parking.availabilityColor,
         pricing: JSON.stringify(samplePricingData),
-        carParkNo: parking.carParkNo
+        carParkNo: parking.carParkNo,
+        isFavorite: parking.isFavorite ? "true" : "false"
       }
     });
   };
@@ -173,6 +176,17 @@ const ParkSMART: React.FC = () => {
     setSearchQuery("");
     setDisplayedSearchQuery("");
     setShelteredCarpark(false);
+  };
+
+  // Add to favorites handler
+  const handleAddToFavorites = (id: string) => {
+    setFilteredParkingLocations(prevLocations => 
+      prevLocations.map(location => 
+        location.id === id 
+          ? { ...location, isFavorite: !location.isFavorite } 
+          : location
+      )
+    );
   };
 
   return (
@@ -272,13 +286,23 @@ const ParkSMART: React.FC = () => {
                       <span className="font-medium">Distance:</span>{" "}
                       <span className="text-blue-600">{mockDistances[index % mockDistances.length]} km</span>
                     </p>
-                    <Button 
-                      className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
-                      onClick={() => handleViewDetails(parking)}
-                    >
-                      View Details
-                    </Button>
                   </CardContent>
+                  <CardFooter className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="flex justify-end space-x-2">
+                      <Button 
+                        className="bg-blue-500 text-white hover:bg-blue-600"
+                        onClick={() => handleViewDetails(parking)}
+                      >
+                        View Details
+                      </Button>
+                      <Button 
+                        className="bg-blue-500 text-white hover:bg-blue-600"
+                        onClick={() => handleViewDetails(parking)}
+                      >
+                        Add to Favourites
+                      </Button>
+                    </div>
+                  </CardFooter>
                 </Card>
               ))}
             </div>
