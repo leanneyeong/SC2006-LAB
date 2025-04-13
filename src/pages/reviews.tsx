@@ -66,6 +66,9 @@ const LeaveReviewPage: React.FC = () => {
   const userData: UserData | undefined = userQuery.data as UserData | undefined;
   const isUserLoading = userQuery.isLoading;
   
+  // Get the review mutation
+  const reviewMutation = api.carPark.review.useMutation();
+  
   // Format user data for display
   const currentUser = {
     name: userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...',
@@ -226,12 +229,8 @@ const LeaveReviewPage: React.FC = () => {
         return;
       }
       
-      // Type-safe mutation
-      type ReviewMutateFn = (params: { id: string; rating: number; description: string }) => Promise<unknown>;
-      const typedMutate = api.carPark.review.mutate as ReviewMutateFn;
-      
-      // Submit the review
-      await typedMutate({
+      // Submit the review using the already initialized mutation
+      await reviewMutation.mutateAsync({
         id: carparkId,
         rating: rating,
         description: reviewText
@@ -325,7 +324,7 @@ const LeaveReviewPage: React.FC = () => {
                   <p>
                     <span className="font-medium">Distance:</span>{" "}
                     <span className="text-blue-600">
-                      {getDistanceBetweenCarPark(carPark.location)} km
+                      {getDistanceBetweenCarPark({x: carPark.location.x, y: carPark.location.y})} km
                     </span>
                   </p>
                 </CardContent>
