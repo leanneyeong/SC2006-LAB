@@ -28,7 +28,7 @@ export class UserReview {
             ...this.props,
             rating,
             description,
-            updatedAt: new Date
+            updatedAt: new Date()
         })
     }
 
