@@ -12,6 +12,7 @@ import { ScrollArea } from '~/components/ui/scroll-area';
 import { api, RouterOutputs } from '~/utils/api';
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
+import Image from 'next/image';
 
 // Define the CarPark interface to match index.tsx
 interface CarParkProps {
@@ -29,13 +30,19 @@ interface CarParkProps {
   isFavourited?: boolean;
 }
 
+// Define UserData interface to properly type user information
+interface UserData {
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+}
+
 // Define Review interface from database using the API's output type
 type DBReviewProps = RouterOutputs["carPark"]["getReviews"][number];
 
 // Define Review display interface
 interface ReviewProps {
   rating: number;
-  title: string;
   content: string;
   author: string;
   date: string;
@@ -50,15 +57,20 @@ const LeaveReviewPage: React.FC = () => {
   const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
   
   // State for the review form
-  const [title, setTitle] = useState<string>('');
   const [reviewText, setReviewText] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
   
-  // Current user information (in a real app, this would come from authentication)
+  // Get current user information from authentication
+  const userQuery = api.user.get.useQuery();
+  // Explicitly type the userData to avoid 'any' assignment
+  const userData: UserData | undefined = userQuery.data as UserData | undefined;
+  const isUserLoading = userQuery.isLoading;
+  
+  // Format user data for display
   const currentUser = {
-    name: 'Jeremy Lim',
+    name: userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...',
     date: new Date().toLocaleDateString('en-GB'), // Current date in DD/MM/YY format
-    image: '/images/avatar.jpg'
+    image: userData?.avatarUrl ?? ''
   };
   
   // State for car park information (will be updated from query params)
@@ -84,27 +96,29 @@ const LeaveReviewPage: React.FC = () => {
   };
 
   // Fetch reviews from API using the car park ID
-  const fetchReviews = async (carParkId: string) => {
+  const fetchReviews = async (carParkId: string): Promise<void> => {
     try {
-      // Define the reviews query with proper typing
+      // Type-safe API call
       const reviewsQuery = api.carPark.getReviews;
       
-      // Type the query function to avoid unsafe calls
-      type ReviewQueryFn = (params: { id: string }) => Promise<DBReviewProps[]>;
-      const typedFetch = reviewsQuery.fetch as ReviewQueryFn;
+      // Use type assertion for the function before calling it
+      type ReviewFetchFn = (params: { id: string }) => Promise<DBReviewProps[]>;
+      const typedFetch = reviewsQuery.fetch as unknown as ReviewFetchFn;
       
-      // Call the tRPC method to get reviews for the carpark
-      const carparkReviews = await typedFetch({ id: carParkId });
+      // Make the call with proper typing
+      const reviewData: DBReviewProps[] = await typedFetch({ id: carParkId });
       
-      // Transform database reviews to the format expected by the UI
-      const transformedReviews: ReviewProps[] = carparkReviews.map((dbReview: DBReviewProps) => ({
-        rating: dbReview.rating,
-        title: "", // Title not stored in database, show first part of description instead
-        content: dbReview.description,
-        author: `${dbReview.userFirstName} ${dbReview.userLastName}`,
-        date: new Date().toLocaleDateString('en-GB') // Using current date as created date not returned
-      }));
+      // Transform database reviews to the format expected by the UI with explicit typing
+      const transformedReviews: ReviewProps[] = reviewData.map((dbReview: DBReviewProps): ReviewProps => {
+        return {
+          rating: dbReview.rating,
+          content: dbReview.description,
+          author: `${dbReview.userFirstName} ${dbReview.userLastName}`,
+          date: new Date().toLocaleDateString('en-GB')
+        };
+      });
       
+      // Set the reviews with proper typing
       setPreviousReviews(transformedReviews);
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -164,13 +178,13 @@ const LeaveReviewPage: React.FC = () => {
   }, [router.isReady, router.query]);
 
   // Function to handle star rating
-  const handleRatingClick = (selectedRating: number) => {
+  const handleRatingClick = (selectedRating: number): void => {
     setRating(selectedRating);
   };
 
   // Render star rating component
-  const renderStars = (currentRating: number) => {
-    const stars = [];
+  const renderStars = (currentRating: number): JSX.Element[] => {
+    const stars: JSX.Element[] = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <Star 
@@ -184,22 +198,27 @@ const LeaveReviewPage: React.FC = () => {
   };
 
   // Render stars for display only (not clickable)
-  const renderDisplayStars = (starRating: number) => {
-    const stars = [];
+  const renderDisplayStars = (rating: number): JSX.Element[] => {
+    const stars: JSX.Element[] = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <Star 
           key={i} 
-          className={`w-5 h-5 ${i <= starRating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300 dark:text-gray-500'}`}
+          className={`w-6 h-6 ${i <= rating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300'}`}
         />
       );
     }
     return stars;
   };
 
-  // Submit review handler
-  const handleSubmitReview = async () => {
+  const handleSubmitReview = async (): Promise<void> => {
     try {
+      // Check if user data is loaded
+      if (isUserLoading || !userData) {
+        alert('User data is not loaded. Please try again.');
+        return;
+      }
+      
       const carparkId = getQueryParamAsString(router.query.id);
       
       if (!carparkId) {
@@ -207,22 +226,18 @@ const LeaveReviewPage: React.FC = () => {
         return;
       }
       
-      // Get the review mutation with proper typing
-      const reviewMutation = api.carPark.review;
-      
-      // Type the mutation function to avoid unsafe calls
+      // Type-safe mutation
       type ReviewMutateFn = (params: { id: string; rating: number; description: string }) => Promise<unknown>;
-      const typedMutate = reviewMutation.mutate as ReviewMutateFn;
+      const typedMutate = api.carPark.review.mutate as ReviewMutateFn;
       
-      // Call the tRPC API to save the review
+      // Submit the review
       await typedMutate({
         id: carparkId,
         rating: rating,
-        description: title ? `${title}: ${reviewText}` : reviewText
+        description: reviewText
       });
       
       // Reset form after submission
-      setTitle('');
       setReviewText('');
       setRating(0);
       
@@ -241,9 +256,26 @@ const LeaveReviewPage: React.FC = () => {
   };
 
   // Function to handle cancellation
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     void router.back();
   };
+
+  // If user data is loading, show a loading spinner
+  if (isUserLoading) {
+    return (
+      <Navigation>
+        <div className="flex flex-col min-h-screen">
+          <TopBar />
+          <div className="flex-grow flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-300">Loading your information...</p>
+            </div>
+          </div>
+        </div>
+      </Navigation>
+    );
+  }
 
   return (
     <Navigation>
@@ -312,7 +344,6 @@ const LeaveReviewPage: React.FC = () => {
                             <div className="flex mb-2">
                               {renderDisplayStars(review.rating)}
                             </div>
-                            <p className="font-bold mb-1">{review.title}</p>
                             <p className="text-sm mb-3 dark:text-gray-200">
                               {review.content}
                             </p>
@@ -348,10 +379,29 @@ const LeaveReviewPage: React.FC = () => {
                   <div>
                     <div className="flex items-center mb-2">
                       <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden mr-3">
-                        <User className="h-full w-full p-1" />
+                        {isUserLoading ? (
+                          <div className="animate-pulse h-full w-full bg-gray-400 dark:bg-gray-500" />
+                        ) : currentUser.image ? (
+                          <div className="relative h-full w-full">
+                            <Image 
+                              src={currentUser.image}
+                              alt="User avatar"
+                              layout="fill"
+                              objectFit="cover"
+                            />
+                          </div>
+                        ) : (
+                          <User className="h-full w-full p-1" />
+                        )}
                       </div>
                       <div>
-                        <p className="font-medium text-sm dark:text-white">{currentUser.name}</p>
+                        <p className="font-medium text-sm dark:text-white">
+                          {isUserLoading ? (
+                            <span className="animate-pulse inline-block w-24 h-4 bg-gray-300 dark:bg-gray-500 rounded"></span>
+                          ) : (
+                            currentUser.name
+                          )}
+                        </p>
                         <p className="text-gray-500 dark:text-gray-300 text-xs">{currentUser.date}</p>
                       </div>
                     </div>
@@ -364,16 +414,6 @@ const LeaveReviewPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="title" className="block mb-2 dark:text-white">Title</Label>
-                    <Input
-                      id="title"
-                      placeholder="Add a title..."
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="w-full dark:bg-gray-600 dark:text-white dark:border-gray-500"
-                    />
-                  </div>
                   
                   <div>
                     <Label htmlFor="review" className="block mb-2 dark:text-white">Review</Label>
