@@ -133,4 +133,67 @@ export class CarParkService{
         }
     }
 
+    public async updateReview(
+        userId: string,
+        carParkId: string,
+        rating: number,
+        description: string
+    ){
+        try {
+            const existingReview = await this.userReviewRepository.findOneByUserIdAndCarParkIdOrNull(
+                userId,
+                carParkId
+            );
+
+            if (!existingReview) throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Review not found. You need to create a review first."
+            });
+
+            const updatedReview = new UserReview({
+                ...existingReview.getValue(),
+                rating,
+                description,
+                updatedAt: new Date()
+            });
+
+            await this.userReviewRepository.update(updatedReview);
+        } catch(err) {
+            if(err instanceof TRPCError) throw err;
+
+            const e = err as Error;
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: e.message
+            });
+        }
+    }
+
+    public async deleteReview(
+        userId: string,
+        carParkId: string
+    ){
+        try {
+            const existingReview = await this.userReviewRepository.findOneByUserIdAndCarParkIdOrNull(
+                userId,
+                carParkId
+            );
+
+            if (!existingReview) throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Review not found."
+            });
+
+            // Permanently delete the review from the database
+            await this.userReviewRepository.hardDelete(userId, carParkId);
+        } catch(err) {
+            if(err instanceof TRPCError) throw err;
+
+            const e = err as Error;
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: e.message
+            });
+        }
+    }
 }

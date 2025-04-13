@@ -16,6 +16,7 @@ interface DBReviewProps {
   userLastName: string;
   rating: number;
   description: string;
+  createdAt?: string | number | Date;
 }
 
 interface ReviewProps {
@@ -137,21 +138,24 @@ const CarParkDetailPage: React.FC = () => {
   // Fetch reviews from API using the car park ID
   const fetchReviews = async (carParkId: string) => {
     try {
-      // Call the tRPC method to get reviews for the carpark
-      // Using type assertion to fix TypeScript errors
-      const getReviewsMethod = api.carPark.getReviews;
-      // Cast the method to a function type that matches the expected signature
-      const typedQuery = getReviewsMethod.query as (params: { id: string }) => Promise<DBReviewProps[]>;
-      const carparkReviews = await typedQuery({ id: carParkId });
+      // Use fetch API instead of direct tRPC call to avoid hooks error
+      const response = await fetch(`/api/reviews/${carParkId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const carparkReviews = await response.json() as DBReviewProps[];
       
       // Transform database reviews to the format expected by the UI
-      const transformedReviews = carparkReviews.map((dbReview: DBReviewProps) => ({
+      const transformedReviews: ReviewProps[] = carparkReviews.map((dbReview: DBReviewProps) => ({
         rating: dbReview.rating,
         title: "", // Title not stored in database
         text: dbReview.description,
         reviewer: {
           name: `${dbReview.userFirstName} ${dbReview.userLastName}`,
-          date: new Date().toLocaleDateString('en-GB'), // Using current date as created date not returned
+          date: dbReview.createdAt 
+            ? new Date(dbReview.createdAt).toLocaleDateString('en-GB')
+            : new Date().toLocaleDateString('en-GB'),
           image: '/images/avatar.jpg'
         }
       }));
@@ -163,11 +167,8 @@ const CarParkDetailPage: React.FC = () => {
       }));
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      // Fallback to empty reviews array
-      setCarParkDetail(prevDetails => ({
-        ...prevDetails,
-        reviews: []
-      }));
+      // Keep existing reviews on error (don't reset to empty)
+      // This prevents losing reviews if there's a temporary fetch error
     }
   };
 
