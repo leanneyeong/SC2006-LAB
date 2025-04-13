@@ -306,7 +306,21 @@ const ParkSMART: React.FC = () => {
                     </p>
                     <p>
                       <span className="font-medium">Pricing:</span>{" "}
-                      Varies
+                      {(() => {
+                        const central_area = ["ACB", "BBB", "BRBI", "CY", "DUXM", "HLM", "KAB", "KAM", "KAS", "PRM", "SLS", "SR1", "SR2", "TPM", "UCS", "WCB"];
+                        const peak_hour = ["ACB", "CY", "SE21", "SE22", "SE24", "MP14", "MP15", "MP16", "HG9", "HG9T", "HG15", "HG16"];
+                        const lub = ["GSML", "BRBL", "JCML", "T55", "GEML", "KAML", "J57L", "J60L", "TPL", "EPL", "BL8L"];
+                        
+                        if (lub.includes(parking.carParkNo)) {
+                          return "$2-$4/30min";
+                        } else if (peak_hour.includes(parking.carParkNo)) {
+                          return "$0.60-$1.20/ 30min";
+                        } else if (central_area.includes(parking.carParkNo)) {
+                          return "$0.60-$1.20/30min";
+                        } else {
+                          return "$0.60/30min";
+                        }
+                      })()}
                     </p>
                     {/* Display real distance from current location */}
                     <p>

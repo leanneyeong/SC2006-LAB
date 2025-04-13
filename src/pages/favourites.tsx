@@ -19,6 +19,18 @@ interface ParkingLocation {
   nightParking: string;
   availabilityColor: string;
   distance?: number;
+  pricing?: {
+    weekday: {
+      morning: string;
+      afternoon: string;
+      evening: string;
+    };
+    weekend: {
+      morning: string;
+      afternoon: string;
+      evening: string;
+    };
+  };
 }
 
 const ParkSMART: React.FC = () => {
@@ -74,7 +86,19 @@ const ParkSMART: React.FC = () => {
           freeParking: carpark.freeParking,
           nightParking: carpark.nightParking,
           availabilityColor: getAvailabilityColour(carpark.availableLots),
-          distance: carpark.distance ? parseFloat((carpark.distance / 1000).toFixed(1)) : undefined // Convert to km
+          distance: carpark.distance ? parseFloat((carpark.distance / 1000).toFixed(1)) : undefined, // Convert to km
+          pricing: {
+            weekday: {
+              morning: "0.60",
+              afternoon: "1.20",
+              evening: "0.60"
+            },
+            weekend: {
+              morning: "1.20",
+              afternoon: "1.50",
+              evening: "0.60"
+            }
+          }
         }));
 
       setFavorites(favoritedCarparks);
@@ -84,20 +108,6 @@ const ParkSMART: React.FC = () => {
 
   // Handler functions
   const handleViewDetails = (parking: ParkingLocation) => {
-    // Create sample pricing data like in index.tsx
-    const samplePricingData = {
-      weekday: {
-        morning: "0.60",
-        afternoon: "1.20",
-        evening: "0.60"
-      },
-      weekend: {
-        morning: "1.20",
-        afternoon: "1.50",
-        evening: "0.60"
-      }
-    };
-    
     // Pass all required parameters to the details page
     void router.push({
       pathname: '/car-park-details',
@@ -108,7 +118,7 @@ const ParkSMART: React.FC = () => {
         typeOfParkingSystem: parking.typeOfParkingSystem,
         availableLots: parking.availableLots.toString(),
         availabilityColor: parking.availabilityColor,
-        pricing: JSON.stringify(samplePricingData),
+        pricing: JSON.stringify(parking.pricing),
         isFavourited: "true",
         locationX: userLocation ? userLocation.x.toString() : "",
         locationY: userLocation ? userLocation.y.toString() : ""
@@ -189,6 +199,13 @@ const ParkSMART: React.FC = () => {
                         <span className="font-medium">Night Parking:</span>{" "}
                         {parking.nightParking}
                       </p>
+                      {parking.pricing && (
+                        <p>
+                          <span className="font-medium">Prices:</span>{" "}
+                          <span className="text-green-600">Weekday ${parking.pricing.weekday.morning}-${parking.pricing.weekday.afternoon}</span>{" "}
+                          <span className="text-purple-600">Weekend ${parking.pricing.weekend.morning}-${parking.pricing.weekend.afternoon}</span>
+                        </p>
+                      )}
                       {parking.distance && (
                         <p>
                           <span className="font-medium">Distance:</span>{" "}
@@ -196,7 +213,7 @@ const ParkSMART: React.FC = () => {
                         </p>
                       )}
                     </CardContent>
-                    <CardFooter className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800">
+                    <CardFooter className="flex items-center p-4 bg-gray-50 dark:bg-gray-800">
                       <div className="flex justify-end space-x-2">
                         <Button 
                           className="bg-blue-500 text-white hover:bg-blue-600"

@@ -145,7 +145,7 @@ const UserManagement: React.FC = () => {
 
   // Handle navigation to different sections
   const handleNavigation = async (path: string) => {
-    await router.push(path);
+    void router.push(path);
   };
   
   // Handle edit button click

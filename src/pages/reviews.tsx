@@ -9,6 +9,7 @@ import { Label } from "~/components/ui/label";
 import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
+import { api, RouterOutputs } from '~/utils/api';
 
 // Define the CarPark interface
 interface CarParkProps {
@@ -20,7 +21,10 @@ interface CarParkProps {
   evCharging: boolean;
 }
 
-// Define Review interface
+// Define Review interface from database using the API's output type
+type DBReviewProps = RouterOutputs["carPark"]["getReviews"][number];
+
+// Define Review display interface
 interface ReviewProps {
   rating: number;
   title: string;
@@ -59,58 +63,8 @@ const LeaveReviewPage: React.FC = () => {
     evCharging: true
   });
 
-  // Sample previous reviews data
-  const previousReviews: ReviewProps[] = [
-    {
-      rating: 4,
-      title: "Convenient but PRICEY",
-      content: "The car park is well-maintained with plenty of available spaces, even during peak hours. It's well-lit and safe, but the hourly rates are quite high compared to nearby options. Great for short stays but might not be the best for long-term parking.",
-      author: "Rachel Tan",
-      date: "27/01/23"
-    },
-    {
-      rating: 5,
-      title: "Best parking in Marina area",
-      content: "Absolutely worth every dollar! Clean, spacious parking spots and the EV charging stations are always well-maintained. Security is visible and I've never had any issues leaving my car here even overnight.",
-      author: "Michael Chen",
-      date: "15/02/23"
-    },
-    {
-      rating: 3,
-      title: "Decent but expensive",
-      content: "The location is perfect if you're visiting Suntec City Mall. Sheltered parking is a plus during rainy days. However, weekend rates are excessive. Consider public transport if staying more than 2 hours.",
-      author: "Sarah Wong",
-      date: "03/03/23"
-    },
-    {
-      rating: 5,
-      title: "EV charging is excellent",
-      content: "As an electric vehicle owner, I appreciate the number of charging stations available. Never had to wait for a spot, even on weekends. The app integration with payment makes the experience seamless.",
-      author: "Lim Teck Wee",
-      date: "19/04/23"
-    },
-    {
-      rating: 2,
-      title: "Narrow parking spaces",
-      content: "While the location is convenient, the parking spaces are too narrow for larger vehicles. Had a difficult time maneuvering my SUV. The price doesn't justify the stress of parking here. Will avoid in future.",
-      author: "Jason Koh",
-      date: "08/06/23"
-    },
-    {
-      rating: 4,
-      title: "Good for weekend shopping",
-      content: "I regularly park here when shopping at Suntec. The rates are reasonable on weekends if you get the mall discount. The sheltered parking means your car doesn't turn into an oven during hot days. Recommended!",
-      author: "Priya Sharma",
-      date: "27/09/23"
-    },
-    {
-      rating: 3,
-      title: "Hit or miss during events",
-      content: "Normal days it's fine, but during events at Suntec Convention Centre it becomes a nightmare to find a spot. If there's an exhibition, come early or use alternative transport. Otherwise, it's a decent car park with good security.",
-      author: "David Lau",
-      date: "14/11/23"
-    }
-  ];
+  // State for reviews from database
+  const [previousReviews, setPreviousReviews] = useState<ReviewProps[]>([]);
 
   // Helper function to ensure string type from query parameters
   const getQueryParamAsString = (param: string | string[] | undefined): string => {
@@ -118,29 +72,60 @@ const LeaveReviewPage: React.FC = () => {
     return Array.isArray(param) ? param[0] : param;
   };
 
+  // Fetch reviews from API using the car park ID
+  const fetchReviews = async (carParkId: string) => {
+    try {
+      // Define the reviews query
+      const reviewsQuery = api.carPark.getReviews;
+      
+      // Call the tRPC method to get reviews for the carpark
+      const carparkReviews = await reviewsQuery.fetch({ id: carParkId });
+      
+      // Transform database reviews to the format expected by the UI
+      const transformedReviews: ReviewProps[] = carparkReviews.map((dbReview) => ({
+        rating: dbReview.rating,
+        title: "", // Title not stored in database, show first part of description instead
+        content: dbReview.description,
+        author: `${dbReview.userFirstName} ${dbReview.userLastName}`,
+        date: new Date().toLocaleDateString('en-GB') // Using current date as created date not returned
+      }));
+      
+      setPreviousReviews(transformedReviews);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      // Fallback to empty reviews array
+      setPreviousReviews([]);
+    }
+  };
+
   // Fetch car park details from query parameters when the component mounts
   useEffect(() => {
     if (router.isReady) {
-      const carparkName = getQueryParamAsString(router.query.carparkName);
-      const carparkLocation = getQueryParamAsString(router.query.carparkLocation);
-      const lots = getQueryParamAsString(router.query.lots);
-      const type = getQueryParamAsString(router.query.type);
+      const carparkName = getQueryParamAsString(router.query.name);
+      const carparkLocation = getQueryParamAsString(router.query.location);
+      const carparkType = getQueryParamAsString(router.query.carParkType);
+      const availableLots = getQueryParamAsString(router.query.availableLots);
+      const parkingSystem = getQueryParamAsString(router.query.typeOfParkingSystem);
+      const carparkId = getQueryParamAsString(router.query.id);
       
-      // Get carpark details from query params or use default values
+      console.log("Query params:", router.query); // Debug log
+      
+      // Get carpark details from query params to match index.tsx format
       setCarPark(prevState => ({
         ...prevState,
         name: carparkName || 'Unknown Carpark',
-        location: carparkLocation || 'Unknown Location',
-        // If lots and type are provided, use them, otherwise use a default value
-        availability: lots && type ? `${lots} ${type}` : (
-          lots ? `${lots} Lots` : (
-            carparkLocation === 'Orchard' ? '27 Lots' : '15 Lots'
-          )
-        ),
-        // Determine price based on location (can be enhanced with actual pricing data)
-        price: carparkLocation === 'Orchard' ? '$12/hr' : 
-               carparkLocation === 'Downtown' ? '$10/hr' : '$5/hr',
+        location: carparkLocation || carparkType || 'Unknown Location',
+        availability: availableLots || '0 Lots',
+        price: getQueryParamAsString(router.query.price) || 'Varies',
+        sheltered: carparkType?.toLowerCase().includes('multi-storey') || 
+                  carparkType?.toLowerCase().includes('basement') || false,
+        evCharging: getQueryParamAsString(router.query.evCharging) === 'true' || false,
       }));
+      
+      // If we have a carpark ID, fetch reviews for it
+      if (carparkId) {
+        void fetchReviews(carparkId);
+      }
     }
   }, [router.isReady, router.query]);
 
@@ -179,32 +164,47 @@ const LeaveReviewPage: React.FC = () => {
   };
 
   // Submit review handler
-  const handleSubmitReview = () => {
-    // In a real app, this would send the review to a backend API
-    console.log({
-      carPark: carPark.name,
-      title,
-      reviewText,
-      rating,
-      user: currentUser.name,
-      date: new Date().toLocaleDateString()
-    });
-    
-    // Reset form after submission
-    setTitle('');
-    setReviewText('');
-    setRating(0);
-    
-    // Show success message (in a real app, this would be a toast)
-    alert('Review submitted successfully!');
-    
-    // Navigate back to the carpark details page
-    router.back();
+  const handleSubmitReview = async () => {
+    try {
+      const carparkId = getQueryParamAsString(router.query.id);
+      
+      if (!carparkId) {
+        alert('Carpark ID is missing. Cannot submit review.');
+        return;
+      }
+      
+      // Get the review mutation
+      const reviewMutation = api.carPark.review;
+      
+      // Call the tRPC API to save the review
+      await reviewMutation.mutate({
+        id: carparkId,
+        rating: rating,
+        description: title ? `${title}: ${reviewText}` : reviewText
+      });
+      
+      // Reset form after submission
+      setTitle('');
+      setReviewText('');
+      setRating(0);
+      
+      // Show success message
+      alert('Review submitted successfully!');
+      
+      // Refresh the reviews list
+      void fetchReviews(carparkId);
+      
+      // Navigate back to the carpark details page
+      void router.back();
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. Please try again.');
+    }
   };
 
   // Function to handle cancellation
   const handleCancel = () => {
-    router.back();
+    void router.back();
   };
 
   return (
@@ -262,15 +262,6 @@ const LeaveReviewPage: React.FC = () => {
                         />
                         <span>Sheltered</span>
                       </div>
-                      <div className="flex items-center">
-                        <input 
-                          type="checkbox" 
-                          checked={carPark.evCharging} 
-                          readOnly 
-                          className="form-checkbox h-4 w-4 text-blue-500 mr-2"
-                        />
-                        <span>EV Parking</span>
-                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -283,26 +274,32 @@ const LeaveReviewPage: React.FC = () => {
                 <CardContent className="dark:text-white p-0">
                   <ScrollArea className="h-80 px-4">
                     <div className="space-y-4 py-4">
-                      {previousReviews.map((review, index) => (
-                        <div key={index} className="border-b dark:border-gray-600 pb-4 last:border-b-0">
-                          <div className="flex mb-2">
-                            {renderDisplayStars(review.rating)}
-                          </div>
-                          <p className="font-bold mb-1">{review.title}</p>
-                          <p className="text-sm mb-3 dark:text-gray-200">
-                            {review.content}
-                          </p>
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden mr-3">
-                              <User className="h-full w-full p-1" />
+                      {previousReviews.length > 0 ? (
+                        previousReviews.map((review, index) => (
+                          <div key={index} className="border-b dark:border-gray-600 pb-4 last:border-b-0">
+                            <div className="flex mb-2">
+                              {renderDisplayStars(review.rating)}
                             </div>
-                            <div>
-                              <p className="font-medium text-sm">{review.author}</p>
-                              <p className="text-gray-500 dark:text-gray-300 text-xs">{review.date}</p>
+                            <p className="font-bold mb-1">{review.title}</p>
+                            <p className="text-sm mb-3 dark:text-gray-200">
+                              {review.content}
+                            </p>
+                            <div className="flex items-center">
+                              <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden mr-3">
+                                <User className="h-full w-full p-1" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{review.author}</p>
+                                <p className="text-gray-500 dark:text-gray-300 text-xs">{review.date}</p>
+                              </div>
                             </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="flex justify-center items-center h-40">
+                          <p className="text-gray-500 dark:text-gray-300">No reviews yet</p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </ScrollArea>
                 </CardContent>

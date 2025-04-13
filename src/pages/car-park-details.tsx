@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
-import { Star } from 'lucide-react';
+import { Star, User } from 'lucide-react';
 import { Navigation } from '~/components/global/navigation';
 import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
 import { FavouriteButton } from '../components/global/favourite-button'; // Import the FavouriteButton component
 import getDistanceBetweenCarPark from '~/utils/get-distance-between-carpark';
+import { api, RouterOutputs } from '~/utils/api';
+
+// Define Review interface from database
+interface DBReviewProps {
+  userFirstName: string;
+  userLastName: string;
+  rating: number;
+  description: string;
+}
 
 interface ReviewProps {
   text: string;
@@ -80,10 +89,10 @@ const CarParkDetailPage: React.FC = () => {
     }
     
     const price = periodPricing[period] || '0.60';
-    return `$${price}/hr`;
+    return `$${price}/30min`;
   };
   
-  // State for carpark details with multiple reviews
+  // State for carpark details with empty reviews array (will be populated from database)
   const [carParkDetail, setCarParkDetail] = useState<CarParkDetailProps>({
     id: '',
     name: 'Loading...',
@@ -95,58 +104,7 @@ const CarParkDetailPage: React.FC = () => {
     typeOfParkingSystem: 'Loading...',
     availabilityColor: 'text-green-600',
     isFavourited: false,
-    reviews: [
-      {
-        title: 'Convenient but PRICEY',
-        text: 'The car park is well-maintained with plenty of available spaces, even during peak hours. It\'s well-lit and safe, but the parking rates are among the priciest compared to nearby options. Great for short stays but might not be the best for long-term parking.',
-        rating: 4,
-        reviewer: {
-          name: 'Rachel Tan',
-          date: '27/01/23',
-          image: '/images/avatar.jpg'
-        }
-      },
-      {
-        title: 'Great Location, Limited Space',
-        text: 'Perfect location if you\'re visiting Suntec City. However, it gets extremely crowded during weekends and finding a spot can be challenging. The parking system is efficient though!',
-        rating: 3,
-        reviewer: {
-          name: 'Jason Wong',
-          date: '15/02/23',
-          image: '/images/avatar.jpg'
-        }
-      },
-      {
-        title: 'Clean and Safe',
-        text: 'I appreciate how clean and well-lit this car park is. Security personnel are visible which makes me feel safe even at night. A bit expensive but worth it for the peace of mind.',
-        rating: 5,
-        reviewer: {
-          name: 'Sarah Lim',
-          date: '03/03/23',
-          image: '/images/avatar.jpg'
-        }
-      },
-      {
-        title: 'Tight Parking Spaces',
-        text: 'While the location is convenient, the parking spaces are quite tight. Had some difficulty maneuvering my SUV. Would be perfect for smaller vehicles.',
-        rating: 3,
-        reviewer: {
-          name: 'Michael Teo',
-          date: '20/03/23',
-          image: '/images/avatar.jpg'
-        }
-      },
-      {
-        title: 'Easy Access',
-        text: 'The entrance and exit are well-marked making it easy to navigate. Payment system is straightforward and hassle-free. Would park here again!',
-        rating: 4,
-        reviewer: {
-          name: 'Amanda Ng',
-          date: '12/04/23',
-          image: '/images/avatar.jpg'
-        }
-      }
-    ]
+    reviews: []
   });
 
   // Set up timer to update the price every minute
@@ -173,6 +131,38 @@ const CarParkDetailPage: React.FC = () => {
     // Clean up timer on component unmount
     return () => clearInterval(timer);
   }, [carParkDetail.pricing]); // Re-run if pricing data changes
+
+  // Fetch reviews from API using the car park ID
+  const fetchReviews = async (carParkId: string) => {
+    try {
+      // Call the tRPC method to get reviews for the carpark
+      const carparkReviews = await api.carPark.getReviews.queryAsync({ id: carParkId });      
+      // Transform database reviews to the format expected by the UI
+      const transformedReviews = carparkReviews.map((dbReview: DBReviewProps) => ({
+        rating: dbReview.rating,
+        title: "", // Title not stored in database
+        text: dbReview.description,
+        reviewer: {
+          name: `${dbReview.userFirstName} ${dbReview.userLastName}`,
+          date: new Date().toLocaleDateString('en-GB'), // Using current date as created date not returned
+          image: '/images/avatar.jpg'
+        }
+      }));
+      
+      // Update carpark details with the reviews
+      setCarParkDetail(prevDetails => ({
+        ...prevDetails,
+        reviews: transformedReviews
+      }));
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      // Fallback to empty reviews array
+      setCarParkDetail(prevDetails => ({
+        ...prevDetails,
+        reviews: []
+      }));
+    }
+  };
 
   // Get query parameters when the component mounts and handle data
   useEffect(() => {
@@ -215,10 +205,12 @@ const CarParkDetailPage: React.FC = () => {
         y: parseFloat(locationY as string)
       } : undefined;
       
+      const carparkId = id as string || '';
+      
       // Update the carpark details with the query parameters
       setCarParkDetail(prevDetails => ({
         ...prevDetails,
-        id: id as string || '',
+        id: carparkId,
         name: name as string || 'Unknown Carpark',
         availableLots: availableLots as string || '0',
         price: currentPrice,
@@ -230,6 +222,11 @@ const CarParkDetailPage: React.FC = () => {
         isFavourited: isFavourited === 'true',
         location: location
       }));
+      
+      // Fetch reviews if we have a carpark ID
+      if (carparkId) {
+        void fetchReviews(carparkId);
+      }
     }
   }, [router.isReady, router.query]);
 
@@ -254,12 +251,18 @@ const CarParkDetailPage: React.FC = () => {
 
   // Handle leave review button click - Navigate to reviews page
   const handleLeaveReviewClick = () => {
-    // Pass the carpark name as a query parameter to identify which carpark is being reviewed
+    // Pass the carpark details as query parameters to identify which carpark is being reviewed
     void router.push({
       pathname: '/reviews',
       query: { 
-        carparkId: carParkDetail.id,
-        carparkName: carParkDetail.name
+        id: carParkDetail.id,
+        name: carParkDetail.name,
+        location: carParkDetail.carParkType,
+        carParkType: carParkDetail.carParkType,
+        availableLots: carParkDetail.availableLots,
+        typeOfParkingSystem: carParkDetail.typeOfParkingSystem,
+        price: carParkDetail.price,
+        evCharging: "false"
       }
     });
   };
@@ -342,27 +345,33 @@ const CarParkDetailPage: React.FC = () => {
                 <h3 className="mb-4 text-xl font-bold dark:text-white">Reviews:</h3>
                 <ScrollArea className="h-64 pr-4">
                   <div className="space-y-6">
-                    {carParkDetail.reviews.map((review, index) => (
-                      <div key={index} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0 dark:border-gray-600">
-                        
-                        <div className="mb-2 flex">
-                          {renderStars(review.rating)}
-                        </div>
-                        <p className="mb-2 font-bold dark:text-white">{review.title}</p>
-                        <p className="mb-4 text-sm dark:text-gray-200">
-                          {review.text}
-                        </p>
-                        <div className="flex items-center">
-                          <div className="mr-3 h-8 w-8 overflow-hidden rounded-full bg-gray-300">
-                            <img src={review.reviewer.image} alt="Reviewer" className="h-full w-full object-cover" />
+                    {carParkDetail.reviews.length > 0 ? (
+                      carParkDetail.reviews.map((review, index) => (
+                        <div key={index} className="border-b border-gray-200 pb-4 last:border-0 last:pb-0 dark:border-gray-600">
+                          
+                          <div className="mb-2 flex">
+                            {renderStars(review.rating)}
                           </div>
-                          <div>
-                            <p className="text-sm font-medium dark:text-white">{review.reviewer.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-300">{review.reviewer.date}</p>
+                          <p className="mb-2 font-bold dark:text-white">{review.title}</p>
+                          <p className="mb-4 text-sm dark:text-gray-200">
+                            {review.text}
+                          </p>
+                          <div className="flex items-center">
+                            <div className="mr-3 h-8 w-8 overflow-hidden rounded-full bg-gray-300 dark:bg-gray-600">
+                              <User className="h-full w-full p-1" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium dark:text-white">{review.reviewer.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-300">{review.reviewer.date}</p>
+                            </div>
                           </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="flex justify-center items-center h-40">
+                        <p className="text-gray-500 dark:text-gray-300">No reviews yet</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </ScrollArea>
               </div>

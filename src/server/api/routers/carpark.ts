@@ -55,7 +55,7 @@ export const carParkRouter = createTRPCRouter({
             );
         }),
         
-    // Using the direct method reference
+    // Using the direct method reference for submitting a review
     review: protectedProcedure
         .input(z.object({
             id: z.string(),
@@ -69,5 +69,14 @@ export const carParkRouter = createTRPCRouter({
                 input.rating,
                 input.description
             );
+        }),
+        
+    // Get reviews for a carpark
+    getReviews: protectedProcedure
+        .input(z.object({
+            id: z.string()
+        }))
+        .query(async ({input}) => {
+            return await userReviewRepository.findManyByCarParkId(input.id);
         })
 });
