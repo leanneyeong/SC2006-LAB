@@ -12,6 +12,7 @@ import {
 import { env } from "~/env";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Locate } from "lucide-react";
+import { getAvailabilityThemeColor, getThemeColor } from "~/utils/get-theme-color";
 
 // Define Review interface from database
 interface DBReviewProps {
@@ -101,10 +102,39 @@ export default function CarparkDetailMap({
     console.log("showDirections: ", showDirections);
   }, []);
 
+  // Function to calculate bounds that include both carpark and user location
+  const getMapBounds = () => {
+    if (currentLocation && carpark.location) {
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend({lat: currentLocation.lat, lng: currentLocation.lng});
+      bounds.extend({lat: carpark.location.y, lng: carpark.location.x});
+      return bounds;
+    }
+    return null;
+  };
+
+  // Map reference to access map methods
+  const mapRef = useRef<google.maps.Map | null>(null);
+  
+  // Fit bounds when map and locations are available
+  useEffect(() => {
+    if (mapRef.current && currentLocation && carpark.location) {
+      const bounds = getMapBounds();
+      if (bounds) {
+        mapRef.current.fitBounds(bounds, {
+          top: 50,
+          right: 50,
+          bottom: 50,
+          left: 50
+        });
+      }
+    }
+  }, [currentLocation, carpark.location]);
+
   return (
     <APIProvider apiKey={env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
       <Map
-        defaultZoom={12}
+        defaultZoom={15}
         defaultCenter={{
           lat: carpark.location?.y ?? origin.lat,
           lng: carpark.location?.x ?? origin.lng,
@@ -114,6 +144,9 @@ export default function CarparkDetailMap({
         streetViewControl={false}
         tiltInteractionEnabled={false}
         mapTypeControl={false}
+        onLoad={(map) => {
+          mapRef.current = map;
+        }}
       />
 
       {currentLocation && <GeolocationMarker position={currentLocation} />}
@@ -152,7 +185,7 @@ export default function CarparkDetailMap({
         <Pin
           background={getMarkerColor(Number(carpark.availableLots))}
           borderColor={getMarkerColor(Number(carpark.availableLots))}
-          glyphColor={"white"}
+          glyphColor="var(--color-primary-foreground)"
         />
       </AdvancedMarker>
     </APIProvider>
@@ -236,13 +269,7 @@ const DirectionDetailsCard = ({
 };
 
 function getMarkerColor(availableLots: number): string {
-  if (availableLots == 0) {
-    return "#DC2626"; // red for no available lots
-  } else if (availableLots < 20) {
-    return "#F59E0B"; // amber for low availability
-  } else {
-    return "#10B981"; // green for good availability
-  }
+  return getAvailabilityThemeColor(availableLots);
 }
 
 interface GeolocationMarkerProps {
@@ -261,10 +288,10 @@ const GeolocationMarker = ({ position }: GeolocationMarkerProps) => {
       map,
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
-        fillColor: "#4285F4",
+        fillColor: getThemeColor("#4285F4", "hsl(var(--sidebar-primary))", "#4285F4"),
         fillOpacity: 1,
         scale: 8,
-        strokeColor: "#FFFFFF",
+        strokeColor: getThemeColor("#FFFFFF", "hsl(var(--background))", "#FFFFFF"),
         strokeWeight: 2,
       },
     });
@@ -295,7 +322,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
   const map = useMap();
   return (
     <button
-      className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
+      className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
       onClick={() => {
         if (map && currentLocation) {
           map.panTo(currentLocation);
@@ -303,7 +330,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
         }
       }}
     >
-      <Locate />
+      <Locate className="text-gray-700 dark:text-gray-200" />
     </button>
   );
 };

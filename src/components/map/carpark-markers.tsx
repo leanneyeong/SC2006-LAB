@@ -5,6 +5,7 @@ import React from "react";
 import { RouterOutputs } from "~/utils/api";
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
+import { getAvailabilityThemeColor, getThemeColor } from "~/utils/get-theme-color";
 
 type CarparkData = RouterOutputs["carPark"]["getCarparks"][number];
 
@@ -48,7 +49,7 @@ export const CarparksMarker = ({
               <Pin 
                 background={getMarkerColor(carpark.availableLots)} 
                 borderColor={getMarkerColor(carpark.availableLots)}
-                glyphColor={"white"} 
+                glyphColor="white"
               />
             </div>
           </AdvancedMarker>
@@ -79,13 +80,7 @@ export const CarparksMarker = ({
 };
 
 function getMarkerColor(availableLots: number): string {
-  if (availableLots == 0) {
-    return "#DC2626"; // red for no available lots
-  } else if (availableLots < 20) {
-    return "#F59E0B"; // amber for low availability
-  } else {
-    return "#10B981"; // green for good availability
-  }
+  return getAvailabilityThemeColor(availableLots);
 }
 
 export default CarparksMarker;

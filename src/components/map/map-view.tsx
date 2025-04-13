@@ -333,7 +333,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
   const map = useMap();
   return (
   <button
-    className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
+    className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none border border-gray-300 dark:border-gray-600"
     onClick={() => {
       if (map && currentLocation) {
         map.panTo(currentLocation);
@@ -341,7 +341,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
       }
     }}
   >
-    <Locate />
+    <Locate className="text-gray-700 dark:text-white" />
   </button>
   );
 };
