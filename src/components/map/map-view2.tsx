@@ -54,7 +54,7 @@ interface Position {
   lng: number;
 }
 
-export default function MapViewUpdated({ carparks_data }: { carparks_data: CarparkData[] }) {
+export default function MapViewUpdated({ carparks_data, displayLimit = 24 }: { carparks_data: CarparkData[], displayLimit?: number }) {
   const router = useRouter();
   const origin = { lat: 1.2833, lng: 103.8333 };
   const [openWindowOrigin, setOpenWindowOrigin] = useState(false);
@@ -243,6 +243,7 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
                 selectedCarpark={selectedCarpark}
                 onSelectCarpark={setSelectedCarpark}
                 onShowDirection={setShowDirection}
+                limit={displayLimit}
               />
             )}
 

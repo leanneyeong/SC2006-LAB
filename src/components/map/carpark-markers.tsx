@@ -13,24 +13,26 @@ interface CarparksMarkerProps {
   selectedCarpark: CarparkData | null;
   onSelectCarpark: (carpark: CarparkData) => void;
   onShowDirection?: (show: boolean) => void;
+  limit?: number;
 }
 
 export const CarparksMarker = ({
   carparks,
   selectedCarpark,
   onSelectCarpark,
+  limit = 24,
 }: CarparksMarkerProps) => {
   if (!carparks || carparks.length === 0) {
     return null;
   }
 
-  //Sort carparks by distance and take only the nearest 20
+  //Sort carparks by distance and limit to the specified number
   const nearestCarparks = [...carparks].sort((a,b) => {
     const distanceA = Number(getDistanceBetweenCarPark(a.location));
     const distanceB = Number(getDistanceBetweenCarPark(b.location));
     return distanceA - distanceB
   })
-  .slice(0,20);
+  .slice(0, limit);
 
   return (
     <>

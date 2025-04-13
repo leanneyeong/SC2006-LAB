@@ -13,6 +13,7 @@ import { useRouter } from "next/router"; // Import Next.js router
 import { FavouriteButton } from "../components/global/favourite-button"; // Import the FavouriteButton component
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
+import { toast } from "sonner";
 
 // Updated interface for carpark data to match schema
 type CarparkData = RouterOutputs["carPark"]["getCarparks"][number]
@@ -35,6 +36,8 @@ const ParkSMART: React.FC = () => {
     CarparkData[]
   >([]);
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
+  const [displayLimit, setDisplayLimit] = useState<number>(24);
+  const [allFilteredCarparks, setAllFilteredCarparks] = useState<CarparkData[]>([]);
 
   // get current location
   useEffect(() => {
@@ -107,9 +110,10 @@ const ParkSMART: React.FC = () => {
             break;
         }
       }
-      setFilteredParkingLocations(filtered.slice(0,20));
+      setAllFilteredCarparks(filtered);
+      setFilteredParkingLocations(filtered.slice(0, displayLimit));
     }
-  }, [carparks, shelteredCarpark, displayedSearchQuery, currentSort]);
+  }, [carparks, shelteredCarpark, displayedSearchQuery, currentSort, displayLimit]);
 
   // Handle search submission
   const handleSearch = () => {
@@ -193,6 +197,17 @@ const ParkSMART: React.FC = () => {
     setSearchQuery("");
     setDisplayedSearchQuery("");
     setShelteredCarpark(false);
+    setDisplayLimit(24);
+  };
+
+  // Handle loading more carparks
+  const handleLoadMore = () => {
+    const newLimit = displayLimit + 24;
+    if (newLimit >= allFilteredCarparks.length) {
+      // No more carparks to show
+      toast.info("No more carparks to display");
+    }
+    setDisplayLimit(newLimit);
   };
 
 
@@ -282,72 +297,70 @@ const ParkSMART: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredParkingLocations.map((parking, index) => (
-                <Card
-                  key={`${parking.id}-${index}`}
-                  className="overflow-hidden border border-gray-200 dark:border-gray-600 dark:bg-gray-700"
-                >
-                  <CardContent className="p-6 dark:text-white">
-                    <h3 className="mb-2 text-xl font-bold">{parking.address}</h3>
-                    <p>
-                      <span className="font-medium">Carpark Type:</span>{" "}
-                      {parking.carParkType}
-                    </p>
-                    <p>
-                      <span className="font-medium">Parking System:</span>{" "}
-                      {parking.typeOfParkingSystem}
-                    </p>
-                    <p>
-                      <span className="font-medium">Availability:</span>{" "}
-                      <span className={getAvailabilityColour(parking.availableLots)}>
-                        {parking.availableLots}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-medium">Pricing:</span>{" "}
-                      {(() => {
-                        const central_area = ["ACB", "BBB", "BRBI", "CY", "DUXM", "HLM", "KAB", "KAM", "KAS", "PRM", "SLS", "SR1", "SR2", "TPM", "UCS", "WCB"];
-                        const peak_hour = ["ACB", "CY", "SE21", "SE22", "SE24", "MP14", "MP15", "MP16", "HG9", "HG9T", "HG15", "HG16"];
-                        const lub = ["GSML", "BRBL", "JCML", "T55", "GEML", "KAML", "J57L", "J60L", "TPL", "EPL", "BL8L"];
-                        
-                        if (lub.includes(parking.carParkNo)) {
-                          return "$2-$4/30min";
-                        } else if (peak_hour.includes(parking.carParkNo)) {
-                          return "$0.60-$1.20/ 30min";
-                        } else if (central_area.includes(parking.carParkNo)) {
-                          return "$0.60-$1.20/30min";
-                        } else {
-                          return "$0.60/30min";
-                        }
-                      })()}
-                    </p>
-                    {/* Display real distance from current location */}
-                    <p>
-                      <span className="font-medium">Distance:</span>{" "}
-                      <span className="text-blue-600">
-                        {getDistanceBetweenCarPark(parking.location)} km
-                      </span>
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800">
-                    <div className="flex justify-end space-x-2">
-                      <Button 
-                        className="bg-blue-500 text-white hover:bg-blue-600"
-                        onClick={() => handleViewDetails(parking)}
-                      >
-                        View Details
-                      </Button>
-                      {/* Replaced the "Add to Favourites" button with FavouriteButton component */}
-                      <FavouriteButton 
-                        carParkId={parking.id}
-                        isFavourited={parking.isFavourited}
-                      />
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+  {filteredParkingLocations.map((parking, index) => (
+    <Card
+      key={`${parking.id}-${index}`}
+      className="overflow-hidden border border-gray-200 dark:border-gray-600 dark:bg-gray-700 flex flex-col"
+    >
+      <CardContent className="p-6 dark:text-white flex-grow">
+        <h3 className="mb-2 text-xl font-bold">{parking.address}</h3>
+        <p>
+          <span className="font-medium">Carpark Type:</span>{" "}
+          {parking.carParkType}
+        </p>
+        <p>
+          <span className="font-medium">Parking System:</span>{" "}
+          {parking.typeOfParkingSystem}
+        </p>
+        <p>
+          <span className="font-medium">Availability:</span>{" "}
+          <span className={getAvailabilityColour(parking.availableLots)}>
+            {parking.availableLots}
+          </span>
+        </p>
+        <p>
+          <span className="font-medium">Pricing:</span>{" "}
+          {(() => {
+            const central_area = ["ACB", "BBB", "BRBI", "CY", "DUXM", "HLM", "KAB", "KAM", "KAS", "PRM", "SLS", "SR1", "SR2", "TPM", "UCS", "WCB"];
+            const peak_hour = ["ACB", "CY", "SE21", "SE22", "SE24", "MP14", "MP15", "MP16", "HG9", "HG9T", "HG15", "HG16"];
+            const lub = ["GSML", "BRBL", "JCML", "T55", "GEML", "KAML", "J57L", "J60L", "TPL", "EPL", "BL8L"];
+            
+            if (lub.includes(parking.carParkNo)) {
+              return "$2-$4/30min";
+            } else if (peak_hour.includes(parking.carParkNo)) {
+              return "$0.60-$1.20/ 30min";
+            } else if (central_area.includes(parking.carParkNo)) {
+              return "$0.60-$1.20/30min";
+            } else {
+              return "$0.60/30min";
+            }
+          })()}
+        </p>
+        <p>
+          <span className="font-medium">Distance:</span>{" "}
+          <span className="text-blue-600">
+            {getDistanceBetweenCarPark(parking.location)} km
+          </span>
+        </p>
+      </CardContent>
+      <CardFooter className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800 mt-auto">
+        <div className="flex justify-end space-x-2 w-full">
+          <Button 
+            className="bg-blue-500 text-white hover:bg-blue-600"
+            onClick={() => handleViewDetails(parking)}
+          >
+            View Details
+          </Button>
+          <FavouriteButton 
+            carParkId={parking.id}
+            isFavourited={parking.isFavourited}
+          />
+        </div>
+      </CardFooter>
+    </Card>
+  ))}
+</div>
           )}
         </main>
       </div>
