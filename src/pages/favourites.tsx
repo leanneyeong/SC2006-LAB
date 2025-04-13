@@ -84,7 +84,36 @@ const ParkSMART: React.FC = () => {
 
   // Handler functions
   const handleViewDetails = (parking: ParkingLocation) => {
-    void router.push(`/car-park-details?id=${parking.id}`);
+    // Create sample pricing data like in index.tsx
+    const samplePricingData = {
+      weekday: {
+        morning: "0.60",
+        afternoon: "1.20",
+        evening: "0.60"
+      },
+      weekend: {
+        morning: "1.20",
+        afternoon: "1.50",
+        evening: "0.60"
+      }
+    };
+    
+    // Pass all required parameters to the details page
+    void router.push({
+      pathname: '/car-park-details',
+      query: {
+        id: parking.id,
+        name: parking.address,
+        carParkType: parking.carParkType,
+        typeOfParkingSystem: parking.typeOfParkingSystem,
+        availableLots: parking.availableLots.toString(),
+        availabilityColor: parking.availabilityColor,
+        pricing: JSON.stringify(samplePricingData),
+        isFavourited: "true",
+        locationX: userLocation ? userLocation.x.toString() : "",
+        locationY: userLocation ? userLocation.y.toString() : ""
+      }
+    });
   };
 
   const handleRemoveFavorite = async (parkingId: string) => {
