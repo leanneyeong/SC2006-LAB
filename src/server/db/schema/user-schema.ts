@@ -17,7 +17,6 @@ const userSchema = pgTable(
       .default(CURRENT_TIMESTAMP)
       .notNull(),
       deletedAt:timestamp("deleted_at").default(CURRENT_TIMESTAMP)
-      .notNull(),
     }
 );
 

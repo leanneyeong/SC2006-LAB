@@ -6,7 +6,7 @@ export interface UserProps {
     isDarkMode: boolean;
     createdAt: Date;
     updatedAt: Date;
-    deletedAt: Date;
+    deletedAt: Date | null;
 }
 
 export class User{
