@@ -18,7 +18,7 @@ const ProfileSettings: React.FC = () => {
   const { data: userData, isLoading: isUserLoading } = api.user.get.useQuery();
 
   // Mutations
-  const { mutateAsync: updateNameDetailsMutation } = api.user.updateNameDetails.useMutation();
+  const { mutateAsync: updateNameDetailsMutation } = api.user.updateNames.useMutation();
   const { mutateAsync: updatePasswordMutation } = api.user.updatePassword.useMutation();
 
   // Define types for form states
@@ -144,7 +144,6 @@ const ProfileSettings: React.FC = () => {
     try {
       await updatePasswordMutation({
         password: passwordForm.newPassword,
-        confirmPassword: passwordForm.confirmPassword
       });
       
       toast.dismiss(loadingToast);
