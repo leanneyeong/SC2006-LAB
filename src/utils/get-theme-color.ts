@@ -16,7 +16,7 @@ export const getThemeColor = (
   }
   
   // Fallback for SSR
-  return fallback || lightModeColor;
+  return fallback ?? lightModeColor;
 };
 
 /**

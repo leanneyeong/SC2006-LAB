@@ -82,21 +82,20 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
   };
 
   useEffect(() => {
-    // get current user location
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const location = { lat: latitude, lng: longitude };
         setCurrentLocation(location);
         
-        // If map is available, center it on user's location
-        if (window.google && window.google.maps) {
-          const mapElement = document.querySelector('div[aria-label="Map"]');
-          if (mapElement) {
-            const mapInstance = new window.google.maps.Map(mapElement);
-            mapInstance.panTo(location);
-            mapInstance.setZoom(15);
-          }
+        // Get the map element without unnecessary assertion
+        const mapElement = document.querySelector('div[aria-label="Map"]');
+        
+        // Check if mapElement exists and has correct type
+        if (mapElement instanceof HTMLElement && window.google?.maps) {
+          const mapInstance = new window.google.maps.Map(mapElement);
+          mapInstance.panTo(location);
+          mapInstance.setZoom(15);
         }
       },
       (error) => {
@@ -185,7 +184,7 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
         >
           <Map
             defaultZoom={15}
-            defaultCenter={currentLocation || origin}
+            defaultCenter={currentLocation ?? origin}
             mapId={process.env.NEXT_PUBLIC_MAP_ID}
             fullscreenControl={false}
             streetViewControl={false}

@@ -144,10 +144,11 @@ export default function CarparkDetailMap({
         streetViewControl={false}
         tiltInteractionEnabled={false}
         mapTypeControl={false}
-        onLoad={(map) => {
+        onLoad={(map: google.maps.Map) => {
           mapRef.current = map;
         }}
       />
+
 
       {currentLocation && <GeolocationMarker position={currentLocation} />}
 
@@ -276,11 +277,16 @@ interface GeolocationMarkerProps {
   position: Position;
 }
 
+// Create a proper type for the geolocation marker
+interface GeolocationMarkerObject {
+  marker: google.maps.Marker;
+}
+
 const GeolocationMarker = ({ position }: GeolocationMarkerProps) => {
   // https://github.com/visgl/react-google-maps/discussions/552
   const map = useMap();
 
-  const geolocationMarker = useMemo(() => {
+  const geolocationMarker = useMemo<GeolocationMarkerObject | null>(() => {
     if (!map || !position) return null;
 
     const marker = new google.maps.Marker({

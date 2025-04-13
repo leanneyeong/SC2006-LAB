@@ -86,14 +86,18 @@ const LeaveReviewPage: React.FC = () => {
   // Fetch reviews from API using the car park ID
   const fetchReviews = async (carParkId: string) => {
     try {
-      // Define the reviews query
+      // Define the reviews query with proper typing
       const reviewsQuery = api.carPark.getReviews;
       
+      // Type the query function to avoid unsafe calls
+      type ReviewQueryFn = (params: { id: string }) => Promise<DBReviewProps[]>;
+      const typedFetch = reviewsQuery.fetch as ReviewQueryFn;
+      
       // Call the tRPC method to get reviews for the carpark
-      const carparkReviews = await reviewsQuery.fetch({ id: carParkId });
+      const carparkReviews = await typedFetch({ id: carParkId });
       
       // Transform database reviews to the format expected by the UI
-      const transformedReviews: ReviewProps[] = carparkReviews.map((dbReview) => ({
+      const transformedReviews: ReviewProps[] = carparkReviews.map((dbReview: DBReviewProps) => ({
         rating: dbReview.rating,
         title: "", // Title not stored in database, show first part of description instead
         content: dbReview.description,
@@ -203,11 +207,15 @@ const LeaveReviewPage: React.FC = () => {
         return;
       }
       
-      // Get the review mutation
+      // Get the review mutation with proper typing
       const reviewMutation = api.carPark.review;
       
+      // Type the mutation function to avoid unsafe calls
+      type ReviewMutateFn = (params: { id: string; rating: number; description: string }) => Promise<unknown>;
+      const typedMutate = reviewMutation.mutate as ReviewMutateFn;
+      
       // Call the tRPC API to save the review
-      await reviewMutation.mutate({
+      await typedMutate({
         id: carparkId,
         rating: rating,
         description: title ? `${title}: ${reviewText}` : reviewText

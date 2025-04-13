@@ -138,7 +138,12 @@ const CarParkDetailPage: React.FC = () => {
   const fetchReviews = async (carParkId: string) => {
     try {
       // Call the tRPC method to get reviews for the carpark
-      const carparkReviews: DBReviewProps[] = await api.carPark.getReviews.queryAsync({ id: carParkId });     
+      // Using type assertion to fix TypeScript errors
+      const getReviewsMethod = api.carPark.getReviews;
+      // Cast the method to a function type that matches the expected signature
+      const typedQuery = getReviewsMethod.query as (params: { id: string }) => Promise<DBReviewProps[]>;
+      const carparkReviews = await typedQuery({ id: carParkId });
+      
       // Transform database reviews to the format expected by the UI
       const transformedReviews = carparkReviews.map((dbReview: DBReviewProps) => ({
         rating: dbReview.rating,
