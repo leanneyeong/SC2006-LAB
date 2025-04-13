@@ -5,16 +5,18 @@ import Location from "~/server/api/types/location";
 let currentUserLocation: { latitude: number; longitude: number } | null = null;
 
 // Update current location when available
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const { latitude, longitude } = position.coords;
-      currentUserLocation = { latitude, longitude };
-    },
-    (error) => {
-      console.error("Error getting location:", error);
-    }
-  );
+if (typeof window !== 'undefined') {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        currentUserLocation = { latitude, longitude };
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      }
+    );
+  }
 }
 
 const getDistanceBetweenCarPark = (location: Location): string => {
@@ -33,4 +35,4 @@ const getDistanceBetweenCarPark = (location: Location): string => {
   return distance.toFixed(2);
 };
 
-export default getDistanceBetweenCarPark
+export default getDistanceBetweenCarPark;
