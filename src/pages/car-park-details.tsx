@@ -8,6 +8,7 @@ import { ScrollArea } from '~/components/ui/scroll-area';
 import { FavouriteButton } from '../components/global/favourite-button'; // Import the FavouriteButton component
 import getDistanceBetweenCarPark from '~/utils/get-distance-between-carpark';
 import { api, RouterOutputs } from '~/utils/api';
+import CarparkDetailMap from '~/components/map/carpark-detail-map';
 
 // Define Review interface from database
 interface DBReviewProps {
@@ -65,6 +66,7 @@ const CarParkDetailPage: React.FC = () => {
   
   // State for current time
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [showDirection, setShowDirection] = useState<boolean>(false);
   
   // Function to calculate current price based on time and pricing data
   const calculateCurrentPrice = (pricingData: PricingData | undefined): string => {
@@ -136,7 +138,7 @@ const CarParkDetailPage: React.FC = () => {
   const fetchReviews = async (carParkId: string) => {
     try {
       // Call the tRPC method to get reviews for the carpark
-      const carparkReviews = await api.carPark.getReviews.queryAsync({ id: carParkId });      
+      const carparkReviews: DBReviewProps[] = await api.carPark.getReviews.queryAsync({ id: carParkId });     
       // Transform database reviews to the format expected by the UI
       const transformedReviews = carparkReviews.map((dbReview: DBReviewProps) => ({
         rating: dbReview.rating,
@@ -270,13 +272,14 @@ const CarParkDetailPage: React.FC = () => {
   // Handle get directions button click
   const handleGetDirectionsClick = () => {
     // Redirect to a directions page with carpark id
-    void router.push({
-      pathname: '/directions',
-      query: { 
-        carparkId: carParkDetail.id,
-        carparkName: carParkDetail.name
-      }
-    });
+    setShowDirection(true);
+    // void router.push({
+    //   pathname: '/directions',
+    //   query: { 
+    //     carparkId: carParkDetail.id,
+    //     carparkName: carParkDetail.name
+    //   }
+    // });
   };
 
   return (
@@ -379,11 +382,14 @@ const CarParkDetailPage: React.FC = () => {
             
             {/* Right Column - Map */}
             <div className="relative min-h-96 overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-sm dark:border-gray-600 dark:bg-gray-700">
-              <img 
+              {/* <img 
                 src="/api/placeholder/800/600"
                 alt="Map view of carpark location" 
                 className="h-full w-full object-cover"
-              />
+              /> */}
+              
+              <CarparkDetailMap carpark={carParkDetail} showDirections={showDirection}/>
+
               <div className="absolute bottom-4 right-4 flex space-x-2">
                 <FavouriteButton 
                   carParkId={carParkDetail.id}
