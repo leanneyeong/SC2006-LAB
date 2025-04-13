@@ -1,4 +1,4 @@
-import { userRepository } from "../repositories";
+import { carParkRepository, userFavouriteRepository, userRepository, userReviewRepository } from "../repositories";
 import { UserService } from "./user-services";
 
-export const userService = new UserService(userRepository)
+export const userService = new UserService(carParkRepository,userRepository,userReviewRepository,userFavouriteRepository)
