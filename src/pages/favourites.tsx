@@ -52,7 +52,7 @@ const ParkSMART: React.FC = () => {
 
   // Query to get nearby carparks (will include isFavourited flag)
   const carparksQuery = api.carPark.getCarparks.useQuery(
-    { x: userLocation?.x || 103.8198, y: userLocation?.y || 1.3521 }, 
+    { x: userLocation?.x ?? 103.8198, y: userLocation?.y ?? 1.3521 }, 
     { enabled: userLocation !== null }
   );
 
@@ -84,7 +84,7 @@ const ParkSMART: React.FC = () => {
 
   // Handler functions
   const handleViewDetails = (parking: ParkingLocation) => {
-    router.push(`/car-park-details?id=${parking.id}`);
+    void router.push(`/car-park-details?id=${parking.id}`);
   };
 
   const handleRemoveFavorite = async (parkingId: string) => {
@@ -123,7 +123,7 @@ const ParkSMART: React.FC = () => {
               </div>
             ) : favorites.length === 0 ? (
               <div className="flex justify-center p-8">
-                <p>You haven't added any favorites yet.</p>
+                <p>You haven&apos;t added any favorites yet.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
