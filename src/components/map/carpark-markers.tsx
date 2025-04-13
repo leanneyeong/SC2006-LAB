@@ -5,6 +5,7 @@ import React from "react";
 import { RouterOutputs } from "~/utils/api";
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
+import { getAvailabilityThemeColor, getThemeColor } from "~/utils/get-theme-color";
 
 type CarparkData = RouterOutputs["carPark"]["getCarparks"][number];
 
@@ -24,13 +25,12 @@ export const CarparksMarker = ({
     return null;
   }
 
-  //Sort carparks by distance and take only the nearest 20
+  //Sort carparks by distance
   const nearestCarparks = [...carparks].sort((a,b) => {
     const distanceA = Number(getDistanceBetweenCarPark(a.location));
     const distanceB = Number(getDistanceBetweenCarPark(b.location));
     return distanceA - distanceB
-  })
-  .slice(0,20);
+  });
 
   return (
     <>
@@ -39,12 +39,19 @@ export const CarparksMarker = ({
           <AdvancedMarker
             position={{ lat: carpark.location.y, lng: carpark.location.x }}
             onClick={() => onSelectCarpark(carpark)}
+            title={carpark.address || "Unknown Carpark"}
+            clickable={true}
           >
-            <Pin 
-              background={getMarkerColor(carpark.availableLots)} 
-              borderColor={getMarkerColor(carpark.availableLots)}
-              glyphColor={"white"} 
-            />
+            <div 
+              onClick={() => onSelectCarpark(carpark)}
+              style={{ cursor: 'pointer' }}
+            >
+              <Pin 
+                background={getMarkerColor(carpark.availableLots)} 
+                borderColor={getMarkerColor(carpark.availableLots)}
+                glyphColor="white"
+              />
+            </div>
           </AdvancedMarker>
 
           {selectedCarpark &&
@@ -73,13 +80,7 @@ export const CarparksMarker = ({
 };
 
 function getMarkerColor(availableLots: number): string {
-  if (availableLots == 0) {
-    return "#DC2626"; // red for no available lots
-  } else if (availableLots < 20) {
-    return "#F59E0B"; // amber for low availability
-  } else {
-    return "#10B981"; // green for good availability
-  }
+  return getAvailabilityThemeColor(availableLots);
 }
 
 export default CarparksMarker;

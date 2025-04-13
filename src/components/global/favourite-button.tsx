@@ -3,6 +3,7 @@ import { Heart } from "lucide-react"
 import toast from "react-hot-toast"
 import { api } from "~/utils/api"
 import { Button } from "~/components/ui/button" // Make sure to import the Button component
+import { getThemeColor } from "~/utils/get-theme-color"
 
 interface FavouriteButtonProps {
     carParkId: string
@@ -41,13 +42,18 @@ export const FavouriteButton = ({carParkId, isFavourited}: FavouriteButtonProps)
 
     return (
         <Button 
-            className={`flex items-center gap-2 ${isFavourited ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+            variant={isFavourited ? "destructive" : "default"}
             onClick={handleChange}
+            className={`flex items-center gap-2 ${
+                isFavourited 
+                ? "bg-red-600 hover:bg-red-700 text-white" 
+                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
         >
             <Heart
                 size={18}
-                fill={isFavourited ? "white" : "none"}
-                stroke="white"
+                fill={isFavourited ? "currentColor" : "none"}
+                stroke="currentColor"
             />
             {isFavourited ? "Favourited" : "Favourite"}
         </Button>

@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Navigation } from "~/components/global/navigation-admin";
+import { TopBar } from "~/components/global/top-bar-others";
 import { Search, Trash2, Edit2 } from "lucide-react";
 import { useRouter } from "next/router";
 
@@ -301,43 +302,42 @@ const CarparkManagement: React.FC = () => {
     });
   };
 
+  // Search action elements to be passed to TopBar
+  const searchActions = (
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <Input
+          type="text"
+          placeholder="Search by ID or name"
+          className="w-64 rounded-md bg-white"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyPress={handleSearchKeyPress}
+        />
+      </div>
+      <Button 
+        variant="secondary" 
+        className="flex items-center gap-1"
+        onClick={handleSearch}
+      >
+        <Search size={16} />
+        Search
+      </Button>
+      <Button 
+        variant="secondary" 
+        className="bg-green-600 text-white hover:bg-green-700"
+        onClick={handleAddNewCarpark}
+      >
+        Add New Carpark
+      </Button>
+    </div>
+  );
+
   return (
     <Navigation>
       <div className="flex min-h-screen flex-col">
-        {/* Top Header Bar */}
-        <header className="bg-blue-500 p-4">
-          <div className="container mx-auto flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white">Car Park Management</h1>
-            
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Input
-                  type="text"
-                  placeholder="Search by ID or name"
-                  className="w-64 rounded-md bg-white"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleSearchKeyPress}
-                />
-              </div>
-              <Button 
-                variant="secondary" 
-                className="flex items-center gap-1"
-                onClick={handleSearch}
-              >
-                <Search size={16} />
-                Search
-              </Button>
-              <Button 
-                variant="secondary" 
-                className="bg-green-600 text-white hover:bg-green-700"
-                onClick={handleAddNewCarpark}
-              >
-                Add New Carpark
-              </Button>
-            </div>
-          </div>
-        </header>
+        {/* Using the TopBar component instead of custom header */}
+        <TopBar title="Car Park Management" actions={searchActions} />
 
         {/* Main Content */}
         <div className="flex flex-1">
