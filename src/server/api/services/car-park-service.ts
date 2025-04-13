@@ -60,7 +60,7 @@ export class CarParkService{
             }
             //User wants to set to not favourited but already favourited
             else if(!isFavourited && existingFavourite){
-                await this.userFavouriteRepository.update(existingFavourite.delete())
+                await this.userFavouriteRepository.hardDelete(existingFavourite.getValue().id)
             }
             // User wants to set to favourite but is not favourited
             else if(isFavourited && !existingFavourite){

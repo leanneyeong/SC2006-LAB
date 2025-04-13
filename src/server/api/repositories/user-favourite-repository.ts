@@ -28,10 +28,7 @@ export class UserFavouriteRepository {
         userId: string
     ) {
         try{
-            await this.db.update(userFavouriteSchema)
-            .set({
-                deletedAt: new Date()
-            })
+            await this.db.delete(userFavouriteSchema)
             .where(eq(
                 userFavouriteSchema.userId, userId
             ))
@@ -57,8 +54,7 @@ export class UserFavouriteRepository {
             .from(userFavouriteSchema)
             .where(and(
                 eq(userFavouriteSchema.carParkId,carParkId),
-                eq(userFavouriteSchema.userId, userId),
-                isNull(userFavouriteSchema.deletedAt)
+                eq(userFavouriteSchema.userId, userId)
             ))
             .limit(1)
 
@@ -107,6 +103,19 @@ export class UserFavouriteRepository {
                 ...entity.getValue()
             })
             .where(eq(userFavouriteSchema.id,entity.getValue().id))
+        } catch(err){
+            const e = err as Error;
+            throw new TRPCError({
+                code:"INTERNAL_SERVER_ERROR",
+                message:e.message
+            })
+        }
+    }
+    
+    public async hardDelete(id: string){
+        try{
+            await this.db.delete(userFavouriteSchema)
+            .where(eq(userFavouriteSchema.id, id))
         } catch(err){
             const e = err as Error;
             throw new TRPCError({
