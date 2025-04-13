@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Star, User } from 'lucide-react';
 import { Navigation } from '~/components/global/navigation';
-import { Textarea } from "~/components/ui/textarea";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
@@ -13,6 +10,24 @@ import { api, RouterOutputs } from '~/utils/api';
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
 import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
+import { Form, FormField, FormItem, FormMessage } from "~/components/ui/form";
+import toast from "react-hot-toast";
+import { TRPCClientError } from "@trpc/client";
 
 // Define the CarPark interface to match index.tsx
 interface CarParkProps {
@@ -48,6 +63,14 @@ interface ReviewProps {
   date: string;
 }
 
+// Form validation schema
+const formSchema = z.object({
+  rating: z.number().min(0).max(5),
+  description: z.string().min(1)
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 const LeaveReviewPage: React.FC = () => {
   const router = useRouter();
   
@@ -56,18 +79,14 @@ const LeaveReviewPage: React.FC = () => {
   const [evCharging, setEvCharging] = useState<boolean>(false);
   const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
   
-  // State for the review form
-  const [reviewText, setReviewText] = useState<string>('');
-  const [rating, setRating] = useState<number>(0);
+  // Dialog state
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   
   // Get current user information from authentication
   const userQuery = api.user.get.useQuery();
   // Explicitly type the userData to avoid 'any' assignment
   const userData: UserData | undefined = userQuery.data as UserData | undefined;
   const isUserLoading = userQuery.isLoading;
-  
-  // Get the review mutation
-  const reviewMutation = api.carPark.review.useMutation();
   
   // Format user data for display
   const currentUser = {
@@ -98,6 +117,21 @@ const LeaveReviewPage: React.FC = () => {
     return Array.isArray(param) ? param[0] : param;
   };
 
+  // Get the car park context for invalidation after mutation
+  const carParkContext = api.useUtils().carPark;
+
+  // Get the review mutation
+  const reviewMutation = api.carPark.review.useMutation();
+
+  // Initialize form with react-hook-form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      rating: undefined,
+      description: ""
+    }
+  });
+
   // Fetch reviews from API using the car park ID
   const fetchReviews = async (carParkId: string): Promise<void> => {
     try {
@@ -117,7 +151,7 @@ const LeaveReviewPage: React.FC = () => {
           rating: dbReview.rating,
           content: dbReview.description,
           author: `${dbReview.userFirstName} ${dbReview.userLastName}`,
-          date: new Date().toLocaleDateString('en-GB')
+          date: new Date(dbReview.createdAt as string | number | Date).toLocaleDateString('en-GB')
         };
       });
       
@@ -180,12 +214,16 @@ const LeaveReviewPage: React.FC = () => {
     }
   }, [router.isReady, router.query]);
 
-  // Function to handle star rating
+  // State for star rating and review text (for the original form)
+  const [reviewText, setReviewText] = useState<string>('');
+  const [rating, setRating] = useState<number>(0);
+
+  // Function to handle star rating (original implementation)
   const handleRatingClick = (selectedRating: number): void => {
     setRating(selectedRating);
   };
 
-  // Render star rating component
+  // Render star rating component (original implementation)
   const renderStars = (currentRating: number): JSX.Element[] => {
     const stars: JSX.Element[] = [];
     for (let i = 1; i <= 5; i++) {
@@ -199,8 +237,82 @@ const LeaveReviewPage: React.FC = () => {
     }
     return stars;
   };
+  
+  // Function to handle submit review (original implementation)
+  const handleSubmitReview = async (): Promise<void> => {
+    try {
+      // Check if user data is loaded
+      if (isUserLoading || !userData) {
+        alert('User data is not loaded. Please try again.');
+        return;
+      }
+      
+      if (!carPark.id) {
+        alert('Carpark ID is missing. Cannot submit review.');
+        return;
+      }
+      
+      // Submit the review using the already initialized mutation
+      await reviewMutation.mutateAsync({
+        id: carPark.id,
+        rating: rating,
+        description: reviewText
+      });
+      
+      // Reset form after submission
+      setReviewText('');
+      setRating(0);
+      
+      // Show success message
+      alert('Review submitted successfully!');
+      
+      // Refresh the reviews list
+      void fetchReviews(carPark.id);
+      
+      // Navigate back to the carpark details page
+      void router.back();
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. Please try again.');
+    }
+  };
 
-  // Render stars for display only (not clickable)
+  // Function to handle form submission (for dialog)
+  const onSubmit = async (values: FormValues) => {
+    const { rating, description } = values;
+
+    if (!carPark.id) {
+      toast.error("Carpark ID is missing. Cannot submit review.");
+      return;
+    }
+
+    await toast.promise(
+      reviewMutation.mutateAsync({
+        id: carPark.id,
+        rating,
+        description
+      }),
+      {
+        loading: "Creating review...",
+        success: () => {
+          setDialogOpen(false);
+          void carParkContext.invalidate();
+          // Refresh reviews after successful submission
+          void fetchReviews(carPark.id);
+          form.reset();
+          return "Review created successfully!";
+        },
+        error: (error) => {
+          if (error instanceof TRPCClientError) {
+            return error.message;
+          }
+          return "Failed to create review";
+        }
+      }
+    );
+  };
+
+  // Render star rating component for display only
   const renderDisplayStars = (rating: number): JSX.Element[] => {
     const stars: JSX.Element[] = [];
     for (let i = 1; i <= 5; i++) {
@@ -214,48 +326,8 @@ const LeaveReviewPage: React.FC = () => {
     return stars;
   };
 
-  const handleSubmitReview = async (): Promise<void> => {
-    try {
-      // Check if user data is loaded
-      if (isUserLoading || !userData) {
-        alert('User data is not loaded. Please try again.');
-        return;
-      }
-      
-      const carparkId = getQueryParamAsString(router.query.id);
-      
-      if (!carparkId) {
-        alert('Carpark ID is missing. Cannot submit review.');
-        return;
-      }
-      
-      // Submit the review using the already initialized mutation
-      await reviewMutation.mutateAsync({
-        id: carparkId,
-        rating: rating,
-        description: reviewText
-      });
-      
-      // Reset form after submission
-      setReviewText('');
-      setRating(0);
-      
-      // Show success message
-      alert('Review submitted successfully!');
-      
-      // Refresh the reviews list
-      void fetchReviews(carparkId);
-      
-      // Navigate back to the carpark details page
-      void router.back();
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      alert('Failed to submit review. Please try again.');
-    }
-  };
-
-  // Function to handle cancellation
-  const handleCancel = (): void => {
+  // Function to handle navigation back
+  const handleBack = (): void => {
     void router.back();
   };
 
@@ -287,7 +359,7 @@ const LeaveReviewPage: React.FC = () => {
           {/* Title Bar */}
           <div className="bg-white dark:bg-gray-700 p-3 mb-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 flex items-center justify-between">
             <button 
-              onClick={handleCancel}
+              onClick={handleBack}
               className="rounded-md bg-gray-100 px-3 py-1 text-sm dark:bg-gray-600 dark:text-white"
             >
               Back
@@ -368,7 +440,7 @@ const LeaveReviewPage: React.FC = () => {
               </Card>
             </div>
             
-            {/* Right Column - Review Form */}
+            {/* Right Column - Keep the original content from your second file */}
             <Card className="dark:bg-gray-700 dark:border-gray-600">
               <CardHeader>
                 <CardTitle className="dark:text-white">Write Your Review</CardTitle>
@@ -413,7 +485,6 @@ const LeaveReviewPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  
                   <div>
                     <Label htmlFor="review" className="block mb-2 dark:text-white">Review</Label>
                     <Textarea
@@ -428,7 +499,7 @@ const LeaveReviewPage: React.FC = () => {
                   <div className="flex space-x-3">
                     <Button 
                       className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800"
-                      onClick={handleCancel}
+                      onClick={handleBack}
                     >
                       Cancel
                     </Button>
