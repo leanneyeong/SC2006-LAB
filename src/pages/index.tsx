@@ -107,7 +107,7 @@ const ParkSMART: React.FC = () => {
             break;
         }
       }
-      setFilteredParkingLocations(filtered);
+      setFilteredParkingLocations(filtered.slice(0,20));
     }
   }, [carparks, shelteredCarpark, displayedSearchQuery, currentSort]);
 
