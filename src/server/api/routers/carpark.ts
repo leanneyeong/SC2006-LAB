@@ -21,6 +21,8 @@ const carParkService = new CarParkService(
 // Save direct references to the methods to avoid any TypeScript issues
 const setFavouriteMethod = carParkService.setFavourite.bind(carParkService);
 const createReviewMethod = carParkService.createReview.bind(carParkService);
+const updateReviewMethod = carParkService.updateReview.bind(carParkService);
+const deleteReviewMethod = carParkService.deleteReview.bind(carParkService);
 
 export const carParkRouter = createTRPCRouter({
     getCarparks: protectedProcedure
@@ -78,5 +80,33 @@ export const carParkRouter = createTRPCRouter({
         }))
         .query(async ({input}) => {
             return await userReviewRepository.findManyByCarParkId(input.id);
+        }),
+        
+    // Update an existing review
+    updateReview: protectedProcedure
+        .input(z.object({
+            id: z.string(),
+            rating: z.number().min(1).max(5),
+            description: z.string()
+        }))
+        .mutation(async ({input, ctx}) => {
+            return await updateReviewMethod(
+                ctx.auth.userId,
+                input.id,
+                input.rating,
+                input.description
+            );
+        }),
+        
+    // Delete a review
+    deleteReview: protectedProcedure
+        .input(z.object({
+            id: z.string()
+        }))
+        .mutation(async ({input, ctx}) => {
+            return await deleteReviewMethod(
+                ctx.auth.userId,
+                input.id
+            );
         })
 });

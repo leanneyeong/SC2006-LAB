@@ -46,6 +46,22 @@ export class UserReviewRepository {
         }
     }
 
+    public async hardDelete(userId: string, carParkId: string){
+        try{
+            await this.db.delete(userReviewSchema)
+            .where(and(
+                eq(userReviewSchema.carParkId, carParkId),
+                eq(userReviewSchema.userId, userId)
+            ))
+        } catch(err){
+            const e = err as Error;
+            throw new TRPCError({
+                code:"INTERNAL_SERVER_ERROR",
+                message:e.message
+            })
+        }
+    }
+
     public async deleteByUserId(
         userId: string
     ) {

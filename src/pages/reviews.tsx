@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Star, User } from 'lucide-react';
@@ -47,6 +47,7 @@ interface CarParkProps {
 
 // Define UserData interface to properly type user information
 interface UserData {
+  id?: string;
   firstName: string;
   lastName: string;
   avatarUrl?: string;
@@ -73,28 +74,45 @@ type FormValues = z.infer<typeof formSchema>;
 
 const LeaveReviewPage: React.FC = () => {
   const router = useRouter();
-  
+
   // State for TopBar component
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [evCharging, setEvCharging] = useState<boolean>(false);
   const [shelteredCarpark, setShelteredCarpark] = useState<boolean>(false);
-  
+
+  // State for showing toast messages
+  const [toastId, setToastId] = useState<string | null>(null);
+  // Add state for dialog for delete confirmation
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  
+
+  // Add query status state
+  const [queryStatus, setQueryStatus] = useState<string>('idle');
+
   // Get current user information from authentication
   const userQuery = api.user.get.useQuery();
   // Explicitly type the userData to avoid 'any' assignment
-  const userData: UserData | undefined = userQuery.data as UserData | undefined;
+  const userData: (UserData & { id?: string }) | undefined = userQuery.data as (UserData & { id?: string }) | undefined;
   const isUserLoading = userQuery.isLoading;
-  
+
+  // UseEffect to clear any lingering toasts when component unmounts
+  useEffect(() => {
+    return () => {
+      if (toastId) {
+        toast.dismiss(toastId);
+      }
+    };
+  }, [toastId]);
+
   // Format user data for display
   const currentUser = {
     name: userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...',
     date: new Date().toLocaleDateString('en-GB'), // Current date in DD/MM/YY format
     image: userData?.avatarUrl ?? ''
   };
-  
+
   // State for car park information (will be updated from query params)
   const [carPark, setCarPark] = useState<CarParkProps>({
     id: '',
@@ -120,8 +138,10 @@ const LeaveReviewPage: React.FC = () => {
   // Get the car park context for invalidation after mutation
   const carParkContext = api.useUtils().carPark;
 
-  // Get the review mutation
+  // Get the review mutations
   const reviewMutation = api.carPark.review.useMutation();
+  const updateReviewMutation = api.carPark.updateReview.useMutation();
+  const deleteReviewMutation = api.carPark.deleteReview.useMutation();
 
   // Initialize form with react-hook-form
   const form = useForm<FormValues>({
@@ -134,18 +154,31 @@ const LeaveReviewPage: React.FC = () => {
 
   // Fetch reviews from API using the car park ID
   const fetchReviews = async (carParkId: string): Promise<void> => {
+    console.log('fetchReviews called with ID:', carParkId);
+    setQueryStatus('loading');
     try {
-      // Type-safe API call
-      const reviewsQuery = api.carPark.getReviews;
+      // Use fetch instead of direct tRPC client call to avoid hooks issue
+      console.log('Making direct API call to fetch reviews...');
+      // Add cache-busting parameter to prevent browser caching
+      const cacheBuster = new Date().getTime();
+      const response = await fetch(`/api/reviews/${carParkId}?_=${cacheBuster}`, {
+        // Add cache control headers to prevent caching
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       
-      // Use type assertion for the function before calling it
-      type ReviewFetchFn = (params: { id: string }) => Promise<DBReviewProps[]>;
-      const typedFetch = reviewsQuery.fetch as unknown as ReviewFetchFn;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
-      // Make the call with proper typing
-      const reviewData: DBReviewProps[] = await typedFetch({ id: carParkId });
+      const reviewData = await response.json() as DBReviewProps[];
+      console.log('Review data received:', reviewData);
+      console.log('Number of reviews fetched:', reviewData?.length || 0);
       
-      // Transform database reviews to the format expected by the UI with explicit typing
+      // Transform database reviews to the format expected by the UI
       const transformedReviews: ReviewProps[] = reviewData.map((dbReview: DBReviewProps): ReviewProps => {
         return {
           rating: dbReview.rating,
@@ -155,12 +188,60 @@ const LeaveReviewPage: React.FC = () => {
         };
       });
       
+      console.log('Transformed reviews:', transformedReviews);
       // Set the reviews with proper typing
       setPreviousReviews(transformedReviews);
+      
+      // Check if the current user has already submitted a review for this carpark
+      if (userData) {
+        // First try to match by userId if available
+        let userReviewFromDB: DBReviewProps | undefined;
+        
+        if (userData.id) {
+          userReviewFromDB = reviewData.find((review: DBReviewProps) => 
+            review.userId === userData.id
+          );
+        }
+        
+        // If userId match fails, try matching by name as fallback
+        if (!userReviewFromDB) {
+          const currentUserFullName = `${userData.firstName} ${userData.lastName}`;
+          userReviewFromDB = reviewData.find((review: DBReviewProps) => 
+            `${review.userFirstName} ${review.userLastName}` === currentUserFullName
+          );
+        }
+        
+        if (userReviewFromDB) {
+          console.log('Found existing user review:', userReviewFromDB);
+          // User has already submitted a review, set to edit mode
+          setUserReview({
+            rating: userReviewFromDB.rating,
+            content: userReviewFromDB.description
+          });
+          // Also update the form fields for edit
+          setRating(userReviewFromDB.rating);
+          setReviewText(userReviewFromDB.description);
+          setReviewMode('edit');
+        } else {
+          // No existing review, set to write mode
+          setReviewMode('write');
+          setUserReview(null);
+        }
+      }
+      
+      setQueryStatus('success');
     } catch (error) {
       console.error('Error fetching reviews:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      if (error instanceof TRPCClientError) {
+        console.error('TRPC specific error details:', error.data);
+      }
       // Fallback to empty reviews array
       setPreviousReviews([]);
+      setQueryStatus('error');
     }
   };
 
@@ -168,6 +249,8 @@ const LeaveReviewPage: React.FC = () => {
   useEffect(() => {
     if (router.isReady) {
       const carparkId = getQueryParamAsString(router.query.id);
+      console.log('Carpark ID from URL:', carparkId);
+      
       const carparkAddress = getQueryParamAsString(router.query.name);
       const carparkType = getQueryParamAsString(router.query.carParkType);
       const parkingSystem = getQueryParamAsString(router.query.typeOfParkingSystem);
@@ -207,50 +290,80 @@ const LeaveReviewPage: React.FC = () => {
         isFavourited: isFavorited
       });
       
-      // If we have a carpark ID, fetch reviews for it
-      if (carparkId) {
+      // If we have a carpark ID and user data, fetch reviews for it
+      if (carparkId && !isUserLoading && userData) {
+        console.log('Attempting to fetch reviews for carpark ID:', carparkId);
         void fetchReviews(carparkId);
+      } else if (!userData) {
+        // Wait for user data to be loaded before fetching reviews
+        console.log('User data not yet loaded, waiting before fetching reviews');
+      } else {
+        console.log('No carpark ID available, skipping review fetch');
       }
     }
-  }, [router.isReady, router.query]);
+  }, [router.isReady, router.query, isUserLoading, userData]);
 
-  // State for star rating and review text (for the original form)
+  // Reference to track if this is an edit operation
+  const isEditingRef = useRef<boolean>(false);
+
+  // State for star rating and review text
   const [reviewText, setReviewText] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
+  // Add new state for review mode - can be 'write', 'edit', or 'view'
+  const [reviewMode, setReviewMode] = useState<'write' | 'edit' | 'view'>('write');
+  // Add state for user's own review
+  const [userReview, setUserReview] = useState<{rating: number, content: string} | null>(null);
 
-  // Function to handle star rating (original implementation)
+  // Function to handle star rating
   const handleRatingClick = (selectedRating: number): void => {
     setRating(selectedRating);
   };
 
-  // Render star rating component (original implementation)
-  const renderStars = (currentRating: number): JSX.Element[] => {
+  // Determine which submit function to use based on whether we're editing
+  const handleReviewSubmit = async (): Promise<void> => {
+    if (isEditingRef.current) {
+      await handleUpdateReview();
+      // Reset editing state after update
+      isEditingRef.current = false;
+    } else {
+      await handleSubmitReview();
+    }
+  };
+
+  // Render star rating component
+  const renderStars = (currentRating: number, isInteractive = true): JSX.Element[] => {
     const stars: JSX.Element[] = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <Star 
           key={i} 
-          className={`w-6 h-6 cursor-pointer ${i <= currentRating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300'}`}
-          onClick={() => handleRatingClick(i)}
+          className={`w-6 h-6 ${isInteractive ? 'cursor-pointer' : ''} ${i <= currentRating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300'}`}
+          onClick={isInteractive ? () => handleRatingClick(i) : undefined}
         />
       );
     }
     return stars;
   };
-  
-  // Function to handle submit review (original implementation)
+
+  // Function to handle submit review
   const handleSubmitReview = async (): Promise<void> => {
     try {
       // Check if user data is loaded
       if (isUserLoading || !userData) {
-        alert('User data is not loaded. Please try again.');
+        toast.error('User data is not loaded. Please try again.');
         return;
       }
       
       if (!carPark.id) {
-        alert('Carpark ID is missing. Cannot submit review.');
+        toast.error('Carpark ID is missing. Cannot submit review.');
         return;
       }
+      
+      console.log('Submitting review for carpark ID:', carPark.id);
+      
+      // Show loading toast
+      const loadingId = toast.loading('Submitting your review...');
+      setToastId(loadingId);
       
       // Submit the review using the already initialized mutation
       await reviewMutation.mutateAsync({
@@ -259,71 +372,192 @@ const LeaveReviewPage: React.FC = () => {
         description: reviewText
       });
       
-      // Reset form after submission
-      setReviewText('');
-      setRating(0);
+      // Dismiss loading toast
+      toast.dismiss(loadingId);
+      setToastId(null);
+      
+      console.log('Review submitted successfully');
+      
+      // Store the user's review for edit mode
+      setUserReview({
+        rating: rating,
+        content: reviewText
+      });
+      
+      // Change to edit mode
+      setReviewMode('edit');
       
       // Show success message
-      alert('Review submitted successfully!');
+      toast.success('Your review has been submitted!');
       
       // Refresh the reviews list
+      console.log('Refreshing reviews after submission');
       void fetchReviews(carPark.id);
-      
-      // Navigate back to the carpark details page
-      void router.back();
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review. Please try again.');
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      if (error instanceof TRPCClientError) {
+        console.error('TRPC specific error details:', error.data);
+      }
+      toast.error('Failed to submit review. Please try again.');
     }
   };
 
-  // Function to handle form submission (for dialog)
-  const onSubmit = async (values: FormValues) => {
-    const { rating, description } = values;
-
-    if (!carPark.id) {
-      toast.error("Carpark ID is missing. Cannot submit review.");
-      return;
+  // Function to handle edit review
+  const handleEditReview = (): void => {
+    // Mark that we're editing an existing review
+    isEditingRef.current = true;
+    // Switch back to write mode, but keep the current review text and rating
+    setReviewMode('write');
+    // Set the form values to the current review values
+    if (userReview) {
+      setReviewText(userReview.content);
+      setRating(userReview.rating);
     }
+  };
 
-    await toast.promise(
-      reviewMutation.mutateAsync({
-        id: carPark.id,
-        rating,
-        description
-      }),
-      {
-        loading: "Creating review...",
-        success: () => {
-          setDialogOpen(false);
-          void carParkContext.invalidate();
-          // Refresh reviews after successful submission
-          void fetchReviews(carPark.id);
-          form.reset();
-          return "Review created successfully!";
-        },
-        error: (error) => {
-          if (error instanceof TRPCClientError) {
-            return error.message;
-          }
-          return "Failed to create review";
-        }
+  // Function to handle update review
+  const handleUpdateReview = async (): Promise<void> => {
+    try {
+      // Check if user data is loaded
+      if (isUserLoading || !userData) {
+        toast.error('User data is not loaded. Please try again.');
+        return;
       }
-    );
+      
+      if (!carPark.id) {
+        toast.error('Carpark ID is missing. Cannot update review.');
+        return;
+      }
+      
+      console.log('Updating review for carpark ID:', carPark.id);
+      
+      // Show loading toast
+      const loadingId = toast.loading('Updating your review...');
+      setToastId(loadingId);
+      
+      // Update the review using the update mutation
+      await updateReviewMutation.mutateAsync({
+        id: carPark.id,
+        rating: rating,
+        description: reviewText
+      });
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingId);
+      setToastId(null);
+      
+      console.log('Review updated successfully');
+      
+      // Update the user review state
+      setUserReview({
+        rating: rating,
+        content: reviewText
+      });
+      
+      // Change back to edit mode
+      setReviewMode('edit');
+      
+      // Show success message
+      toast.success('Your review has been updated!');
+      
+      // Refresh the reviews list
+      console.log('Refreshing reviews after update');
+      void fetchReviews(carPark.id);
+    } catch (error) {
+      console.error('Error updating review:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      }
+      if (error instanceof TRPCClientError) {
+        console.error('TRPC specific error details:', error.data);
+      }
+      toast.error('Failed to update review. Please try again.');
+    }
+  };
+
+  // Function to handle delete review
+  const handleDeleteReview = async (): Promise<void> => {
+    try {
+      if (!carPark.id) {
+        toast.error('Carpark ID is missing. Cannot delete review.');
+        return;
+      }
+
+      // Open the delete confirmation dialog
+      setDeleteDialogOpen(true);
+    } catch (error) {
+      console.error('Error preparing to delete review:', error);
+      toast.error('Something went wrong. Please try again.');
+    }
+  };
+
+  // Function to confirm and process deletion
+  const confirmDeleteReview = async (): Promise<void> => {
+    try {
+      if (!carPark.id) {
+        toast.error('Carpark ID is missing. Cannot delete review.');
+        return;
+      }
+
+      // Close the dialog
+      setDeleteDialogOpen(false);
+      
+      // Show loading toast while deleting
+      const loadingId = toast.loading('Deleting your review...');
+      setToastId(loadingId);
+      
+      await deleteReviewMutation.mutateAsync({
+        id: carPark.id
+      });
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingId);
+      setToastId(null);
+      
+      // Reset review state
+      setUserReview(null);
+      setReviewText('');
+      setRating(0);
+      setReviewMode('write');
+      
+      // Show success message
+      toast.success('Your review has been deleted!');
+      
+      // Invalidate the tRPC cache to ensure fresh data
+      await carParkContext.getReviews.invalidate({ id: carPark.id });
+      
+      // Force clear the cache for this specific API route
+      // This ensures the direct API call to /api/reviews/[id] gets fresh data
+      const cacheKey = `/api/reviews/${carPark.id}`;
+      const caches = await window.caches?.open('next-data');
+      if (caches) {
+        await caches.delete(cacheKey);
+      }
+      
+      // Add a slight delay before refetching to allow the cache to clear
+      setTimeout(() => {
+        void fetchReviews(carPark.id);
+      }, 300);
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      }
+      if (error instanceof TRPCClientError) {
+        console.error('TRPC specific error details:', error.data);
+      }
+      toast.error('Failed to delete review. Please try again.');
+    }
   };
 
   // Render star rating component for display only
   const renderDisplayStars = (rating: number): JSX.Element[] => {
-    const stars: JSX.Element[] = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <Star 
-          key={i} 
-          className={`w-6 h-6 ${i <= rating ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300'}`}
-        />
-      );
-    }
-    return stars;
+    return renderStars(rating, false);
   };
 
   // Function to handle navigation back
@@ -367,6 +601,45 @@ const LeaveReviewPage: React.FC = () => {
             <h2 className="text-xl font-bold dark:text-white">Leave A Review</h2>
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>
+          
+          {/* Debug Information - Only show in development */}
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="bg-yellow-100 p-3 mb-4 text-xs border border-yellow-300 rounded">
+              <p className="font-bold">Debug Information:</p>
+              <p>Carpark ID: {carPark.id || 'Not set'}</p>
+              <p>Previous Reviews Count: {previousReviews.length}</p>
+              <p>User Loading: {isUserLoading ? 'Yes' : 'No'}</p>
+              <p>User Data: {userData ? 'Available' : 'Not Available'}</p>
+              <p>Query Status: {queryStatus}</p>
+              <p>Review Mode: {reviewMode}</p>
+            </div>
+          )}
+          
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Review</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete your review? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button 
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800"
+                  onClick={() => setDeleteDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                  onClick={confirmDeleteReview}
+                >
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column - Car Park Info */}
@@ -440,10 +713,12 @@ const LeaveReviewPage: React.FC = () => {
               </Card>
             </div>
             
-            {/* Right Column - Keep the original content from your second file */}
+            {/* Right Column - Review Form or Display based on mode */}
             <Card className="dark:bg-gray-700 dark:border-gray-600">
               <CardHeader>
-                <CardTitle className="dark:text-white">Write Your Review</CardTitle>
+                <CardTitle className="dark:text-white">
+                  {reviewMode === 'edit' ? 'Edit Your Review' : 'Write Your Review'}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -478,39 +753,102 @@ const LeaveReviewPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="rating" className="block mb-2 dark:text-white">Rating</Label>
-                    <div className="flex space-x-1" id="rating">
-                      {renderStars(rating)}
+                  {/* Loading state */}
+                  {queryStatus === 'loading' && (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      <p className="ml-3 text-gray-600 dark:text-gray-300">Checking your review status...</p>
                     </div>
-                  </div>
+                  )}
                   
-                  <div>
-                    <Label htmlFor="review" className="block mb-2 dark:text-white">Review</Label>
-                    <Textarea
-                      id="review"
-                      placeholder="Share your experience with this car park..."
-                      value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
-                      className="w-full min-h-32 dark:bg-gray-600 dark:text-white dark:border-gray-500"
-                    />
-                  </div>
+                  {/* Error state */}
+                  {queryStatus === 'error' && (
+                    <div className="bg-red-100 dark:bg-red-900 p-4 rounded-md text-red-800 dark:text-red-200 text-center">
+                      <p>There was an error loading review data.</p>
+                      <Button 
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white"
+                        onClick={() => carPark.id && fetchReviews(carPark.id)}
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  )}
                   
-                  <div className="flex space-x-3">
-                    <Button 
-                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800"
-                      onClick={handleBack}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                      onClick={handleSubmitReview}
-                      disabled={!reviewText || rating === 0}
-                    >
-                      Submit Review
-                    </Button>
-                  </div>
+                  {/* Content when loaded */}
+                  {queryStatus !== 'loading' && queryStatus !== 'error' && (
+                    <>
+                      {reviewMode === 'write' ? (
+                        // Write Mode
+                        <>
+                          <div>
+                            <Label htmlFor="rating" className="block mb-2 dark:text-white">Rating</Label>
+                            <div className="flex space-x-1" id="rating">
+                              {renderStars(rating)}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="review" className="block mb-2 dark:text-white">Review</Label>
+                            <Textarea
+                              id="review"
+                              placeholder="Share your experience with this car park..."
+                              value={reviewText}
+                              onChange={(e) => setReviewText(e.target.value)}
+                              className="w-full min-h-32 dark:bg-gray-600 dark:text-white dark:border-gray-500"
+                            />
+                          </div>
+                          
+                          <div className="flex space-x-3">
+                            <Button 
+                              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800"
+                              onClick={handleBack}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                              onClick={handleReviewSubmit}
+                              disabled={!reviewText || rating === 0}
+                            >
+                              {isEditingRef.current ? 'Update Review' : 'Submit Review'}
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        // Edit Mode
+                        <>
+                          <div>
+                            <Label htmlFor="rating" className="block mb-2 dark:text-white">Rating</Label>
+                            <div className="flex space-x-1" id="rating">
+                              {renderDisplayStars(userReview?.rating ?? 0)}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="review" className="block mb-2 dark:text-white">Review</Label>
+                            <div className="w-full min-h-32 p-3 border rounded-md dark:bg-gray-600 dark:text-white dark:border-gray-500 overflow-y-auto">
+                              {userReview?.content ?? ''}
+                            </div>
+                          </div>
+                          
+                          <div className="flex space-x-3">
+                            <Button 
+                              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                              onClick={handleEditReview}
+                            >
+                              Edit Review
+                            </Button>
+                            <Button 
+                              className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                              onClick={handleDeleteReview}
+                            >
+                              Delete Review
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -521,4 +859,4 @@ const LeaveReviewPage: React.FC = () => {
   );
 };
 
-export default LeaveReviewPage;
+export default LeaveReviewPage;                    
