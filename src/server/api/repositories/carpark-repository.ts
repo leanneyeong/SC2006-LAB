@@ -50,7 +50,6 @@ export class CarParkRepository {
               )
             )
             .orderBy(sql`${carParkSchema.location}::geometry <-> ${sqlPoint}`)
-            .limit(20);
 
               
 
