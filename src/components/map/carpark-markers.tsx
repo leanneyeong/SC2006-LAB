@@ -13,26 +13,23 @@ interface CarparksMarkerProps {
   selectedCarpark: CarparkData | null;
   onSelectCarpark: (carpark: CarparkData) => void;
   onShowDirection?: (show: boolean) => void;
-  limit?: number;
 }
 
 export const CarparksMarker = ({
   carparks,
   selectedCarpark,
   onSelectCarpark,
-  limit = 24,
 }: CarparksMarkerProps) => {
   if (!carparks || carparks.length === 0) {
     return null;
   }
 
-  //Sort carparks by distance and limit to the specified number
+  //Sort carparks by distance
   const nearestCarparks = [...carparks].sort((a,b) => {
     const distanceA = Number(getDistanceBetweenCarPark(a.location));
     const distanceB = Number(getDistanceBetweenCarPark(b.location));
     return distanceA - distanceB
-  })
-  .slice(0, limit);
+  });
 
   return (
     <>
@@ -41,12 +38,19 @@ export const CarparksMarker = ({
           <AdvancedMarker
             position={{ lat: carpark.location.y, lng: carpark.location.x }}
             onClick={() => onSelectCarpark(carpark)}
+            title={carpark.address || "Unknown Carpark"}
+            clickable={true}
           >
-            <Pin 
-              background={getMarkerColor(carpark.availableLots)} 
-              borderColor={getMarkerColor(carpark.availableLots)}
-              glyphColor={"white"} 
-            />
+            <div 
+              onClick={() => onSelectCarpark(carpark)}
+              style={{ cursor: 'pointer' }}
+            >
+              <Pin 
+                background={getMarkerColor(carpark.availableLots)} 
+                borderColor={getMarkerColor(carpark.availableLots)}
+                glyphColor={"white"} 
+              />
+            </div>
           </AdvancedMarker>
 
           {selectedCarpark &&

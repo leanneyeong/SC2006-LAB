@@ -54,7 +54,7 @@ interface Position {
   lng: number;
 }
 
-export default function MapViewUpdated({ carparks_data, displayLimit = 24 }: { carparks_data: CarparkData[], displayLimit?: number }) {
+export default function MapViewUpdated({ carparks_data }: { carparks_data: CarparkData[] }) {
   const router = useRouter();
   const origin = { lat: 1.2833, lng: 103.8333 };
   const [openWindowOrigin, setOpenWindowOrigin] = useState(false);
@@ -88,6 +88,16 @@ export default function MapViewUpdated({ carparks_data, displayLimit = 24 }: { c
         const { latitude, longitude } = position.coords;
         const location = { lat: latitude, lng: longitude };
         setCurrentLocation(location);
+        
+        // If map is available, center it on user's location
+        if (window.google && window.google.maps) {
+          const mapElement = document.querySelector('div[aria-label="Map"]');
+          if (mapElement) {
+            const mapInstance = new window.google.maps.Map(mapElement);
+            mapInstance.panTo(location);
+            mapInstance.setZoom(15);
+          }
+        }
       },
       (error) => {
         console.error("Error getting location:", error);
@@ -174,8 +184,8 @@ export default function MapViewUpdated({ carparks_data, displayLimit = 24 }: { c
           }}
         >
           <Map
-            defaultZoom={12}
-            defaultCenter={origin}
+            defaultZoom={15}
+            defaultCenter={currentLocation || origin}
             mapId={process.env.NEXT_PUBLIC_MAP_ID}
             fullscreenControl={false}
             streetViewControl={false}
@@ -243,7 +253,6 @@ export default function MapViewUpdated({ carparks_data, displayLimit = 24 }: { c
                 selectedCarpark={selectedCarpark}
                 onSelectCarpark={setSelectedCarpark}
                 onShowDirection={setShowDirection}
-                limit={displayLimit}
               />
             )}
 

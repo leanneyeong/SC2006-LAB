@@ -362,6 +362,18 @@ const ParkSMART: React.FC = () => {
   ))}
 </div>
           )}
+          
+          {/* View More Carparks button */}
+          {filteredParkingLocations.length > 0 && filteredParkingLocations.length < allFilteredCarparks.length && (
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={handleLoadMore}
+                className="bg-blue-500 text-white hover:bg-blue-600"
+              >
+                View More Carparks
+              </Button>
+            </div>
+          )}
         </main>
       </div>
     </Navigation>
