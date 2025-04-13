@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "~/components/ui/card";
 import { Star, User } from 'lucide-react';
 import { Navigation } from '~/components/global/navigation';
 import { Textarea } from "~/components/ui/textarea";
@@ -10,15 +10,23 @@ import { TopBar } from '~/components/global/top-bar-others';
 import { useRouter } from 'next/router';
 import { ScrollArea } from '~/components/ui/scroll-area';
 import { api, RouterOutputs } from '~/utils/api';
+import getAvailabilityColour from "~/utils/get-availability-colour";
+import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
 
-// Define the CarPark interface
+// Define the CarPark interface to match index.tsx
 interface CarParkProps {
-  name: string;
-  location: string;
+  id: string;
+  address: string;
+  carParkType: string;
+  typeOfParkingSystem: string;
+  availableLots: number;
+  carParkNo: string;
+  location: {
+    x: number;
+    y: number;
+  };
   price: string;
-  availability: string;
-  sheltered: boolean;
-  evCharging: boolean;
+  isFavourited?: boolean;
 }
 
 // Define Review interface from database using the API's output type
@@ -55,12 +63,15 @@ const LeaveReviewPage: React.FC = () => {
   
   // State for car park information (will be updated from query params)
   const [carPark, setCarPark] = useState<CarParkProps>({
-    name: 'Loading...',
-    location: '',
+    id: '',
+    address: 'Loading...',
+    carParkType: '',
+    typeOfParkingSystem: '',
+    availableLots: 0,
+    carParkNo: '',
+    location: { x: 0, y: 0 },
     price: '',
-    availability: '',
-    sheltered: true,
-    evCharging: true
+    isFavourited: false
   });
 
   // State for reviews from database
@@ -101,26 +112,45 @@ const LeaveReviewPage: React.FC = () => {
   // Fetch car park details from query parameters when the component mounts
   useEffect(() => {
     if (router.isReady) {
-      const carparkName = getQueryParamAsString(router.query.name);
-      const carparkLocation = getQueryParamAsString(router.query.location);
-      const carparkType = getQueryParamAsString(router.query.carParkType);
-      const availableLots = getQueryParamAsString(router.query.availableLots);
-      const parkingSystem = getQueryParamAsString(router.query.typeOfParkingSystem);
       const carparkId = getQueryParamAsString(router.query.id);
+      const carparkAddress = getQueryParamAsString(router.query.name);
+      const carparkType = getQueryParamAsString(router.query.carParkType);
+      const parkingSystem = getQueryParamAsString(router.query.typeOfParkingSystem);
+      const availableLots = getQueryParamAsString(router.query.availableLots);
+      const carparkNo = getQueryParamAsString(router.query.carParkNo);
+      const locationX = parseFloat(getQueryParamAsString(router.query.locationX) || '0');
+      const locationY = parseFloat(getQueryParamAsString(router.query.locationY) || '0');
+      const isFavorited = getQueryParamAsString(router.query.isFavorite) === 'true';
       
-      console.log("Query params:", router.query); // Debug log
+      // Calculate pricing using the same logic as in index.tsx
+      let price = '0.60/30min';
+      const central_area = ["ACB", "BBB", "BRBI", "CY", "DUXM", "HLM", "KAB", "KAM", "KAS", "PRM", "SLS", "SR1", "SR2", "TPM", "UCS", "WCB"];
+      const peak_hour = ["ACB", "CY", "SE21", "SE22", "SE24", "MP14", "MP15", "MP16", "HG9", "HG9T", "HG15", "HG16"];
+      const lub = ["GSML", "BRBL", "JCML", "T55", "GEML", "KAML", "J57L", "J60L", "TPL", "EPL", "BL8L"];
       
-      // Get carpark details from query params to match index.tsx format
-      setCarPark(prevState => ({
-        ...prevState,
-        name: carparkName || 'Unknown Carpark',
-        location: carparkLocation || carparkType || 'Unknown Location',
-        availability: availableLots || '0 Lots',
-        price: getQueryParamAsString(router.query.price) || 'Varies',
-        sheltered: carparkType?.toLowerCase().includes('multi-storey') || 
-                  carparkType?.toLowerCase().includes('basement') || false,
-        evCharging: getQueryParamAsString(router.query.evCharging) === 'true' || false,
-      }));
+      if (lub.includes(carparkNo)) {
+        price = "$2-$4/30min";
+      } else if (peak_hour.includes(carparkNo)) {
+        price = "$0.60-$1.20/ 30min";
+      } else if (central_area.includes(carparkNo)) {
+        price = "$0.60-$1.20/30min";
+      }
+      
+      // Set carpark details to match index.tsx format
+      setCarPark({
+        id: carparkId || '',
+        address: carparkAddress || 'Unknown Carpark',
+        carParkType: carparkType || '',
+        typeOfParkingSystem: parkingSystem || '',
+        availableLots: parseInt(availableLots || '0'),
+        carParkNo: carparkNo || '',
+        location: { 
+          x: locationX,
+          y: locationY
+        },
+        price: price,
+        isFavourited: isFavorited
+      });
       
       // If we have a carpark ID, fetch reviews for it
       if (carparkId) {
@@ -230,40 +260,34 @@ const LeaveReviewPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column - Car Park Info */}
             <div className="space-y-6">
-              <Card className="dark:bg-gray-700 dark:border-gray-600">
-                <CardHeader>
-                  <CardTitle className="dark:text-white">Car Park Details</CardTitle>
-                </CardHeader>
-                <CardContent className="dark:text-white">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-xl font-bold mb-2">{carPark.name}</h3>
-                      <p className="text-gray-500 dark:text-gray-300">{carPark.location}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-300">Price</p>
-                        <p className="font-medium">{carPark.price}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-300">Availability</p>
-                        <p className="font-medium text-green-600">{carPark.availability}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <input 
-                          type="checkbox" 
-                          checked={carPark.sheltered} 
-                          readOnly 
-                          className="form-checkbox h-4 w-4 text-blue-500 mr-2"
-                        />
-                        <span>Sheltered</span>
-                      </div>
-                    </div>
-                  </div>
+              <Card className="overflow-hidden border border-gray-200 dark:border-gray-600 dark:bg-gray-700">
+                <CardContent className="p-6 dark:text-white">
+                  <h3 className="mb-2 text-xl font-bold">{carPark.address}</h3>
+                  <p>
+                    <span className="font-medium">Carpark Type:</span>{" "}
+                    {carPark.carParkType}
+                  </p>
+                  <p>
+                    <span className="font-medium">Parking System:</span>{" "}
+                    {carPark.typeOfParkingSystem}
+                  </p>
+                  <p>
+                    <span className="font-medium">Availability:</span>{" "}
+                    <span className={getAvailabilityColour(carPark.availableLots)}>
+                      {carPark.availableLots}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-medium">Pricing:</span>{" "}
+                    {carPark.price}
+                  </p>
+                  {/* Display distance from current location */}
+                  <p>
+                    <span className="font-medium">Distance:</span>{" "}
+                    <span className="text-blue-600">
+                      {getDistanceBetweenCarPark(carPark.location)} km
+                    </span>
+                  </p>
                 </CardContent>
               </Card>
               

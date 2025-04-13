@@ -295,7 +295,7 @@ const CarParkDetailPage: React.FC = () => {
             >
               Back
             </button>
-            <h2 className="text-xl font-bold dark:text-white">{carParkDetail.name}</h2>
+            <h2 className="text-xl font-bold dark:text-white">Car Park Details</h2>
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>
           
@@ -304,7 +304,7 @@ const CarParkDetailPage: React.FC = () => {
             <div className="space-y-6">
               {/* Car Park Details */}
               <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-600 dark:bg-gray-700">
-                <h3 className="mb-4 text-xl font-bold dark:text-white">Car Park Details:</h3>
+                <h3 className="mb-4 text-xl font-bold dark:text-white">{carParkDetail.name}</h3>
                 <p className="mb-2 dark:text-white">
                   <span className="font-medium">Price:</span> {carParkDetail.price}
                 </p>
