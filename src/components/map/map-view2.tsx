@@ -46,7 +46,7 @@ interface Carpark {
   lng: number;
 }
 
-type CarparkData = RouterOutputs["carPark"]["getCarparks"][number]
+type CarparkData = RouterOutputs["carPark"]["getCarparks"][number];
 
 // Define position type
 interface Position {
@@ -54,7 +54,11 @@ interface Position {
   lng: number;
 }
 
-export default function MapViewUpdated({ carparks_data }: { carparks_data: CarparkData[] }) {
+export default function MapViewUpdated({
+  carparks_data,
+}: {
+  carparks_data: CarparkData[];
+}) {
   const router = useRouter();
   const origin = { lat: 1.2833, lng: 103.8333 };
   const [openWindowOrigin, setOpenWindowOrigin] = useState(false);
@@ -62,21 +66,48 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
   const [selectedCarpark, setSelectedCarpark] = useState<CarparkData | null>(
     null,
   );
-  const [showDirection, setShowDirection] = useState(false);
+
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [routesLibrary, setRoutesLibrary] =
+    useState<google.maps.RoutesLibrary | null>(null);
+  const [directionsService, setDirectionsService] =
+    useState<google.maps.DirectionsService>();
+  const [directionsRenderer, setDirectionsRenderer] =
+    useState<google.maps.DirectionsRenderer>();
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
+
   const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
   const [showMarkers, setShowMarkers] = useState(true); // Ensure markers are visible by default
+  const [showDirection, setShowDirection] = useState(false);
 
   // Handle navigation to car-park-details page
   const handleViewDetails = (carpark: CarparkData) => {
+    const samplePricingData = {
+      weekday: {
+        morning: "0.60",
+        afternoon: "1.20",
+        evening: "0.60",
+      },
+      weekend: {
+        morning: "1.20",
+        afternoon: "1.50",
+        evening: "0.60",
+      },
+    };
     void router.push({
       pathname: "/car-park-details",
       query: {
-        id: carpark.carParkNo ?? carpark.address.replace(/\s+/g, "-").toLowerCase(),
+        id: carpark.id,
         name: carpark.address,
-        lots: carpark.availableLots,
-        type: carpark.carParkType,
+        carParkType: carpark.carParkType,
+        typeOfParkingSystem: carpark.typeOfParkingSystem,
+        availableLots: carpark.availableLots,
+        pricing: JSON.stringify(samplePricingData),
+        carParkNo: carpark.carParkNo,
+        isFavorite: false,
+        locationX: carpark.location.x.toString(),
+        locationY: carpark.location.y.toString(),
       },
     });
   };
@@ -87,10 +118,10 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
         const { latitude, longitude } = position.coords;
         const location = { lat: latitude, lng: longitude };
         setCurrentLocation(location);
-        
+
         // Get the map element without unnecessary assertion
         const mapElement = document.querySelector('div[aria-label="Map"]');
-        
+
         // Check if mapElement exists and has correct type
         if (mapElement instanceof HTMLElement && window.google?.maps) {
           const mapInstance = new window.google.maps.Map(mapElement);
@@ -100,16 +131,61 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
       },
       (error) => {
         console.error("Error getting location:", error);
-      }
+      },
     );
   }, []);
-  
+
   // Make sure carparks data is properly loaded
   useEffect(() => {
     if (carparks_data && carparks_data.length > 0) {
       console.log(`Loaded ${carparks_data.length} carparks for map display`);
     }
   }, [carparks_data]);
+
+  const getRoute = ({
+    origin,
+    destination,
+  }: {
+    origin: Position;
+    destination: Position;
+  }) => {
+    const map = useMap();
+    const routesLibrary = useMapsLibrary("routes");
+
+    useEffect(() => {
+      if (!routesLibrary || !map) return;
+      if (directionsService && directionsRenderer) return;
+      setDirectionsService(new routesLibrary.DirectionsService());
+      setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
+    }, [routesLibrary, map, directionsService, directionsRenderer]);
+
+    useEffect(() => {
+      if (!directionsService || !directionsRenderer) return;
+
+      void directionsService
+        .route({
+          origin,
+          destination,
+          travelMode: google.maps.TravelMode.DRIVING,
+          provideRouteAlternatives: true,
+        })
+        .then((response) => {
+          directionsRenderer.setDirections(response);
+          setRoutes(response.routes);
+        });
+    }, [directionsService, directionsRenderer, origin, destination]);
+
+    return null;
+  };
+
+  const DisplayRoute = () => {
+    if (!directionsRenderer) return null;
+    useEffect(() => {
+      directionsRenderer.setMap(map);
+      directionsRenderer.setRouteIndex(routeIndex);
+    }, [directionsRenderer, map, routeIndex]);
+    return null;
+  };
 
   const DirectionButton = () => {
     const map = useMap();
@@ -170,6 +246,59 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
     );
   };
 
+  const DirectionsUpdated = ({
+    origin,
+    destination,
+  }: {
+    origin: Position;
+    destination: Position;
+  }) => {
+    const map = useMap();
+    const routesLibrary = useMapsLibrary("routes");
+    // const [directionsService, setDirectionsService] =
+    //   useState<google.maps.DirectionsService>();
+    // const [directionsRenderer, setDirectionsRenderer] =
+    //   useState<google.maps.DirectionsRenderer>();
+    // const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
+    // const [routeIndex, setRouteIndex] = useState(0);
+    // const selected = routes[routeIndex];
+    // const leg = selected?.legs[0];
+
+    if (routes && routes.length > 0 && routeIndex && directionsRenderer) {
+      console.log("return null");
+      return null;
+    }
+
+    useEffect(() => {
+      if (!routesLibrary || !map) return;
+      setDirectionsService(new routesLibrary.DirectionsService());
+      setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
+    }, [routesLibrary, map]);
+
+    useEffect(() => {
+      if (!directionsService || !directionsRenderer) return;
+
+      void directionsService
+        .route({
+          origin,
+          destination,
+          travelMode: google.maps.TravelMode.DRIVING,
+          provideRouteAlternatives: true,
+        })
+        .then((response) => {
+          directionsRenderer.setDirections(response);
+          setRoutes(response.routes);
+        });
+    }, [directionsService, directionsRenderer, origin, destination]);
+
+    useEffect(() => {
+      if (!directionsRenderer) return;
+      directionsRenderer.setRouteIndex(routeIndex);
+    }, [routeIndex, directionsRenderer]);
+
+    return null;
+  };
+
   return (
     <div>
       <APIProvider
@@ -181,6 +310,7 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
             width: "100%",
             height: "70vh",
           }}
+          className="relative"
         >
           <Map
             defaultZoom={15}
@@ -190,8 +320,8 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
             streetViewControl={false}
             tiltInteractionEnabled={false}
             mapTypeControl={false}
+            zoomControl={false}
           >
-
             <MapControl position={ControlPosition.RIGHT_BOTTOM}>
               <LocateButton currentLocation={currentLocation} />
             </MapControl>
@@ -200,9 +330,9 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
               <GeolocationMarker position={currentLocation} />
             )}
 
-            <MapControl position={ControlPosition.TOP_RIGHT}>
+            <MapControl position={ControlPosition.TOP_LEFT}>
               <Button
-                className="mt-4 -translate-x-3 bg-blue-500 text-white hover:bg-blue-600"
+                className="mt-4 translate-x-3 bg-blue-500 text-white hover:bg-blue-600"
                 onClick={() => setShowMarkers(!showMarkers)}
               >
                 {showMarkers && <SquareCheck />}
@@ -259,14 +389,36 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
               <Directions
                 origin={currentLocation}
                 destination={{
-                  lat: selectedCarpark.location.x,
-                  lng: selectedCarpark.location.y
+                  lat: selectedCarpark.location.y,
+                  lng: selectedCarpark.location.x,
                 }}
+                directionsService={directionsService}
+                setDirectionsService={setDirectionsService}
+                directionsRenderer={directionsRenderer}
+                setDirectionsRenderer={setDirectionsRenderer}
+                routes={routes}
                 setRoutes={setRoutes}
                 setRouteIndex={setRouteIndex}
                 routeIndex={routeIndex}
               />
             )}
+
+            {!selectedCarpark && (
+              <ClearMap
+                directionsRenderer={directionsRenderer}
+                setDirectionsRenderer={setDirectionsRenderer}
+              />
+            )}
+
+            {/* {showDirection && selectedCarpark && currentLocation && (
+              <DirectionsUpdated
+                origin={currentLocation}
+                destination={{
+                  lat: selectedCarpark.location.y,
+                  lng: selectedCarpark.location.x,
+                }}
+              />
+            )} */}
           </Map>
         </div>
       </APIProvider>
@@ -312,9 +464,41 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
   );
 }
 
+interface ClearMapProps {
+  directionsRenderer: google.maps.DirectionsRenderer | undefined;
+  setDirectionsRenderer: React.Dispatch<
+    React.SetStateAction<google.maps.DirectionsRenderer | undefined>
+  >;
+}
+
+const ClearMap = ({
+  directionsRenderer,
+  setDirectionsRenderer,
+}: ClearMapProps) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (directionsRenderer) {
+      directionsRenderer.setMap(map);
+      directionsRenderer.setMap(null);
+    }
+  }, [directionsRenderer, map]);
+
+  return null;
+};
+
 interface DirectionsProps {
   origin: Position;
   destination: Position;
+  directionsService: google.maps.DirectionsService | undefined;
+  setDirectionsService: React.Dispatch<
+    React.SetStateAction<google.maps.DirectionsService | undefined>
+  >;
+  directionsRenderer: google.maps.DirectionsRenderer | undefined;
+  setDirectionsRenderer: React.Dispatch<
+    React.SetStateAction<google.maps.DirectionsRenderer | undefined>
+  >;
+  routes: google.maps.DirectionsRoute[];
   setRoutes: React.Dispatch<
     React.SetStateAction<google.maps.DirectionsRoute[]>
   >;
@@ -325,6 +509,11 @@ interface DirectionsProps {
 const Directions = ({
   origin,
   destination,
+  directionsService,
+  setDirectionsService,
+  directionsRenderer,
+  setDirectionsRenderer,
+  routes,
   setRoutes,
   setRouteIndex,
   routeIndex,
@@ -332,10 +521,15 @@ const Directions = ({
   // https://www.youtube.com/watch?v=tFjOIZGCvuQ&list=PL2rFahu9sLJ2QuJaKKYDaJp0YqjFCDCtN&index=3
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
-  const [directionsService, setDirectionsService] =
-    useState<google.maps.DirectionsService>();
-  const [directionsRenderer, setDirectionsRenderer] =
-    useState<google.maps.DirectionsRenderer>();
+  // const [directionsService, setDirectionsService] =
+  //   useState<google.maps.DirectionsService>();
+  // const [directionsRenderer, setDirectionsRenderer] =
+  //   useState<google.maps.DirectionsRenderer>();
+
+  if (routes && routes.length > 0 && routeIndex && directionsRenderer) {
+    console.log("return null");
+    return null;
+  }
 
   useEffect(() => {
     if (!routesLibrary || !map) return;
@@ -359,8 +553,6 @@ const Directions = ({
         setRoutes(response.routes);
       })
       .catch((err) => console.error("Directions request failed:", err));
-
-    return () => directionsRenderer.setMap(null);
   }, [directionsService, directionsRenderer, origin, destination, setRoutes]);
 
   useEffect(() => {
@@ -382,20 +574,20 @@ const DirectionDetailsCard = ({
   routeIndex,
   setRouteIndex,
 }: DirectionDetailsCardProps) => {
-  console.log(routes);
-  console.log(routeIndex);
+  // console.log(routes);
+  // console.log(routeIndex);
 
   // sometimes api got problem, idk why but this works
   if (routes.length === 0) return null;
 
   const selectedRoute = routes[routeIndex];
   if (selectedRoute?.legs.length === 0) return null;
-  
+
   const leg = selectedRoute?.legs[0];
 
-  routes.map((route) => {
-    console.log(route.summary);
-  });
+  // routes.map((route) => {
+  //   console.log(route.summary);
+  // });
 
   return (
     <div
@@ -413,7 +605,8 @@ const DirectionDetailsCard = ({
         <strong>{selectedRoute?.summary ?? "Route"}</strong>
       </h3>
       <p>
-        {leg?.start_address ? leg.start_address.split(",")[0] : "Start"} to {leg?.end_address ? leg.end_address.split(",")[0] : "Destination"}
+        {leg?.start_address ? leg.start_address.split(",")[0] : "Start"} to{" "}
+        {leg?.end_address ? leg.end_address.split(",")[0] : "Destination"}
       </p>
       <p>Distance: {leg?.distance ? leg.distance.text : "Unknown"}</p>
       <p>Duration: {leg?.duration ? leg.duration.text : "Unknown"}</p>
@@ -533,7 +726,6 @@ const OriginMarker = ({
   );
 };
 
-
 interface CarparkDetailsCardProps {
   carpark: CarparkData;
   onClose: () => void;
@@ -575,7 +767,7 @@ const CarparkDetailsCard = ({
         }}
         onClick={onClose}
       >
-        Close
+        <X />
       </button>
 
       {/* Show Direction Button */}
@@ -605,7 +797,8 @@ const CarparkDetailsCard = ({
       <CardContent className="p-6 dark:text-white">
         <h3 className="mb-2 text-xl font-bold">{carpark.carParkNo}</h3>
         <p>
-          <span className="font-medium">Name:</span> {carpark.address || "Unknown"}
+          <span className="font-medium">Name:</span>{" "}
+          {carpark.address || "Unknown"}
         </p>
         <p>
           <span className="font-medium">Availability:</span>{" "}
@@ -691,7 +884,7 @@ const CarparkDropdown = ({ carpark }: CarparkDropdownProps) => {
               <br />
             </tbody>
           </table>
-          <DisplayPrice carpark_id={carpark.carParkNo ?? ""} />
+          {/* <DisplayPrice carpark_id={carpark.carParkNo ?? ""} /> */}
         </div>
       )}
     </div>

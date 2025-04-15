@@ -14,6 +14,7 @@ import { FavouriteButton } from "../components/global/favourite-button"; // Impo
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
 import { toast } from "sonner";
+import TestMap from "~/components/map/test-map";
 
 // Updated interface for carpark data to match schema
 type CarparkData = RouterOutputs["carPark"]["getCarparks"][number]
@@ -229,7 +230,8 @@ const ParkSMART: React.FC = () => {
         />
 
         {/* Display map with all carpark markers */}
-        <MapViewUpdated carparks_data={filteredParkingLocations} />
+        {/* <MapViewUpdated carparks_data={filteredParkingLocations} /> */}
+        <TestMap carparks_data={filteredParkingLocations} />
 
         <main className="flex-grow bg-gray-50 p-4 dark:bg-gray-800">
           <div className="mb-6 flex items-center justify-between">

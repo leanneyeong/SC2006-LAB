@@ -169,26 +169,6 @@ export default function CarparkDetailMap({
     if (!leg) return null;
 
     return (
-      // <div className="absolute top-4 right-4 z-10 bg-white p-4 shadow-lg rounded-lg" style={{ width: "40%", height: "30%" }}>
-      //   <h2>{selected.summary}</h2>
-      // <p>
-      //   {leg.start_address.split(',')[0]} to {leg.end_address.split(',')[0]}
-      // </p>
-      // <p>Distance: {leg.distance?.text}</p>
-      // <p>Duration: {leg.duration?.text}</p>
-
-      // <h2>Other Routes</h2>
-      // <ul>
-      //   {routes.map((route, index) => (
-      //     <li key={route.summary}>
-      //       <button onClick={() => setRouteIndex(index)}>
-      //         {route.summary}
-      //       </button>
-      //     </li>
-      //   ))}
-      // </ul>
-      // </div>
-
       <div
         className={`absolute top-2 right-2 z-10 mb-4 rounded-2xl border shadow-md transition-all duration-300 ease-in-out`}
         style={{ width: "60%" }} // Set a fixed width
