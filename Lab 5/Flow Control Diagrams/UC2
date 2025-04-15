@@ -1,37 +1,27 @@
 @startuml
-title UC002 - Control Flow Diagram (Admin Account Creation)
 start
 
 :1. Admin logs in with special access;
 :2. Select "Create Admin Account";
-:3. Enter username, email, password, retype password;
-:4. Submit form;
+:3. Enter Username, Email, Password, Confirm Password;
 
-if (5. Is username/email valid?) then (yes)
-  if (6. Do passwords match?) then (yes)
-    if (7. Is username already in use?) then (no)
-      :8. Create new admin account;
-      :9. Show confirmation;
+if (4. Is Username or Email duplicate?) then (Yes)
+  :9. Show error "Username or Email already exists";
+  -3. [Restart] back to start
+else (No)
+  if (5.Do Password and Confirm Password match?) then (No)
+    :10. Show error "Passwords do not match";
+    -3. [Restart] back to start
+  else (Yes)
+    if (6. Is Email format valid?) then (No)
+      :11. Show error "Invalid Email Format";
+     -3. [Restart] back to start
+    else (Yes)
+      :7. Create Account;
+      :8. Show success message;
       stop
-      ' Path A: Success
-    else (yes)
-      :10. Show duplicate username error;
-      --> [Retry]
-      ' Path B: Retry due to duplicate username
     endif
-  else (no)
-    :11. Show password mismatch error;
-    --> [Retry]
-    ' Path C: Retry due to password mismatch
   endif
-else (no)
-  :12. Show invalid input error;
-  --> [Retry]
-  ' Path C: Retry due to invalid input
 endif
-
-: [Retry]
-: Admin re-enters details;
-:4. Submit form again;
 
 @enduml
