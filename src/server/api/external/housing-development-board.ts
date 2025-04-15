@@ -37,9 +37,6 @@ const hdbCarParkResponseValidator = z.object({
 export class HousingDevelopmentBoard {
   private static readonly BASE_URL = 'https://api.data.gov.sg/v1/transport/carpark-availability';
 
-  // Remove empty constructor since it's not needed
-  // If you want to keep it for future expansion, add a comment explaining why
-  
   public async getAvailability() {
     try {
       console.log('Fetching data from HDB API...');
