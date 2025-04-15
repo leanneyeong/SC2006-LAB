@@ -126,7 +126,7 @@ const ParkSMART: React.FC = () => {
         isFavourited: "true",
         locationX: carparkData?.location.x.toString() ?? userLocation?.x.toString() ?? "",
         locationY: carparkData?.location.y.toString() ?? userLocation?.y.toString() ?? "",
-        distance: parking.distance?.toString() || ""
+        distance: parking.distance?.toString() ?? ""
       }
     });
   };

@@ -23,7 +23,6 @@ export class HDBDataService {
             let skipCount = 0;
 
             // For each raw data, find the corresponding matching carpark in the db
-            // Changed from map to forEach since we're not returning anything from the iteration
             rawHDBData.forEach((raw) => {
                 const carParkNumber = raw.carpark_number;
                 const carParkInfo = raw.carpark_info[0];

@@ -128,7 +128,7 @@ const ProfileSettings: React.FC = () => {
     
     // Validation
     if (passwordForm.newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters');
+      toast.error('New password must be at least 12 characters');
       return;
     }
     
