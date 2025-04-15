@@ -546,7 +546,7 @@ const CarparkDetailsCard = ({
         <p>
           <span className="font-medium">Availability:</span>{" "}
           <span className={getAvailabilityColour(carpark.availableLots)}>
-            {carpark.availableLots || "Unknown"}
+            {carpark.availableLots || "0"}
           </span>
         </p>
         <p>
