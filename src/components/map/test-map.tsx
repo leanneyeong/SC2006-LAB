@@ -22,31 +22,19 @@ import {
 } from "lucide-react";
 import React, { useMemo, useRef } from "react";
 import { useEffect, useState } from "react";
-import { carparkData, formatCarparkData } from "~/server/carpark/api";
 import { Button } from "../ui/button";
 import { CardContent } from "../ui/card";
 import { useRouter } from "next/router";
 import DirectionsIcon from "@mui/icons-material/Directions";
-import DisplayPrice from "./display-price";
 import { env } from "~/env";
 import { RouterOutputs } from "~/utils/api";
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
 import CarparksMarker from "./carpark-markers";
-import { clear } from "console";
+import { api } from "~/utils/api";
+import { FavouriteButton } from "../global/favourite-button";
 
 // Define types for the carpark data
-interface Carpark {
-  CarParkID: string;
-  Development: string;
-  Area: string;
-  AvailableLots: string;
-  LotType: string;
-  Agency: string;
-  lat: number;
-  lng: number;
-}
-
 type CarparkData = RouterOutputs["carPark"]["getCarparks"][number];
 type DirectionsResult = google.maps.DirectionsResult;
 
@@ -56,41 +44,23 @@ interface Position {
   lng: number;
 }
 
-export default function MapViewUpdated({
-  carparks_data,
-}: {
-  carparks_data: CarparkData[];
-}) {
+export default function TestMap({ carparks_data }: { carparks_data: CarparkData[] }) {
   const router = useRouter();
   const origin = { lat: 1.2833, lng: 103.8333 };
-  const [carparks, setCarparks] = useState<Carpark[]>([]);
-  const [selectedCarpark, setSelectedCarpark] = useState<CarparkData | null>(
-    null,
-  );
-
-  const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
-  const [showMarkers, setShowMarkers] = useState(true); // Ensure markers are visible by default
+  const [selectedCarpark, setSelectedCarpark] = useState<CarparkData | null>(null);
+  
+  // Force refresh of data when isFavourited changes
+  const carParkUtils = api.useUtils().carPark;
   const [showDirection, setShowDirection] = useState(false);
-  const [directions, setDirections] = useState<DirectionsResult | null>(null);
-
-  const [directionsRenderer, setDirectionsRenderer] =
-    useState<google.maps.DirectionsRenderer>();
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
+  const [currentLocation, setCurrentLocation] = useState<Position | null>(null);
+  const [showMarkers, setShowMarkers] = useState(true); // Ensure markers are visible by default
+  const [directions, setDirections] = useState<DirectionsResult | null>(null);
+  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
 
+  // Handle navigation to car-park-details page
   const handleViewDetails = (carpark: CarparkData) => {
-    const samplePricingData = {
-      weekday: {
-        morning: "0.60",
-        afternoon: "1.20",
-        evening: "0.60",
-      },
-      weekend: {
-        morning: "1.20",
-        afternoon: "1.50",
-        evening: "0.60",
-      },
-    };
     void router.push({
       pathname: "/car-park-details",
       query: {
@@ -99,11 +69,10 @@ export default function MapViewUpdated({
         carParkType: carpark.carParkType,
         typeOfParkingSystem: carpark.typeOfParkingSystem,
         availableLots: carpark.availableLots,
-        pricing: JSON.stringify(samplePricingData),
         carParkNo: carpark.carParkNo,
-        isFavorite: false,
+        isFavorite: carpark.isFavourited,
         locationX: carpark.location.x.toString(),
-        locationY: carpark.location.y.toString(),
+        locationY: carpark.location.y.toString()
       },
     });
   };
@@ -114,9 +83,11 @@ export default function MapViewUpdated({
         const { latitude, longitude } = position.coords;
         const location = { lat: latitude, lng: longitude };
         setCurrentLocation(location);
-
+        
+        // Get the map element without unnecessary assertion
         const mapElement = document.querySelector('div[aria-label="Map"]');
-
+        
+        // Check if mapElement exists and has correct type
         if (mapElement instanceof HTMLElement && window.google?.maps) {
           const mapInstance = new window.google.maps.Map(mapElement);
           mapInstance.panTo(location);
@@ -125,10 +96,11 @@ export default function MapViewUpdated({
       },
       (error) => {
         console.error("Error getting location:", error);
-      },
+      }
     );
   }, []);
-
+  
+  // Make sure carparks data is properly loaded
   useEffect(() => {
     if (carparks_data && carparks_data.length > 0) {
       console.log(`Loaded ${carparks_data.length} carparks for map display`);
@@ -140,6 +112,7 @@ export default function MapViewUpdated({
       directionsRenderer.setMap(null);
     }
   }
+
   const fetchDirections = (destination: Position) => {
     if (!currentLocation) return;
 
@@ -150,11 +123,12 @@ export default function MapViewUpdated({
         origin: currentLocation,
         destination,
         travelMode: google.maps.TravelMode.DRIVING,
+        provideRouteAlternatives: true,
       },
       (result, status) => {
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
-          setRoutes(result.routes)
+          setRoutes(result.routes);
         }
       },
     );
@@ -202,7 +176,6 @@ export default function MapViewUpdated({
             streetViewControl={false}
             tiltInteractionEnabled={false}
             mapTypeControl={false}
-            disableDefaultUI
           >
             <MapControl position={ControlPosition.RIGHT_BOTTOM}>
               <LocateButton currentLocation={currentLocation} />
@@ -212,9 +185,9 @@ export default function MapViewUpdated({
               <GeolocationMarker position={currentLocation} />
             )}
 
-            <MapControl position={ControlPosition.TOP_LEFT}>
+            <MapControl position={ControlPosition.TOP_RIGHT}>
               <Button
-                className="mt-4 translate-x-3 bg-blue-500 text-white hover:bg-blue-600"
+                className="mt-4 -translate-x-3 bg-blue-500 text-white hover:bg-blue-600"
                 onClick={() => setShowMarkers(!showMarkers)}
               >
                 {showMarkers && <SquareCheck />}
@@ -253,32 +226,35 @@ export default function MapViewUpdated({
           gap: "20px",
         }}
       >
+        {/* Carpark Details */}
         <div
           style={{
             width: showDirection ? "50%" : "100%",
             transition: "width 0.3s ease",
           }}
         >
-        {selectedCarpark && (
-          <CarparkDetailsCard
-            carpark={selectedCarpark}
-            onClose={() => {
-              setSelectedCarpark(null);
-              setShowDirection(false);
-              clearMap();
-              console.log("showDirection: false");
-            }}
-            onShowDirection={setShowDirection}
-            onViewDetails={handleViewDetails}
-            fetchDirections={fetchDirections}
-          />
-        )}
+          {selectedCarpark && (
+            <CarparkDetailsCard
+              carpark={selectedCarpark}
+              onClose={() => {
+                setSelectedCarpark(null);
+                setShowDirection(false);
+                clearMap();
+                console.log("showDirection: false");
+              }}
+              onShowDirection={setShowDirection}
+              onViewDetails={handleViewDetails}
+              fetchDirections={fetchDirections}
+            />
+          )}
         </div>
 
         {/* Directions or Map Panel */}
         {showDirection && (
           <DirectionDetailsCard
             routes={routes}
+            routeIndex={routeIndex}
+            setRouteIndex={setRouteIndex}
           />
         )}
       </div>
@@ -336,7 +312,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
   const map = useMap();
   return (
     <button
-      className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
+      className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
       onClick={() => {
         if (map && currentLocation) {
           map.panTo(currentLocation);
@@ -344,7 +320,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
         }
       }}
     >
-      <Locate color="black"/>
+      <Locate />
     </button>
   );
 };
@@ -357,6 +333,7 @@ interface CarparkDetailsCardProps {
   fetchDirections: (destination: Position) => void;
 }
 
+
 const CarparkDetailsCard = ({
   carpark,
   onClose,
@@ -364,52 +341,42 @@ const CarparkDetailsCard = ({
   onViewDetails,
   fetchDirections,
 }: CarparkDetailsCardProps) => {
+  // Create local state to track the favorite status
+  const [isFavourited, setIsFavourited] = useState(carpark.isFavourited);
+  
+  // Update local state when carpark prop changes
+  useEffect(() => {
+    setIsFavourited(carpark.isFavourited);
+  }, [carpark.isFavourited]);
+  
   return (
     <div
-      style={{
-        position: "relative", // Added for absolute positioning
-        width: "100%",
-        padding: "15px",
-        backgroundColor: "#fff",
-        borderRadius: "10px",
-        boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-        textAlign: "left",
-      }}
+      className="relative w-full p-4 bg-background text-foreground dark:bg-card dark:text-card-foreground rounded-lg shadow-md"
     >
       {/* Close Button - Top Right */}
       <button
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          padding: "6px 10px",
-          backgroundColor: "#dc3545",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontSize: "14px",
-        }}
+        className="absolute top-2.5 right-2.5 p-1.5 bg-destructive text-destructive-foreground border-none rounded cursor-pointer text-sm"
         onClick={onClose}
       >
-        <X />
+        Close
       </button>
 
-      {/* Show Direction Button */}
-      <div>
+      <div className="flex space-x-2 mt-2 mb-4">
         <Button
-          className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
+          className="bg-blue-500 text-white hover:bg-blue-600"
           onClick={() => onViewDetails(carpark)}
         >
           View Details
         </Button>
-
-        <Button className="mt-4 bg-blue-500 text-white hover:bg-blue-600">
-          Add to Favourites
-        </Button>
-
+        
+        <FavouriteButton 
+          carParkId={carpark.id}
+          isFavourited={isFavourited}
+          onFavouriteChange={() => setIsFavourited(!isFavourited)}
+        />
+        
         <Button
-          className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
+          className="bg-blue-500 text-white hover:bg-blue-600"
           onClick={() => {
             onShowDirection(true);
             fetchDirections({
@@ -423,11 +390,10 @@ const CarparkDetailsCard = ({
         </Button>
       </div>
 
-      <CardContent className="p-6 dark:text-white">
+      <CardContent className="p-6">
         <h3 className="mb-2 text-xl font-bold">{carpark.carParkNo}</h3>
         <p>
-          <span className="font-medium">Name:</span>{" "}
-          {carpark.address || "Unknown"}
+          <span className="font-medium">Name:</span> {carpark.address || "Unknown"}
         </p>
         <p>
           <span className="font-medium">Availability:</span>{" "}
@@ -439,7 +405,24 @@ const CarparkDetailsCard = ({
           <span className="font-medium">Carpark Type:</span>{" "}
           {carpark.carParkType || "Unknown"}
         </p>
-        <p></p>
+        <p>
+          <span className="font-medium">Pricing:</span>{" "}
+          {(() => {
+            const central_area = ["ACB", "BBB", "BRBI", "CY", "DUXM", "HLM", "KAB", "KAM", "KAS", "PRM", "SLS", "SR1", "SR2", "TPM", "UCS", "WCB"];
+            const peak_hour = ["ACB", "CY", "SE21", "SE22", "SE24", "MP14", "MP15", "MP16", "HG9", "HG9T", "HG15", "HG16"];
+            const lub = ["GSML", "BRBL", "JCML", "T55", "GEML", "KAML", "J57L", "J60L", "TPL", "EPL", "BL8L"];
+            
+            if (lub.includes(carpark.carParkNo)) {
+              return "$2-$4/30min";
+            } else if (peak_hour.includes(carpark.carParkNo)) {
+              return "$0.60-$1.20/30min";
+            } else if (central_area.includes(carpark.carParkNo)) {
+              return "$0.60-$1.20/30min";
+            } else {
+              return "$0.60/30min";
+            }
+          })()}
+        </p>
       </CardContent>
     </div>
   );
@@ -447,22 +430,21 @@ const CarparkDetailsCard = ({
 
 interface DirectionDetailsCardProps {
   routes: google.maps.DirectionsRoute[];
+  routeIndex: number;
+  setRouteIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const DirectionDetailsCard = ({
   routes,
+  routeIndex,
+  setRouteIndex,
 }: DirectionDetailsCardProps) => {
-
-  useEffect(() => {
-    console.log("Routes:", routes);
-  }, [])
- 
   // sometimes api got problem, idk why but this works
   if (routes.length === 0) return null;
 
-  const selectedRoute = routes[0];
+  const selectedRoute = routes[routeIndex];
   if (selectedRoute?.legs.length === 0) return null;
-
+  
   const leg = selectedRoute?.legs[0];
 
   return (
@@ -476,16 +458,34 @@ const DirectionDetailsCard = ({
         textAlign: "left",
       }}
     >
-      {/* Replace with actual directions or map */}
       <h3>
         <strong>{selectedRoute?.summary ?? "Route"}</strong>
       </h3>
       <p>
-        {leg?.start_address ? leg.start_address.split(",")[0] : "Start"} to{" "}
-        {leg?.end_address ? leg.end_address.split(",")[0] : "Destination"}
+        {leg?.start_address ? leg.start_address.split(",")[0] : "Start"} to {leg?.end_address ? leg.end_address.split(",")[0] : "Destination"}
       </p>
       <p>Distance: {leg?.distance ? leg.distance.text : "Unknown"}</p>
       <p>Duration: {leg?.duration ? leg.duration.text : "Unknown"}</p>
+      <br></br>
+
+      <h3>
+        <strong>Other Routes</strong>
+      </h3>
+      <ul>
+        {routes.map((route, index) => {
+          return (
+            <li key={index}>
+              <a
+                href="#"
+                onClick={() => setRouteIndex(index)}
+                className="font-medium text-blue-600 hover:underline dark:text-blue-500"
+              >
+                {route.summary}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 };

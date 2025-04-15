@@ -8,9 +8,10 @@ import { getThemeColor } from "~/utils/get-theme-color"
 interface FavouriteButtonProps {
     carParkId: string
     isFavourited: boolean
+    onFavouriteChange?: () => void
 }
 
-export const FavouriteButton = ({carParkId, isFavourited}: FavouriteButtonProps) => {
+export const FavouriteButton = ({carParkId, isFavourited, onFavouriteChange}: FavouriteButtonProps) => {
     const carParkContext = api.useUtils().carPark
     const userContext = api.useUtils().user;
     const {
@@ -28,6 +29,10 @@ export const FavouriteButton = ({carParkId, isFavourited}: FavouriteButtonProps)
                 success: ()=>{
                     void carParkContext.invalidate()
                     void userContext.invalidate();
+                    // Call the callback to update parent component's state immediately
+                    if (onFavouriteChange) {
+                        onFavouriteChange();
+                    }
                     return "Carpark has been updated successfully!"
                 },
                 error: (error) => {
