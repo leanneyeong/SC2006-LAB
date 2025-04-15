@@ -286,7 +286,7 @@ export default function CarparkDetailMap({
     <div className="relative h-full w-full">
       <APIProvider apiKey={env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
         <Map
-          defaultZoom={11}
+          defaultZoom={12}
           defaultCenter={{
             lat: carpark.location?.y ?? origin.lat,
             lng: carpark.location?.x ?? origin.lng,
@@ -296,6 +296,7 @@ export default function CarparkDetailMap({
           streetViewControl={false}
           tiltInteractionEnabled={false}
           mapTypeControl={false}
+          disableDefaultUI
         />
 
         {currentLocation && <GeolocationMarker position={currentLocation} />}

@@ -145,14 +145,14 @@ export default function MapViewUpdated({
 
     const directionsService = new google.maps.DirectionsService();
 
-    directionsService.route(
+    void directionsService.route(
       {
         origin: currentLocation,
         destination,
         travelMode: google.maps.TravelMode.DRIVING,
       },
       (result, status) => {
-        if (status === "OK" && result) {
+        if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
           setRoutes(result.routes)
         }
@@ -202,6 +202,7 @@ export default function MapViewUpdated({
             streetViewControl={false}
             tiltInteractionEnabled={false}
             mapTypeControl={false}
+            disableDefaultUI
           >
             <MapControl position={ControlPosition.RIGHT_BOTTOM}>
               <LocateButton currentLocation={currentLocation} />
@@ -343,7 +344,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
         }
       }}
     >
-      <Locate />
+      <Locate color="black"/>
     </button>
   );
 };
