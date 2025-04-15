@@ -6,6 +6,7 @@ import { TopBar } from '~/components/global/top-bar-others';
 import { api } from '~/utils/api';
 import { useRouter } from 'next/router';
 import getAvailabilityColour from '~/utils/get-availability-colour';
+import getDistanceBetweenCarPark from '~/utils/get-distance-between-carpark';
 
 interface ParkingLocation {
   id: string;
@@ -86,7 +87,7 @@ const ParkSMART: React.FC = () => {
           freeParking: carpark.freeParking,
           nightParking: carpark.nightParking,
           availabilityColor: getAvailabilityColour(carpark.availableLots),
-          distance: carpark.distance ? parseFloat((carpark.distance / 1000).toFixed(1)) : undefined, // Convert to km
+          distance: parseFloat(getDistanceBetweenCarPark(carpark.location)), // Use utility function like index.tsx
           pricing: {
             weekday: {
               morning: "0.60",
@@ -108,6 +109,9 @@ const ParkSMART: React.FC = () => {
 
   // Handler functions
   const handleViewDetails = (parking: ParkingLocation) => {
+    // Find the carpark in the query data to get the actual location
+    const carparkData = carparksQuery.data?.find(cp => cp.id === parking.id);
+    
     // Pass all required parameters to the details page
     void router.push({
       pathname: '/car-park-details',
@@ -120,8 +124,9 @@ const ParkSMART: React.FC = () => {
         availabilityColor: parking.availabilityColor,
         pricing: JSON.stringify(parking.pricing),
         isFavourited: "true",
-        locationX: userLocation ? userLocation.x.toString() : "",
-        locationY: userLocation ? userLocation.y.toString() : ""
+        locationX: carparkData?.location.x.toString() ?? userLocation?.x.toString() ?? "",
+        locationY: carparkData?.location.y.toString() ?? userLocation?.y.toString() ?? "",
+        distance: parking.distance?.toString() || ""
       }
     });
   };
@@ -202,16 +207,17 @@ const ParkSMART: React.FC = () => {
                       {parking.pricing && (
                         <p>
                           <span className="font-medium">Prices:</span>{" "}
-                          <span className="text-green-600">Weekday ${parking.pricing.weekday.morning}-${parking.pricing.weekday.afternoon}</span>{" "}
-                          <span className="text-purple-600">Weekend ${parking.pricing.weekend.morning}-${parking.pricing.weekend.afternoon}</span>
+                          <span className="text-black-600">Weekday ${parking.pricing.weekday.morning}-${parking.pricing.weekday.afternoon}</span>
+                          <br />{" "}
+                          <span className="text-black-600" style={{ marginLeft: '55px' }}>Weekend ${parking.pricing.weekend.morning}-${parking.pricing.weekend.afternoon}</span>
                         </p>
                       )}
-                      {parking.distance && (
-                        <p>
-                          <span className="font-medium">Distance:</span>{" "}
-                          <span className="text-blue-600">{parking.distance} km</span>
-                        </p>
-                      )}
+                      <p>
+                        <span className="font-medium">Distance:</span>{" "}
+                        <span className="text-blue-600">
+                          {typeof parking.distance === 'number' ? `${parking.distance.toFixed(2)} km` : getDistanceBetweenCarPark(carparksQuery.data?.find(cp => cp.id === parking.id)?.location ?? {x: 0, y: 0})}
+                        </span>
+                      </p>
                     </CardContent>
                     <CardFooter className="flex items-center p-4 bg-gray-50 dark:bg-gray-800">
                       <div className="flex justify-end space-x-2">
@@ -222,7 +228,7 @@ const ParkSMART: React.FC = () => {
                           View Details
                         </Button>
                         <Button 
-                          className="bg-red-600 text-white hover:bg-red-700"
+                          className="bg-red-500 text-white hover:bg-red-600"
                           onClick={() => handleRemoveFavorite(parking.id)}
                         >
                           Remove

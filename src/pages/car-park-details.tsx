@@ -185,7 +185,8 @@ const CarParkDetailPage: React.FC = () => {
         pricing,
         isFavourited,
         locationX,
-        locationY
+        locationY,
+        distance
       } = router.query;
       
       // Parse pricing data if available
@@ -331,7 +332,7 @@ const CarParkDetailPage: React.FC = () => {
                   <p className="mb-4 dark:text-white">
                     <span className="font-medium">Distance:</span>{" "}
                     <span className="text-blue-600">
-                      {getDistanceBetweenCarPark(carParkDetail.location)} km
+                      {router.query.distance ? `${parseFloat(router.query.distance as string).toFixed(2)} km` : `${getDistanceBetweenCarPark(carParkDetail.location)} km`}
                     </span>
                   </p>
                 )}

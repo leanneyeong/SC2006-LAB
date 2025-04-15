@@ -169,26 +169,6 @@ export default function CarparkDetailMap({
     if (!leg) return null;
 
     return (
-      // <div className="absolute top-4 right-4 z-10 bg-white p-4 shadow-lg rounded-lg" style={{ width: "40%", height: "30%" }}>
-      //   <h2>{selected.summary}</h2>
-      // <p>
-      //   {leg.start_address.split(',')[0]} to {leg.end_address.split(',')[0]}
-      // </p>
-      // <p>Distance: {leg.distance?.text}</p>
-      // <p>Duration: {leg.duration?.text}</p>
-
-      // <h2>Other Routes</h2>
-      // <ul>
-      //   {routes.map((route, index) => (
-      //     <li key={route.summary}>
-      //       <button onClick={() => setRouteIndex(index)}>
-      //         {route.summary}
-      //       </button>
-      //     </li>
-      //   ))}
-      // </ul>
-      // </div>
-
       <div
         className={`absolute top-2 right-2 z-10 mb-4 rounded-2xl border shadow-md transition-all duration-300 ease-in-out`}
         style={{ width: "60%" }} // Set a fixed width
@@ -290,13 +270,32 @@ export default function CarparkDetailMap({
         </AdvancedMarker>
 
         {infoWindowShown && (
-          <InfoWindow
-            anchor={marker}
-            onClose={handleClose}
-            headerContent={<strong>{carpark.name}</strong>}
-          >
-            <p>Available lots: {carpark.availableLots}</p>
-          </InfoWindow>
+<InfoWindow
+  anchor={marker}
+  onClose={handleClose}
+  headerContent={
+    <strong style={{ 
+      color: '#333', 
+      fontSize: '16px',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      {carpark.name}
+    </strong>
+  }
+>
+  <div style={{
+    backgroundColor: '#f9f9f9',
+    padding: '10px',
+    borderRadius: '4px',
+    border: '1px solid #eee',
+    fontSize: '14px',
+    maxWidth: '200px'
+  }}>
+    <p style={{ margin: '0', color: '#555' }}>
+      Available lots: <span style={{ fontWeight: 'bold', color: '#10B981' }}>{carpark.availableLots}</span>
+    </p>
+  </div>
+</InfoWindow>
         )}
       </>
     );
@@ -306,7 +305,7 @@ export default function CarparkDetailMap({
     <div className="relative h-full w-full">
       <APIProvider apiKey={env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
         <Map
-          defaultZoom={11}
+          defaultZoom={12}
           defaultCenter={{
             lat: carpark.location?.y ?? origin.lat,
             lng: carpark.location?.x ?? origin.lng,
@@ -316,6 +315,7 @@ export default function CarparkDetailMap({
           streetViewControl={false}
           tiltInteractionEnabled={false}
           mapTypeControl={false}
+          disableDefaultUI
         />
 
         {currentLocation && <GeolocationMarker position={currentLocation} />}
