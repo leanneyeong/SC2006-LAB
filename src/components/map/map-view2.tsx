@@ -11,6 +11,7 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
+import { api } from "~/utils/api";
 import {
   Locate,
   Star,
@@ -33,6 +34,7 @@ import { RouterOutputs } from "~/utils/api";
 import getAvailabilityColour from "~/utils/get-availability-colour";
 import getDistanceBetweenCarPark from "~/utils/get-distance-between-carpark";
 import CarparksMarker from "./carpark-markers";
+import { FavouriteButton } from "../global/favourite-button"; // Import the FavouriteButton component
 
 // Define types for the carpark data
 interface Carpark {
@@ -62,6 +64,9 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
   const [selectedCarpark, setSelectedCarpark] = useState<CarparkData | null>(
     null,
   );
+  
+  // Force refresh of data when isFavourited changes
+  const carParkUtils = api.useUtils().carPark;
   const [showDirection, setShowDirection] = useState(false);
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
@@ -80,7 +85,7 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
         availableLots: carpark.availableLots,
         //pricing: JSON.stringify(samplePricingData),
         carParkNo: carpark.carParkNo,
-        isFavorite: false,
+        isFavorite: carpark.isFavourited,
         locationX: carpark.location.x.toString(),
         locationY: carpark.location.y.toString()
       },
@@ -127,21 +132,6 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
         }}
       >
         <DirectionsIcon />
-      </button>
-    );
-  };
-
-  const FavouriteButton = () => {
-    const map = useMap();
-    return (
-      <button
-        className="flex h-12 w-12 -translate-x-3 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-        onClick={() => {
-          // Implement favorite functionality
-          console.log("Favorite button clicked");
-        }}
-      >
-        <Star />
       </button>
     );
   };
@@ -217,32 +207,6 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
               </Button>
             </MapControl>
 
-            {/* <MapControl position={ControlPosition.TOP_RIGHT}>
-              <CarparkDropdown carpark={selectedCarpark} />
-            </MapControl> */}
-
-            {/* buttons */}
-            {/* {selectedCarpark && (
-              <>
-                <MapControl position={ControlPosition.TOP_RIGHT}>
-                  <DirectionButton />
-                </MapControl>
-
-                <MapControl position={ControlPosition.TOP_RIGHT}>
-                  <FavouriteButton />
-                </MapControl>
-
-                <MapControl position={ControlPosition.TOP_RIGHT}>
-                  <InfoButton />
-                </MapControl>
-
-                <MapControl position={ControlPosition.TOP_RIGHT}>
-                  <CancelButton />
-                </MapControl>
-              </>
-            )} */}
-
-            {/* Carpark Markers Component */}
             {!showMarkers && selectedCarpark && (
               <AdvancedMarker
                 position={{
@@ -584,21 +548,22 @@ const CarparkDetailsCard = ({
         Close
       </button>
 
-      {/* Show Direction Button */}
-      <div>
+      <div className="flex space-x-2 mt-2 mb-4">
         <Button
-          className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
+          className="bg-blue-500 text-white hover:bg-blue-600"
           onClick={() => onViewDetails(carpark)}
         >
           View Details
         </Button>
-
-        <Button className="mt-4 bg-blue-500 text-white hover:bg-blue-600">
-          Add to Favourites
-        </Button>
-
+        
+        {/* Replace the regular button with FavouriteButton component */}
+        <FavouriteButton 
+          carParkId={carpark.id}
+          isFavourited={carpark.isFavourited}
+        />
+        
         <Button
-          className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
+          className="bg-blue-500 text-white hover:bg-blue-600"
           onClick={() => {
             onShowDirection(true);
             console.log("showDirection: true");
@@ -623,7 +588,24 @@ const CarparkDetailsCard = ({
           <span className="font-medium">Carpark Type:</span>{" "}
           {carpark.carParkType || "Unknown"}
         </p>
-        <p></p>
+        <p>
+          <span className="font-medium">Pricing:</span>{" "}
+          {(() => {
+            const central_area = ["ACB", "BBB", "BRBI", "CY", "DUXM", "HLM", "KAB", "KAM", "KAS", "PRM", "SLS", "SR1", "SR2", "TPM", "UCS", "WCB"];
+            const peak_hour = ["ACB", "CY", "SE21", "SE22", "SE24", "MP14", "MP15", "MP16", "HG9", "HG9T", "HG15", "HG16"];
+            const lub = ["GSML", "BRBL", "JCML", "T55", "GEML", "KAML", "J57L", "J60L", "TPL", "EPL", "BL8L"];
+            
+            if (lub.includes(carpark.carParkNo)) {
+              return "$2-$4/30min";
+            } else if (peak_hour.includes(carpark.carParkNo)) {
+              return "$0.60-$1.20/30min";
+            } else if (central_area.includes(carpark.carParkNo)) {
+              return "$0.60-$1.20/30min";
+            } else {
+              return "$0.60/30min";
+            }
+          })()}
+        </p>
       </CardContent>
     </div>
   );
