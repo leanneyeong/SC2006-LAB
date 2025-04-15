@@ -1,30 +1,21 @@
 @startuml
-title UC003 - Control Flow Diagram (User Login)
 start
+title UC003 - Control Flow Diagram (Name Change)
 
-:1. User enters username and password;
-:2. Submit login;
+:1. User enters First name and Last name;
 
-if (3. Are credentials valid?) then (yes)
-  :4. Redirect to home screen;
+if (2. Is first name empty?) then (Yes)
+  :3. User is unable to click "Continue";
   stop
-  ' Path A: Successful login
-else (no)
-  if (5. Too many failed attempts?) then (yes)
-    :6. Display account locked;
+else (No)
+  if (4. Is last name empty?) then (Yes)
+    :5. User is unable to click "Continue";
     stop
-    ' Path B: Account locked after too many attempts
-  else (no)
-    :7. Display login error;
+  else (No)
+    :6. Update name in system;
+    :7. Display success message "Your profile has been updated";
+    stop
   endif
 endif
 
-if (8. User clicks "Forgot Password") then (yes)
-  :9. Redirect to password reset;
-  stop
-  ' Path C: Redirected to password reset screen
-else (no)
-  -1 [Retry] Back to Login page
-  stop
-endif
 @enduml

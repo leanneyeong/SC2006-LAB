@@ -1,43 +1,21 @@
 @startuml
-title UC004 - Control Flow Diagram (Password Change)
 start
+title UC004 - Control Flow Diagram (Password Change)
 
-:1. User enters current password, new password, and confirm new password;
-:2. Submit form;
+:1. User enters New Password and Confirm New Password;
 
-if (3. Is current password correct?) then (yes)
-else (no)
-  :4. Display current password error;
-  -1. Return password change page
-  stop
-endif
-
-if (5. Is new password valid?) then (yes)
-  :6. Validate new password;
-  if (7. Is new password strong enough?) then (yes)
-    :8. Check password strength;
-    :9. Password strength valid;
-    :10. Update password;
-    :11. Display password change confirmation;
-  else (no)
-    :12. Display password strength error;
-    -1. Return password change page
+if (2. Does New Password meet the requirements?) then (Yes)
+    if (4. Do the password fields match?) then (Yes)
+        :6. Update password;
+        stop
+    else (No)
+        :5. Show error “New passwords do not match”;
+        -1. Allow user to try filling out the field again
+        stop
+    endif
+else (No)
+    :3. Show error "Failed to update password”  when User attempts to update password;
+    -1. Allow user to try filling out the field again
     stop
-  endif
-else (no)
-  :13. Display new password error;
-  -1. Return password change page
-  stop
-endif
-
-if (14. Do passwords match?) then (yes)
-  :15. Update password;
-  :16. Password updated successfully;
-  :17. Redirect to login screen;
-  stop
-else (no)
-  :18. Display password mismatch error;
-  -1. Return password change page
-  stop
 endif
 @enduml

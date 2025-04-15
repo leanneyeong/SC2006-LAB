@@ -1,27 +1,32 @@
 @startuml
+title UC002 - Control Flow Diagram (User Login)
 start
 
-:1. Admin logs in with special access;
-:2. Select "Create Admin Account";
-:3. Enter Username, Email, Password, Confirm Password;
+:1. User enters Email Address;
 
-if (4. Is Username or Email duplicate?) then (Yes)
-  :9. Show error "Username or Email already exists";
-  -3. [Restart] back to start
-else (No)
-  if (5.Do Password and Confirm Password match?) then (No)
-    :10. Show error "Passwords do not match";
-    -3. [Restart] back to start
-  else (Yes)
-    if (6. Is Email format valid?) then (No)
-      :11. Show error "Invalid Email Format";
-     -3. [Restart] back to start
-    else (Yes)
-      :7. Create Account;
-      :8. Show success message;
-      stop
+if (2. Is Email Address format valid?) then (Yes)
+    if (3. Has Email Address been registered?) then (Yes)
+        :6. User enters Password;
+        if (8. Is Password correct?) then (Yes)
+            :9. Successful login. Redirect to application home screen;
+            stop
+        else (No)
+            if (10. Has there been 3 failed login attempts?) then (Yes)
+                :11. Show error “Too many requests. Please try again in a bit.”;
+                stop
+            else (No)
+                -1. Allow user to try filling out the field again
+                stop
+            endif
+        endif
+    else (No)
+        :7. Show error “No account found with this identifier. Please check and try again.”;
+        -1. Allow user to try filling out the field again
+        stop
     endif
-  endif
+else (No)
+    :5. Show error “Please match the requested format.”;
+    -1. Allow user to try filling out the field again
+    stop
 endif
-
 @enduml

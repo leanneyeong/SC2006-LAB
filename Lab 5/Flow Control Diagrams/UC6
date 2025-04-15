@@ -1,26 +1,18 @@
 @startuml
-title UC006 - Control Flow Diagram (Admin Password Recovery)
 start
+title UC006 - Control Flow Diagram (Search for Car Parks)
 
-:1. Admin enters email for password recovery;
-:2. Submit recovery request;
+:1. User enters Car Park to search for;
+:2. User can choose to apply filters;
 
-if (3. Is email valid?) then (yes)
-  :4. Proceed to send password recovery link;
-else (no)
-  :5. Display invalid email error;
-  - 1. Re-enter email
+:3. Search database for car park;
+
+if (4. Car park found?) then (No)
+  :5. Display "No car parking lots found matching your criteria";
+  -1. User is able to search again
   stop
-endif
-
-if (6. Is email registered?) then (yes)
-  :7. Send password recovery link;
-  :8. Display recovery link sent message;
-  :9. Redirect to password reset page;
-  stop
-else (no)
-  :10. Display email not found error;
-  - 1. Re-enter email
+else (Yes)
+  :6. Display car parks that meet the search criteria;
   stop
 endif
 

@@ -1,23 +1,41 @@
 @startuml
-title UC005 - Control Flow Diagram (Search for Car Park)
 start
+title UC005 - Control Flow Diagram (Password reset)
 
-:1. User enters location or selects "Use GPS";
-:2. Submit search request;
+:1. User clicks "Forgot Password?";
+:2. Display "Reset Your Password";
 
-if (3. Is location valid?) then (yes)
-  :4. Fetch GPS coordinates or user-entered location;
-  :5. Request available car parks from API;
-  if (6. Are car parks found?) then (yes)
-    :7. Display car park search results;
-    stop
-  else (no)
-    :8. Display "No car parks found";
+:3. User enters email address;
+
+if (4. Is Email Format valid?) then (No)
+  :16. Show error “Please match the requested format.”;
+  -1. Allow user to try filling out the field again
+  stop
+else (Yes)
+  :5. Send verification code to email;
+  :6. User enters New password and Confirm password;
+  
+  if (7. Does password meet all the requirements?) then (Yes)
+    
+  else (No)
+    :9. Show relevant error based on requirement that has not been met;
+    :10. User is unable to click "Reset Password";
+    -1. Allow user to try filling out the field again
     stop
   endif
-else (no)
-  :9. Display "Invalid location input";
-  stop
+    
+
+  if (8. Do passwords match?) then (No)
+    :11. Display "Passwords don't match";
+    :12. User is unable to click "Reset Password";
+    -1. Allow user to try filling out the field again
+    stop
+  else (Yes)
+    :13. Update password in system;
+    :14. Display "Your password was successfully reset.";
+    :15. Redirect to application home screen;
+    stop
+  endif
 endif
 
 @enduml
