@@ -473,7 +473,7 @@ const CarparkDetailsCard = ({ carpark, onClose, onShowDirection, onViewDetails }
           View Details
         </Button>
 
-        <Button className="mt-4 bg-blue-500 text-white hover:bg-blue-600">
+        <Button className="mt-4 bg-blue-500 dark:bg-gray-800 text-white dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-blue-600 dark:hover:bg-gray-700">
           Add to Favourites
         </Button>
 

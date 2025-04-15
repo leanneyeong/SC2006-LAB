@@ -519,30 +519,11 @@ const CarparkDetailsCard = ({
 }: CarparkDetailsCardProps) => {
   return (
     <div
-      style={{
-        position: "relative", // Added for absolute positioning
-        width: "100%",
-        padding: "15px",
-        backgroundColor: "#fff",
-        borderRadius: "10px",
-        boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-        textAlign: "left",
-      }}
+      className="relative w-full p-4 bg-background text-foreground dark:bg-card dark:text-card-foreground rounded-lg shadow-md"
     >
       {/* Close Button - Top Right */}
       <button
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          padding: "6px 10px",
-          backgroundColor: "#dc3545",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontSize: "14px",
-        }}
+        className="absolute top-2.5 right-2.5 p-1.5 bg-destructive text-destructive-foreground border-none rounded cursor-pointer text-sm"
         onClick={onClose}
       >
         Close
@@ -556,7 +537,6 @@ const CarparkDetailsCard = ({
           View Details
         </Button>
         
-        {/* Replace the regular button with FavouriteButton component */}
         <FavouriteButton 
           carParkId={carpark.id}
           isFavourited={carpark.isFavourited}
@@ -573,7 +553,7 @@ const CarparkDetailsCard = ({
         </Button>
       </div>
 
-      <CardContent className="p-6 dark:text-white">
+      <CardContent className="p-6">
         <h3 className="mb-2 text-xl font-bold">{carpark.carParkNo}</h3>
         <p>
           <span className="font-medium">Name:</span> {carpark.address || "Unknown"}

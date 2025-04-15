@@ -80,11 +80,11 @@ export default function HDBMapView({ carparks }: HDBMapViewProps) {
     );
   };
 
-  const FavouriteButton = () => {
+  const FavoriteButton = () => {
     const map = useMap();
     return (
       <button
-        className="flex h-12 w-12 -translate-x-3 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
+        className="flex h-12 w-12 -translate-x-3 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700"
         onClick={() => {
           // Implement favorite functionality
           console.log("Favorite button clicked");
@@ -167,7 +167,7 @@ export default function HDBMapView({ carparks }: HDBMapViewProps) {
                 </MapControl>
 
                 <MapControl position={ControlPosition.TOP_RIGHT}>
-                  <FavouriteButton />
+                  <FavoriteButton />
                 </MapControl>
 
                 <MapControl position={ControlPosition.TOP_RIGHT}>
