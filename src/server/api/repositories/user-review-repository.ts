@@ -92,7 +92,9 @@ export class UserReviewRepository {
                 userFirstName: userSchema.firstName,
                 userLastName: userSchema.lastName,
                 rating: userReviewSchema.rating,
-                description: userReviewSchema.description
+                description: userReviewSchema.description,
+                createdAt: userReviewSchema.createdAt,
+                userId: userReviewSchema.userId
             })
                 .from(userReviewSchema)
                 .where(and(
@@ -101,7 +103,6 @@ export class UserReviewRepository {
                 ))
                 .innerJoin(userSchema,eq(userSchema.id,userReviewSchema.userId))
                 .orderBy(desc(userReviewSchema.createdAt))
-                .limit(3)
 
             return results;
             

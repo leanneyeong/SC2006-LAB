@@ -72,6 +72,46 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Helper function to format dates correctly
+const formatDate = (dateString: string | number | Date): string => {
+  try {
+    // If it's already a string in format: YYYY-MM-DD HH:MM:SS.sss
+    if (typeof dateString === 'string') {
+      // SQL timestamp format: YYYY-MM-DD HH:MM:SS.sss
+      if (dateString.includes(' ')) {
+        const parts = dateString.split(' ');
+        const datePart = parts[0];
+        const timePart = parts[1];
+        
+        // Parse the parts directly without converting to ISO format
+        const [year, month, day] = datePart.split('-').map(Number);
+        // Month is 0-indexed in JS Date
+        const dateObj = new Date(year, month - 1, day);
+        
+        // Check if the date is valid
+        if (isNaN(dateObj.getTime())) {
+          return "No date available";
+        }
+        
+        return dateObj.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+      }
+    }
+    
+    // For Date objects or other string formats
+    const dateObj = new Date(dateString);
+    
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) {
+      return "No date available";
+    }
+    
+    return dateObj.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return "No date available";
+  }
+};
+
 const LeaveReviewPage: React.FC = () => {
   const router = useRouter();
 
@@ -109,7 +149,7 @@ const LeaveReviewPage: React.FC = () => {
   // Format user data for display
   const currentUser = {
     name: userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...',
-    date: new Date().toLocaleDateString('en-GB'), // Current date in DD/MM/YY format
+    date: formatDate(new Date()), // Current date in DD/MM/YY format
     image: userData?.avatarUrl ?? ''
   };
 
@@ -184,7 +224,7 @@ const LeaveReviewPage: React.FC = () => {
           rating: dbReview.rating,
           content: dbReview.description,
           author: `${dbReview.userFirstName} ${dbReview.userLastName}`,
-          date: new Date(dbReview.createdAt as string | number | Date).toLocaleDateString('en-GB')
+          date: formatDate(dbReview.createdAt) // Use the new formatDate function
         };
       });
       
@@ -665,13 +705,6 @@ const LeaveReviewPage: React.FC = () => {
                     <span className="font-medium">Pricing:</span>{" "}
                     {carPark.price}
                   </p>
-                  {/* Display distance from current location */}
-                  <p>
-                    <span className="font-medium">Distance:</span>{" "}
-                    <span className="text-blue-600">
-                      {getDistanceBetweenCarPark({x: carPark.location.x, y: carPark.location.y})} km
-                    </span>
-                  </p>
                 </CardContent>
               </Card>
               
@@ -748,8 +781,7 @@ const LeaveReviewPage: React.FC = () => {
                             currentUser.name
                           )}
                         </p>
-                        <p className="text-gray-500 dark:text-gray-300 text-xs">{currentUser.date}</p>
-                      </div>
+                        <p className="text-gray-500 dark:text-gray-300 text-xs">{currentUser.date}</p></div>
                     </div>
                   </div>
                   
@@ -859,4 +891,4 @@ const LeaveReviewPage: React.FC = () => {
   );
 };
 
-export default LeaveReviewPage;                    
+export default LeaveReviewPage;
