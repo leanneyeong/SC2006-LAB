@@ -5,16 +5,6 @@ The app integrates a **Car Park Listing API** to provide real-time updates on pa
 
 ---
 
-## 🚀 Prerequisites
-
-
----
-
-## 🛠️ Setup Instructions
-
-
----
-
 ## 🧰 Tech Stack
 
 ### Frontend
@@ -25,7 +15,7 @@ The app integrates a **Car Park Listing API** to provide real-time updates on pa
 - Next.js
 
 ### Database
-- SQLite-based [Turso](https://turso.tech/)
+- Supabase (https://supabase.com/)
 
 ---
 
