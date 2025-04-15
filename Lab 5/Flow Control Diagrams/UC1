@@ -1,26 +1,25 @@
 @startuml
-title UC001 - Control Flow Diagram (User Account Creation)
 start
 
-:1. User enters username, email, password, retype password;
-:2. Submit form;
+:1. Enter Username, Email, Password, Confirm Password;
 
-if (3. Is username/email valid?) then (yes)
-  if (4. Do passwords match?) then (yes)
-    if (5. Is username/email duplicate?) then (no)
-      :6. Create new user account;
-      :7. Redirect to login;
+if (2. Is Username or Email duplicate?) then (Yes)
+  :6. Show error "Username or Email already exists";
+  -1. [Restart] back to start
+else (No)
+  if (3.Do Password and Confirm Password match?) then (No)
+    :7. Show error "Passwords do not match";
+    -1. [Restart] back to start
+  else (Yes)
+    if (4.Is Email format valid?) then (No)
+      :8. Show error "Invalid Email Format";
+     -1. [Restart] back to start
+    else (Yes)
+      :4. Create Account;
+      :5. Show success message;
       stop
-    else (yes)
-      --> [Retry]
     endif
-  else (no)
-    --> [Retry]
   endif
-else (no)
-  --> [Retry]
 endif
 
-:8. [Retry] Display error and allow user to retry;
-stop
 @enduml
