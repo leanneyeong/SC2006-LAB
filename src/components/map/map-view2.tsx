@@ -73,10 +73,16 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
     void router.push({
       pathname: "/car-park-details",
       query: {
-        id: carpark.carParkNo ?? carpark.address.replace(/\s+/g, "-").toLowerCase(),
+        id: carpark.id,
         name: carpark.address,
-        lots: carpark.availableLots,
-        type: carpark.carParkType,
+        carParkType: carpark.carParkType,
+        typeOfParkingSystem: carpark.typeOfParkingSystem,
+        availableLots: carpark.availableLots,
+        //pricing: JSON.stringify(samplePricingData),
+        carParkNo: carpark.carParkNo,
+        isFavorite: false,
+        locationX: carpark.location.x.toString(),
+        locationY: carpark.location.y.toString()
       },
     });
   };
