@@ -136,21 +136,6 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
     );
   };
 
-  const InfoButton = () => {
-    const map = useMap();
-    return (
-      <button
-        className="flex h-12 w-12 -translate-x-4 translate-y-2 transform cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-        onClick={() => {
-          // Implement info functionality
-          console.log("Info button clicked");
-        }}
-      >
-        <InfoIcon />
-      </button>
-    );
-  };
-
   const CancelButton = () => {
     const map = useMap();
     return (
@@ -198,7 +183,7 @@ export default function MapViewUpdated({ carparks_data }: { carparks_data: Carpa
 
             <MapControl position={ControlPosition.TOP_RIGHT}>
               <Button
-                className="mt-4 -translate-x-3 bg-blue-500 text-white hover:bg-blue-600"
+                className="mt-4 -translate-x-3 bg-blue-500  text-white hover:bg-blue-600"
                 onClick={() => setShowMarkers(!showMarkers)}
               >
                 {showMarkers && <SquareCheck />}
@@ -461,7 +446,7 @@ const LocateButton = ({ currentLocation }: LocateButtonProps) => {
   const map = useMap();
   return (
     <button
-      className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
+      className="flex h-12 w-12 -translate-x-1 transform cursor-pointer items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md transition-transform duration-200 hover:shadow-lg focus:outline-none"
       onClick={() => {
         if (map && currentLocation) {
           map.panTo(currentLocation);
