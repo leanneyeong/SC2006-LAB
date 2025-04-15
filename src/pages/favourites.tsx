@@ -222,7 +222,7 @@ const ParkSMART: React.FC = () => {
                           View Details
                         </Button>
                         <Button 
-                          className="bg-red-500 text-white hover:bg-red-600"
+                          className="bg-red-600 text-white hover:bg-red-700"
                           onClick={() => handleRemoveFavorite(parking.id)}
                         >
                           Remove

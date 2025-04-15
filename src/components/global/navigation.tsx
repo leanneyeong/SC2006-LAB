@@ -84,20 +84,6 @@ export function Navigation({ children }: NavigationProps) {
             collapsed={isLoaded && collapsed} 
             pathname={pathname} 
           />
-          <NavItem 
-            href="/reviews" 
-            icon={<MessageSquare size={16} />} 
-            label="Leave A Review" 
-            collapsed={isLoaded && collapsed} 
-            pathname={pathname} 
-          />
-          <NavItem 
-            href="/notifications" 
-            icon={<Bell size={16} />} 
-            label="Notifications" 
-            collapsed={isLoaded && collapsed} 
-            pathname={pathname} 
-          />
         </div>
       </div>
       

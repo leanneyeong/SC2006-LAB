@@ -60,7 +60,7 @@ const ParkSMART: React.FC = () => {
 
   const refreshMutation = api.carPark.refreshAvailability.useMutation();
 
-  // Unified filtering logic in a single useEffect
+  // Filter carparks based on search and sheltered criteria
   useEffect(() => {
     if (carparks) {
       let filtered = [...carparks];
@@ -87,33 +87,62 @@ const ParkSMART: React.FC = () => {
         );
       }
 
-      // Apply sorting if a sort method is selected
-      if (currentSort) {
-        switch (currentSort) {
-          case "availability":
-            filtered.sort(
-              (a, b) =>
-                (Number(b.availableLots) || 0) - (Number(a.availableLots) || 0),
-            );
-            break;
-          case "alphabetical":
-            filtered.sort((a, b) => a.address.localeCompare(b.address));
-            break;
-          case "distance":
-            filtered.sort((a, b) => {
-              const distanceA = parseFloat(getDistanceBetweenCarPark(a.location)) || 9999;
-              const distanceB = parseFloat(getDistanceBetweenCarPark(b.location)) || 9999;
-              return distanceA - distanceB;
-            });
-            break;
-          default:
-            break;
-        }
-      }
+      // Always sort by distance first to get closest carparks
+      filtered.sort((a, b) => {
+        const distanceA = parseFloat(getDistanceBetweenCarPark(a.location)) || 9999;
+        const distanceB = parseFloat(getDistanceBetweenCarPark(b.location)) || 9999;
+        return distanceA - distanceB;
+      });
+
+      // Store all filtered results
       setAllFilteredCarparks(filtered);
-      setFilteredParkingLocations(filtered.slice(0, displayLimit));
+      
+      // Get display set based on limit
+      const displaySet = filtered.slice(0, displayLimit);
+      
+      // Apply other sorts only if not distance
+      if (currentSort && currentSort !== "distance") {
+        applySort(displaySet, currentSort);
+      }
+      
+      setFilteredParkingLocations(displaySet);
     }
-  }, [carparks, shelteredCarpark, displayedSearchQuery, currentSort, displayLimit]);
+  }, [carparks, shelteredCarpark, displayedSearchQuery, displayLimit]);
+
+  // Apply sort only to displayed carparks
+  useEffect(() => {
+    if (allFilteredCarparks.length > 0) {
+      // Take current display set
+      const displaySet = allFilteredCarparks.slice(0, displayLimit);
+      
+      if (currentSort === "distance") {
+        // For distance, we just take from the already distance-sorted allFilteredCarparks
+        setFilteredParkingLocations(displaySet);
+      } else if (currentSort) {
+        // For other sorts, apply sort to the current display set
+        const sortedDisplaySet = [...displaySet];
+        applySort(sortedDisplaySet, currentSort);
+        setFilteredParkingLocations(sortedDisplaySet);
+      }
+    }
+  }, [currentSort, allFilteredCarparks, displayLimit]);
+  
+  // Helper function to apply sorts
+  const applySort = (carparks: CarparkData[], sortType: string) => {
+    switch (sortType) {
+      case "availability":
+        carparks.sort(
+          (a, b) =>
+            (Number(b.availableLots) || 0) - (Number(a.availableLots) || 0),
+        );
+        break;
+      case "alphabetical":
+        carparks.sort((a, b) => a.address.localeCompare(b.address));
+        break;
+      default:
+        break;
+    }
+  };
 
   // Handle search submission
   const handleSearch = () => {

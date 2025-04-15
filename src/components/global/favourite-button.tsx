@@ -47,7 +47,7 @@ export const FavouriteButton = ({carParkId, isFavourited}: FavouriteButtonProps)
             className={`flex items-center gap-2 ${
                 isFavourited 
                 ? "bg-red-600 hover:bg-red-700 text-white" 
-                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                : "bg-blue-500 dark:bg-gray-800 text-white dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-blue-600 dark:hover:bg-gray-700"
             }`}
         >
             <Heart

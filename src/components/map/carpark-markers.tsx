@@ -59,19 +59,23 @@ export const CarparksMarker = ({
               <InfoWindow
                 position={{ lat: carpark.location.y, lng: carpark.location.x }}
                 headerContent={
-                  <strong>{carpark.address || "Unknown Carpark"}</strong>
+                  <strong style={{ color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827' }}>
+                    {carpark.address || "Unknown Carpark"}
+                  </strong>
                 }
-                // onCloseClick={() => {
-                //   onSelectCarpark();
-                // }}
               >
-                <div style={{ color: "black" }}>
+                <div style={{ 
+                  color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827',
+                  backgroundColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                  padding: '8px',
+                  borderRadius: '4px'
+                }}>
                   <p>Distance: {getDistanceBetweenCarPark(carpark.location)} km</p>
                   <p>Available Lots: <span className={getAvailabilityColour(carpark.availableLots)}>
                     {carpark.availableLots}
                   </span></p>
                 </div>
-              </InfoWindow>
+              </InfoWindow>       
             )}
         </React.Fragment>
       ))}
