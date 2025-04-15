@@ -9,11 +9,10 @@ start
 :4. Retrieve reviews for the selected car park;
 if (5. Are reviews available?) then (yes)
   :6. Display reviews to the user;
-  --> [Success]
+  stop
 else (no)
   :7. Display message: "No reviews available";
-  --> [Retry]
+  stop
 endif
 
-stop
 @enduml

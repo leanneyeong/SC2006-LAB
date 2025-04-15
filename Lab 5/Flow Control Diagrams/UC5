@@ -1,0 +1,23 @@
+@startuml
+title UC005 - Control Flow Diagram (Search for Car Park)
+start
+
+:1. User enters location or selects "Use GPS";
+:2. Submit search request;
+
+if (3. Is location valid?) then (yes)
+  :4. Fetch GPS coordinates or user-entered location;
+  :5. Request available car parks from API;
+  if (6. Are car parks found?) then (yes)
+    :7. Display car park search results;
+    stop
+  else (no)
+    :8. Display "No car parks found";
+    stop
+  endif
+else (no)
+  :9. Display "Invalid location input";
+  stop
+endif
+
+@enduml

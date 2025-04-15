@@ -6,25 +6,22 @@ start
 :2. Submit recovery request;
 
 if (3. Is email valid?) then (yes)
-  :4. Validate email;
-  :5. Email validation successful;
-  :6. Proceed to send password recovery link;
+  :4. Proceed to send password recovery link;
 else (no)
-  :7. Display invalid email error;
-  --> [Retry]
+  :5. Display invalid email error;
+  - 1. Re-enter email
+  stop
 endif
 
-if (8. Is email registered?) then (yes)
-  :9. Check if email is registered;
-  :10. Email is registered;
-  :11. Send password recovery link;
-  --> [Success]
-  :12. Display recovery link sent message;
-  :13. Redirect to password reset page;
+if (6. Is email registered?) then (yes)
+  :7. Send password recovery link;
+  :8. Display recovery link sent message;
+  :9. Redirect to password reset page;
+  stop
 else (no)
-  :14. Display email not found error;
-  --> [Retry]
+  :10. Display email not found error;
+  - 1. Re-enter email
+  stop
 endif
 
-stop
 @enduml

@@ -13,16 +13,16 @@ if (4. Is review data available?) then (yes)
   if (7. Is review approved?) then (yes)
     :8. Update review status in database;
     :9. Display message ("Review approved");
-    --> [Success]
+    stop
   else (no)
     :10. Reject review and update database;
     :11. Display message ("Review rejected");
-    --> [Success]
+    stop
   endif
 else (no)
   :12. Display message ("No review data found");
-  --> [Retry]
+  - 1. Return to reviews page
+  stop
 endif
 
-stop
 @enduml

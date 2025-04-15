@@ -5,41 +5,39 @@ start
 :1. User enters current password, new password, and confirm new password;
 :2. Submit form;
 
-if (3. Is current password valid?) then (yes)
-  :4. Validate current password;
-  :5. Password validation successful;
-  :6. Proceed to validate new password;
+if (3. Is current password correct?) then (yes)
 else (no)
-  :7. Display current password error;
-  --> [Retry]
+  :4. Display current password error;
+  -1. Return password change page
+  stop
 endif
 
-if (8. Is new password valid?) then (yes)
-  :9. Validate new password;
-  if (10. Is new password strong enough?) then (yes)
-    :11. Check password strength;
-    :12. Password strength valid;
-    :13. Update password;
-    --> [Success]
-    :14. Display password change confirmation;
+if (5. Is new password valid?) then (yes)
+  :6. Validate new password;
+  if (7. Is new password strong enough?) then (yes)
+    :8. Check password strength;
+    :9. Password strength valid;
+    :10. Update password;
+    :11. Display password change confirmation;
   else (no)
-    :15. Display password strength error;
-    --> [Retry]
+    :12. Display password strength error;
+    -1. Return password change page
+    stop
   endif
 else (no)
-  :16. Display new password error;
-  --> [Retry]
+  :13. Display new password error;
+  -1. Return password change page
+  stop
 endif
 
-if (17. Do passwords match?) then (yes)
-  :18. Update password;
-  :19. Password updated successfully;
-  --> [Success]
-  :20. Redirect to login screen;
+if (14. Do passwords match?) then (yes)
+  :15. Update password;
+  :16. Password updated successfully;
+  :17. Redirect to login screen;
+  stop
 else (no)
-  :21. Display password mismatch error;
-  --> [Retry]
+  :18. Display password mismatch error;
+  -1. Return password change page
+  stop
 endif
-
-stop
 @enduml

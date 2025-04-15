@@ -5,24 +5,23 @@ start
 :1. User selects car park to add to favourites;
 :2. Submit request to add to favourites;
 
-:3. Check if car park is available;
-if (4. Is car park available?) then (yes)
-  :5. Add car park to favourites;
+if (3. Are car park details valid?) then (yes)
+  :4. Add car park to favourites;
   
-  :6. Confirm addition to user's profile;
-  :7. Display confirmation message ("Car park added to favourites");
-  --> [Success]
+  if (5. Is car park already in favourites?) then (yes)
+    :6. Display "This car park is already in your favourites" message;
+     -1. [Retry] Return to car park select
+  stop
+  else (no)
+    :7. Confirm addition to user's profile;
+    :8. Add car park to favourites list;
+    :9. Display confirmation message ("Car park added to favourites");
+  endif
+  
 else (no)
-  :8. Display "Car park is no longer available" message;
-  --> [Retry]
-endif
-
-if (9. Is car park already in favourites?) then (yes)
-  :10. Display "This car park is already in your favourites" message;
-  --> [Retry]
-else (no)
-  :11. Add car park to favourites list;
-  --> [Success]
+  :10. Display "Car park is no longer available" message;
+  -1. [Retry] Return to car park select
+  stop
 endif
 
 stop

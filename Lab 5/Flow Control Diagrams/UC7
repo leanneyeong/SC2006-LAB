@@ -9,26 +9,25 @@ start
 if (4. Are details valid?) then (yes)
   :5. Display car park details (address, rates, availability);
   
-  if (6. User requests directions?) then (yes)
-    :7. Fetch directions to car park;
-    :8. Display route;
-    --> [Success]
+  if (6. Is car park full?) then (yes)
+  :7. Display "Car park is full" message;
+else (no)
+  :8. Display available parking spots;
+endif
+  
+  if (9. User requests directions?) then (yes)
+    :10. Fetch directions to car park;
+    :11. Display route;
+    stop
   else (no)
-    :9. Return to car park details page;
-    --> [Success]
+    :12. Return to car park details page;
+    stop
   endif
+  
 else (no)
-  :10. Display error message (invalid car park);
-  --> [Retry]
+  :13. Display error message (invalid car park);
+  -1. [Retry] Try selecting another cap park
+  stop
 endif
 
-if (11. Is car park full?) then (yes)
-  :12. Display "Car park is full" message;
-  --> [Retry]
-else (no)
-  :13. Display available parking spots;
-  --> [Success]
-endif
-
-stop
 @enduml

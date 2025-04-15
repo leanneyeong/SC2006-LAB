@@ -14,11 +14,11 @@ start
 if (8. Is review valid?) then (yes)
   :9. Add review to database;
   :10. Display confirmation message ("Review submitted successfully");
-  --> [Success]
+  stop
 else (no)
   :11. Display error message ("Review content invalid");
-  --> [Retry]
+  -5. User can edit their review
+  stop
 endif
 
-stop
 @enduml
