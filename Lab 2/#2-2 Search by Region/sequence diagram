@@ -1,0 +1,10 @@
+@startuml SearchByRegion
+actor User
+participant App
+participant CarParks
+
+User -> App : Enter region in search bar
+App -> CarParks : Fetch HDB car parks for region
+CarParks --> App : Return results
+App --> User : Show car parks with details
+@enduml
