@@ -1,0 +1,15 @@
+@startuml
+title Use Case Diagram - Write Review of Car Park (Use Case #4-2)
+
+actor User
+
+rectangle "Parking App System" {
+    usecase "View Detailed Car Park Info" as UC_ViewDetails
+    usecase "Write Review of Car Park" as UC_WriteReview
+}
+
+User --> UC_ViewDetails
+User --> UC_WriteReview
+UC_WriteReview <-- UC_ViewDetails : includes
+
+@enduml
