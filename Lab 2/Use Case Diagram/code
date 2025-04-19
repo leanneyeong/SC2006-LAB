@@ -1,0 +1,77 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor User
+
+package "Profile Management" {
+    usecase "User Account Creation" as UC1_1
+    usecase "User Login" as UC1_2
+    usecase "Password Change" as UC1_3
+    usecase "Delete Account" as UC1_4
+}
+
+package "Search for Car Park" {
+    usecase "Search Nearby Car Parks" as UC2_1
+    usecase "Search using Search Bar" as UC2_2
+    usecase "Filter Sheltered Car Parks" as UC2_3
+    usecase "Sort Car Parks" as UC2_4
+    usecase "View Car Park Details" as UC2_5
+    usecase "View Route to Car Park" as UC2_6
+}
+
+package "Favourite Car Parks" {
+    usecase "Favourite a Car Park" as UC3_1
+    usecase "View Favourites" as UC3_2
+    usecase "Remove Favourite" as UC3_3
+}
+
+package "Manage Reviews" {
+    usecase "View Reviews" as UC4_1
+    usecase "Write Review" as UC4_2
+    usecase "Edit Review" as UC4_3
+    usecase "Delete Review" as UC4_4
+}
+
+' User interactions
+User --> UC1_1
+User --> UC1_2
+User --> UC1_3
+User --> UC1_4
+
+User --> UC2_1
+User --> UC2_2
+User --> UC2_3
+User --> UC2_4
+User --> UC2_5
+User --> UC2_6
+
+User --> UC3_1
+User --> UC3_2
+User --> UC3_3
+
+User --> UC4_1
+User --> UC4_2
+User --> UC4_3
+User --> UC4_4
+
+' Include relationships
+UC1_1 .down.> "Email Validation" : <<include>>
+UC1_1 .down.> "Password Strength Validation" : <<include>>
+UC1_3 .down.> "Password Strength Validation" : <<include>>
+UC1_2 .down.> "Password Validation" : <<include>>
+
+UC2_1 .down.> "Google Maps API" : <<include>>
+UC2_1 .down.> "CarPark Availability API" : <<include>>
+UC2_2 .down.> "CarPark Availability API" : <<include>>
+UC2_3 .down.> "Google Maps API" : <<include>>
+UC2_3 .down.> "CarPark Availability API" : <<include>>
+UC2_4 .down.> "Google Maps API" : <<include>>
+UC2_4 .down.> "CarPark Availability API" : <<include>>
+UC2_5 .down.> "Google Maps API" : <<include>>
+UC2_5 .down.> "CarPark Availability API" : <<include>>
+UC2_6 .down.> "Google Maps API" : <<include>>
+
+UC3_1 --> UC2_1 : <<include>> 
+
+@enduml
