@@ -1,0 +1,45 @@
+@startuml
+title Use Case #1-2: User Login
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Login with Credentials" as UC_Login
+    usecase "Continue with Google" as UC_GoogleLogin
+    usecase "Forgot Password" as UC_ForgotPassword
+    usecase "OTP Verification" as UC_OTPVerification
+    usecase "Set New Password" as UC_SetNewPassword
+    usecase "Password Validation" as UC_PasswordValidation
+}
+
+' Main flow
+User --> UC_Login
+UC_Login --> UC_PasswordValidation : <<include>>
+
+' Alternative flows
+User --> UC_GoogleLogin
+User --> UC_ForgotPassword
+UC_ForgotPassword --> UC_OTPVerification
+UC_OTPVerification --> UC_SetNewPassword
+
+' Notes
+note right of UC_Login
+Includes:
+- Password Validation
+
+Exceptions:
+- Invalid credentials
+- Forgot both email and password
+end note
+
+note right of UC_GoogleLogin
+Alternative Flow #1-2-AC-1:
+User logs in with Google
+end note
+
+note right of UC_ForgotPassword
+Alternative Flow #1-2-AC-2:
+User resets password using OTP
+end note
+
+@enduml
