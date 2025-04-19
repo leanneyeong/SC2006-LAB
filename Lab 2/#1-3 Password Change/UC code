@@ -1,0 +1,62 @@
+@startuml
+title Use Case #1-3: Password Change
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Change Password (Logged In)" as UC_ChangeLoggedIn
+    usecase "Continue with Google + Set Password" as UC_GoogleSetPassword
+    usecase "Reset Password (OTP)" as UC_ResetWithOTP
+    usecase "Update Password from Settings" as UC_SettingsUpdate
+    usecase "OTP Verification" as UC_OTP
+    usecase "Password Strength Validation" as UC_ValidatePassword
+    usecase "Notify Password Change" as UC_NotifyEmail
+}
+
+' Main flow
+User --> UC_ChangeLoggedIn
+UC_ChangeLoggedIn --> UC_ValidatePassword : <<include>>
+UC_ChangeLoggedIn --> UC_NotifyEmail : <<include>>
+
+' Alternative Flow #1-3-AC-1
+User --> UC_GoogleSetPassword
+UC_GoogleSetPassword --> UC_ValidatePassword : <<include>>
+UC_GoogleSetPassword --> UC_NotifyEmail : <<include>>
+
+' Alternative Flow #1-3-AC-2
+User --> UC_ResetWithOTP
+UC_ResetWithOTP --> UC_OTP
+UC_ResetWithOTP --> UC_ValidatePassword : <<include>>
+UC_ResetWithOTP --> UC_NotifyEmail : <<include>>
+
+' Alternative Flow #1-3-AC-3
+User --> UC_SettingsUpdate
+UC_SettingsUpdate --> UC_ValidatePassword : <<include>>
+UC_SettingsUpdate --> UC_NotifyEmail : <<include>>
+
+' Notes
+note right of UC_ChangeLoggedIn
+User is logged in and uses
+“Manage Account” > “Security”
+end note
+
+note right of UC_GoogleSetPassword
+User logs in via Google and then sets password
+end note
+
+note right of UC_ResetWithOTP
+User resets password via OTP from login screen
+end note
+
+note right of UC_SettingsUpdate
+User uses “Profile Settings” > “Change Password”
+end note
+
+note bottom of UC_ValidatePassword
+Includes:
+- Minimum 12 characters
+- At least 1 uppercase letter
+- At least 1 special character
+end note
+
+@enduml
