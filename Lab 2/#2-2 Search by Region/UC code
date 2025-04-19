@@ -1,0 +1,25 @@
+@startuml
+title Use Case #2-2: Search for Car Parks using the Search Bar
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Search Car Parks by Location" as UC_SearchByLocation
+    usecase "Display Searched Car Parks" as UC_DisplayResults
+    usecase "Use CarPark Availability API" as UC_CarParkAPI <<include>>
+}
+
+User --> UC_SearchByLocation
+UC_SearchByLocation --> UC_DisplayResults : <<include>>
+UC_SearchByLocation --> UC_CarParkAPI
+
+note right of UC_SearchByLocation
+User types a region into the search bar
+end note
+
+note right of UC_DisplayResults
+Car parks in the searched region are shown on the map
+and listed with their details
+end note
+
+@enduml
