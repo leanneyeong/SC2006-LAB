@@ -1,0 +1,12 @@
+@startuml DeleteAccount
+actor User
+participant App
+participant Database
+
+User -> App : Go to "Manage Account"
+User -> App : Click "DELETE ACCOUNT"
+User -> App : Type "Delete account"
+App -> Database : Delete user record
+Database --> App : Confirm deletion
+App --> User : Sign out and show confirmation
+@enduml
