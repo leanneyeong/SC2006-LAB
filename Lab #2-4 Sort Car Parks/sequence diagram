@@ -1,8 +1,0 @@
-@startuml SortCarParks
-actor User
-participant App
-
-User -> App : Select sort by "distance", "alphabetical", or "availability"
-App -> App : Sort list accordingly
-App --> User : Display sorted list
-@enduml
