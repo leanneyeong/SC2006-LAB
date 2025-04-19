@@ -1,0 +1,43 @@
+@startuml
+title Use Case #1-1: User Account Creation
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Create Account" as UC_CreateAccount
+    usecase "Continue with Google" as UC_GoogleSignUp
+    usecase "Email Validation" as UC_EmailValidation
+    usecase "Password Strength Validation" as UC_PasswordValidation
+}
+
+' Main flow
+User --> UC_CreateAccount
+UC_CreateAccount --> UC_EmailValidation : <<include>>
+UC_CreateAccount --> UC_PasswordValidation : <<include>>
+
+' Alternative flow
+User --> UC_GoogleSignUp
+
+' Notes
+note right of UC_CreateAccount
+Includes:
+- Email Validation
+- Password Strength Validation
+
+Alternative Flow:
+- Continue with Google
+
+Exceptions:
+- Invalid email
+- Weak password
+- OTP verification failure
+end note
+
+note bottom of UC_PasswordValidation
+Special Requirement:
+- ≥12 characters
+- 1 uppercase
+- 1 special character
+end note
+
+@enduml
