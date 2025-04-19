@@ -4,6 +4,13 @@ skinparam packageStyle rectangle
 
 actor User
 
+' System Components (APIs) as rectangles instead of actors to avoid human icon
+rectangle "Google Maps API" as API_GMAPS
+rectangle "CarPark Availability API" as API_CARPARK
+rectangle "Email Validation" as SYS_EMAIL
+rectangle "Password Strength Validation" as SYS_PWD
+rectangle "Password Encryption" as SYS_ENCRYPT
+
 package "Profile Management" {
     usecase "User Account Creation" as UC1_1
     usecase "User Login" as UC1_2
@@ -55,23 +62,32 @@ User --> UC4_2
 User --> UC4_3
 User --> UC4_4
 
-' Include relationships
-UC1_1 .down.> "Email Validation" : <<include>>
-UC1_1 .down.> "Password Strength Validation" : <<include>>
-UC1_3 .down.> "Password Strength Validation" : <<include>>
-UC1_2 .down.> "Password Validation" : <<include>>
+' Includes
+UC3_1 --> UC2_5 : <<include>> 
 
-UC2_1 .down.> "Google Maps API" : <<include>>
-UC2_1 .down.> "CarPark Availability API" : <<include>>
-UC2_2 .down.> "CarPark Availability API" : <<include>>
-UC2_3 .down.> "Google Maps API" : <<include>>
-UC2_3 .down.> "CarPark Availability API" : <<include>>
-UC2_4 .down.> "Google Maps API" : <<include>>
-UC2_4 .down.> "CarPark Availability API" : <<include>>
-UC2_5 .down.> "Google Maps API" : <<include>>
-UC2_5 .down.> "CarPark Availability API" : <<include>>
-UC2_6 .down.> "Google Maps API" : <<include>>
+' System interactions (APIs and services)
+UC1_1 --> SYS_EMAIL : <<include>>
+UC1_1 --> SYS_PWD : <<include>>
+UC1_1 --> SYS_ENCRYPT : <<include>>
 
-UC3_1 --> UC2_1 : <<include>> 
+UC1_2 --> SYS_PWD : <<include>>
+
+UC1_3 --> SYS_PWD : <<include>>
+UC1_3 --> SYS_ENCRYPT : <<include>>
+
+UC2_1 --> API_GMAPS : <<include>>
+UC2_1 --> API_CARPARK : <<include>>
+
+UC2_2 --> API_CARPARK : <<include>>
+
+UC2_3 --> API_GMAPS : <<include>>
+UC2_3 --> API_CARPARK : <<include>>
+
+UC2_4 --> API_CARPARK : <<include>>
+
+UC2_5 --> API_CARPARK : <<include>>
+UC2_5 --> API_GMAPS : <<include>>
+
+UC2_6 --> API_GMAPS : <<include>>
 
 @enduml
