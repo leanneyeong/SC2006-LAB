@@ -1,0 +1,19 @@
+@startuml
+title Use Case Diagram - Delete Review of Car Park (Use Case #4-4)
+
+actor User
+
+rectangle "Parking App System" {
+    usecase "View Detailed Car Park Info" as UC_ViewDetails
+    usecase "Leave Review" as UC_LeaveReview
+    usecase "Delete Review of Car Park" as UC_DeleteReview
+}
+
+User --> UC_ViewDetails
+User --> UC_LeaveReview
+User --> UC_DeleteReview
+
+UC_DeleteReview <-- UC_LeaveReview : includes
+UC_LeaveReview <-- UC_ViewDetails : includes
+
+@enduml
