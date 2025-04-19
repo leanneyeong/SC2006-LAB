@@ -1,0 +1,28 @@
+@startuml
+title Use Case #2-5: View Details of Car Parks
+
+actor User
+
+rectangle "Parking App" {
+    usecase "View Car Park Details" as UC_ViewDetails
+    usecase "Use Google Maps API" as UC_MapsAPI <<include>>
+    usecase "Use CarPark Availability API" as UC_CarParkAPI <<include>>
+}
+
+User --> UC_ViewDetails
+UC_ViewDetails --> UC_MapsAPI
+UC_ViewDetails --> UC_CarParkAPI
+
+note right of UC_ViewDetails
+Displays:
+- Price
+- Availability
+- Car park type
+- Parking system
+- Distance
+- Sheltered status
+- Map view
+- Reviews
+end note
+
+@enduml
