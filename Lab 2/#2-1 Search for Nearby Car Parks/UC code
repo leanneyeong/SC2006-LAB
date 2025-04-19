@@ -1,0 +1,37 @@
+@startuml
+title Use Case #2-1: Search for Nearby Car Parks
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Search Nearby Car Parks" as UC_SearchNearby
+    usecase "Display 24 Nearest HDB Car Parks" as UC_Display24
+    usecase "View More Car Parks" as UC_ViewMore
+    usecase "Search by Location" as UC_SearchByLocation
+    usecase "Use Google Maps API" as UC_GoogleMaps <<include>>
+    usecase "Use CarPark Availability API" as UC_CarParkAPI <<include>>
+}
+
+User --> UC_SearchNearby
+UC_SearchNearby --> UC_Display24 : <<include>>
+UC_Display24 --> UC_ViewMore : <<extend>>
+User --> UC_SearchByLocation
+
+UC_SearchNearby --> UC_GoogleMaps
+UC_SearchNearby --> UC_CarParkAPI
+
+note right of UC_SearchNearby
+Triggered from the main page by
+pressing the location button
+end note
+
+note right of UC_ViewMore
+Loads next 24 closest car parks
+when "View More" is clicked
+end note
+
+note right of UC_SearchByLocation
+Allows manual search not tied to user location
+end note
+
+@enduml
