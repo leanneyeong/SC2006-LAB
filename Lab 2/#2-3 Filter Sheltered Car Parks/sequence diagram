@@ -1,0 +1,10 @@
+@startuml FilterShelteredCarParks
+actor User
+participant App
+participant CarParks
+
+User -> App : Select "Sheltered" filter
+App -> CarParks : Fetch sheltered car parks
+CarParks --> App : Return filtered list
+App --> User : Show results
+@enduml
