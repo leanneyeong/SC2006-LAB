@@ -1,0 +1,10 @@
+@startuml ViewFavourites
+actor User
+participant App
+participant Database
+
+User -> App : Click "Favourites" in sidebar
+App -> Database : Get user's favourites
+Database --> App : Return list
+App --> User : Display list of favourites
+@enduml
