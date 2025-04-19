@@ -1,0 +1,26 @@
+@startuml
+title Use Case #2-3: Search for Sheltered Car Park
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Apply Sheltered Car Park Filter" as UC_ApplyFilter
+    usecase "Display Filtered Car Parks" as UC_DisplayFiltered
+    usecase "Use CarPark Availability API" as UC_CarParkAPI <<include>>
+    usecase "Use Google Maps API" as UC_MapsAPI <<include>>
+}
+
+User --> UC_ApplyFilter
+UC_ApplyFilter --> UC_DisplayFiltered : <<include>>
+UC_ApplyFilter --> UC_CarParkAPI
+UC_ApplyFilter --> UC_MapsAPI
+
+note right of UC_ApplyFilter
+User selects 'Sheltered Car Parks' filter option
+end note
+
+note right of UC_DisplayFiltered
+Only sheltered HDB car parks are shown on the map and at the bottom
+end note
+
+@enduml
