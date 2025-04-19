@@ -1,0 +1,11 @@
+@startuml ViewRouteToCarPark
+actor User
+participant App
+participant Maps
+
+User -> App : Select car park
+User -> App : Click "Get Directions"
+App -> Maps : Fetch route
+Maps --> App : Route info
+App --> User : Show route + duration + options
+@enduml
