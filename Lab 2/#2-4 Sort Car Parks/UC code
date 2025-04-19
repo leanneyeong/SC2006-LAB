@@ -1,0 +1,35 @@
+@startuml
+title Use Case #2-4: Sort Car Parks by Characteristics
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Sort Car Parks" as UC_Sort
+    usecase "Sort by Alphabetical Order" as UC_SortAlpha
+    usecase "Sort by Availability" as UC_SortAvail
+    usecase "Sort by Distance" as UC_SortDist
+    usecase "Use CarPark Availability API" as UC_CarParkAPI <<include>>
+    usecase "Use Google Maps API" as UC_MapsAPI <<include>>
+}
+
+User --> UC_Sort
+UC_Sort --> UC_SortAlpha
+UC_Sort --> UC_SortAvail
+UC_Sort --> UC_SortDist
+
+UC_Sort --> UC_CarParkAPI
+UC_Sort --> UC_MapsAPI
+
+note right of UC_SortAlpha
+Car parks sorted in alphabetical order
+end note
+
+note right of UC_SortAvail
+Car parks sorted by number of available lots
+end note
+
+note right of UC_SortDist
+Car parks sorted by proximity to current location
+end note
+
+@enduml
