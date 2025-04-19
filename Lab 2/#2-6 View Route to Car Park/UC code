@@ -1,0 +1,23 @@
+@startuml
+title Use Case Diagram - View Route to Car Park (Use Case #2-6)
+
+actor User
+
+rectangle "Car Park Navigation System" {
+  usecase "Select Car Park"
+  usecase "Get Directions"
+  usecase "View Route Details"
+}
+
+rectangle "External Services" {
+  usecase "Google Maps API"
+}
+
+User --> "Select Car Park"
+User --> "Get Directions"
+User --> "View Route Details"
+
+"Get Directions" --> "Google Maps API" : includes
+"View Route Details" --> "Google Maps API" : includes
+
+@enduml
