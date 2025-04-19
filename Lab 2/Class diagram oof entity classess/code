@@ -1,0 +1,100 @@
+@startuml
+' Define classes
+
+class User {
+  - userID: String
+  - email: String
+  - password: String
+  - profile: Profile
+  --
+  + login()
+  + logout()
+  + updateProfile()
+}
+
+class Profile {
+  - name: String
+  - phone: String
+  - preferences: List<String>
+}
+
+class CarPark {
+  - carParkID: String
+  - name: String
+  - location: Location
+  - availableSpots: int
+  - rates: String
+  --
+  + getAvailability()
+  + getDetails()
+}
+
+class Location {
+  - latitude: double
+  - longitude: double
+  - address: String
+}
+
+class Favourite {
+  - favouriteID: String
+  - userID: String
+  - carParkID: String
+  --
+  + addToFavourites()
+  + removeFromFavourites()
+  + getFavourites()
+}
+
+class Review {
+  - reviewID: String
+  - userID: String
+  - carParkID: String
+  - rating: int
+  - comment: String
+  - timestamp: DateTime
+  --
+  + createReview()
+  + editReview()
+  + deleteReview()
+  + getReviewsForCarPark()
+}
+
+class SearchService {
+  + searchCarParks(criteria: String): List<CarPark>
+}
+
+class ReviewService {
+  + submitReview(review: Review)
+  + editReview(reviewID: String)
+  + deleteReview(reviewID: String)
+  + fetchReviews(carParkID: String)
+}
+
+class FavouriteService {
+  + addFavourite(userID: String, carParkID: String)
+  + removeFavourite(userID: String, carParkID: String)
+  + getUserFavourites(userID: String): List<CarPark>
+}
+
+class AccountService {
+  + registerUser(email: String, password: String)
+  + updateUserProfile(userID: String, profile: Profile)
+  + deleteUser(userID: String)
+}
+
+' Relationships
+
+User "1" -- "1" Profile
+User "1" -- "*" Favourite
+User "1" -- "*" Review
+CarPark "1" -- "*" Review
+CarPark "1" -- "*" Favourite
+CarPark "1" -- "1" Location
+
+SearchService ..> CarPark : uses
+ReviewService ..> Review : manages
+FavouriteService ..> Favourite : manages
+AccountService ..> User : manages
+AccountService ..> Profile : manages
+
+@enduml
