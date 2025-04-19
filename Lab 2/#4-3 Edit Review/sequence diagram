@@ -1,0 +1,11 @@
+@startuml EditReview
+actor User
+participant App
+participant Database
+
+User -> App : Click "Edit review"
+User -> App : Update stars/description
+App -> Database : Update review
+Database --> App : Confirm
+App --> User : Show updated review
+@enduml
