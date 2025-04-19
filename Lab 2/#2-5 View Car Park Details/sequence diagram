@@ -1,0 +1,10 @@
+@startuml ViewCarParkDetails
+actor User
+participant App
+participant CarParks
+
+User -> App : Select car park
+App -> CarParks : Get detailed info
+CarParks --> App : Return details
+App --> User : Show price, type, reviews, map
+@enduml
