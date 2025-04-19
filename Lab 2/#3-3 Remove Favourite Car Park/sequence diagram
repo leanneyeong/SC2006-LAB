@@ -1,0 +1,10 @@
+@startuml RemoveFavourite
+actor User
+participant App
+participant Database
+
+User -> App : Click "Remove" on a car park
+App -> Database : Remove from favourites
+Database --> App : Success
+App --> User : Update favourites list
+@enduml
