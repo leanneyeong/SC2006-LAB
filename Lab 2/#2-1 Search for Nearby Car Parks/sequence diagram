@@ -1,0 +1,12 @@
+@startuml SearchNearbyCarParks
+actor User
+participant App
+participant "Google Maps API" as Maps
+participant "CarPark Availability API" as CarParks
+
+User -> App : Tap location icon
+App -> Maps : Get user location
+App -> CarParks : Fetch nearby HDB car parks
+CarParks --> App : Return car parks
+App --> User : Display car parks on map
+@enduml
