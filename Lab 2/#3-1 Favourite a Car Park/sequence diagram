@@ -1,0 +1,10 @@
+@startuml FavouriteCarPark
+actor User
+participant App
+participant Database
+
+User -> App : Click "Favourite" on a car park
+App -> Database : Add to user’s favourites
+Database --> App : Confirmation
+App --> User : Update UI (heart icon red)
+@enduml
