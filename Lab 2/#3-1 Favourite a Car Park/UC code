@@ -1,0 +1,24 @@
+@startuml
+title Use Case Diagram - Favourite a Car Park (Use Case #3-1)
+
+actor User
+
+package "Parking App" {
+    usecase "Search for Car Parks"
+    usecase "Add Car Park to Favourites"
+    usecase "View Favourites List"
+}
+
+package "Database" {
+    usecase "Store Favourite Car Parks"
+    usecase "Retrieve Favourite Car Parks"
+}
+
+User --> "Search for Car Parks"
+User --> "Add Car Park to Favourites"
+User --> "View Favourites List"
+
+"Add Car Park to Favourites" --> "Store Favourite Car Parks"
+"View Favourites List" --> "Retrieve Favourite Car Parks"
+
+@enduml
