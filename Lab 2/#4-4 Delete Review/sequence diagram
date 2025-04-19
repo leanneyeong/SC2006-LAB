@@ -1,0 +1,12 @@
+@startuml DeleteReview
+actor User
+participant App
+participant Database
+
+User -> App : Click "Delete review"
+App -> User : Show confirmation popup
+User -> App : Confirm deletion
+App -> Database : Delete review
+Database --> App : Confirm
+App --> User : Review removed
+@enduml
