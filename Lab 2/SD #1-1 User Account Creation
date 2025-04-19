@@ -1,0 +1,24 @@
+@startuml UserAccountCreation
+actor User
+participant App
+participant "Google Auth" as Google
+participant "Email Service" as Email
+participant Database
+
+== Manual Signup ==
+User -> App : Open app and click "Sign Up"
+User -> App : Enter name, email, password
+App -> App : Validate email & password
+App -> Email : Send OTP
+Email --> User : Receive OTP
+User -> App : Enter OTP
+App -> Database : Create new account
+App --> User : Redirect to main page
+
+== Alternative Flow: Google Signup ==
+User -> App : Click "Continue with Google"
+App -> Google : OAuth login
+Google --> App : User authenticated
+App -> Database : Create account if new
+App --> User : Redirect to main page
+@enduml
