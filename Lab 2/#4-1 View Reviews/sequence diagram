@@ -1,0 +1,10 @@
+@startuml ViewReviews
+actor User
+participant App
+participant Database
+
+User -> App : View car park details
+App -> Database : Fetch reviews
+Database --> App : Return reviews
+App --> User : Show reviews
+@enduml
