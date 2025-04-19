@@ -1,1 +1,31 @@
 
+@startuml
+title Use Case #1-4: Delete Account
+
+actor User
+
+rectangle "Parking App" {
+    usecase "Delete Account" as UC_DeleteAccount
+    usecase "Confirm Deletion (Type 'Delete account')" as UC_ConfirmDeletion
+    usecase "Auto Sign-Out" as UC_SignOut
+}
+
+User --> UC_DeleteAccount
+UC_DeleteAccount --> UC_ConfirmDeletion : <<include>>
+UC_ConfirmDeletion --> UC_SignOut : <<include>>
+
+note right of UC_DeleteAccount
+User goes to:
+Profile > Manage Account > Danger Section
+end note
+
+note right of UC_ConfirmDeletion
+User must type exactly "Delete account"
+(case sensitive)
+end note
+
+note right of UC_SignOut
+App signs out user and removes account from DB
+end note
+
+@enduml
