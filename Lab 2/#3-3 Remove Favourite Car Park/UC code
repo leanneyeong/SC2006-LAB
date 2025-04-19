@@ -1,0 +1,22 @@
+@startuml
+title Use Case Diagram - Remove Favorited Car Parks (Use Case #3-3)
+
+actor User
+
+package "Parking App" {
+    usecase "View Favourites List"
+    usecase "Remove from Favourites"
+    usecase "Search Car Parks"
+}
+
+package "Database" {
+    usecase "Update Favourites"
+}
+
+User --> "View Favourites List"
+User --> "Remove from Favourites"
+User --> "Search Car Parks"
+
+"Remove from Favourites" --> "Update Favourites"
+
+@enduml
