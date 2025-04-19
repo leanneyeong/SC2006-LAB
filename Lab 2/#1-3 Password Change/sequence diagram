@@ -1,0 +1,25 @@
+@startuml PasswordChange
+actor User
+participant App
+participant Email
+participant Database
+
+== Change password in settings ==
+User -> App : Navigate to "Change password"
+User -> App : Enter old + new password
+App -> App : Validate new password
+App -> Database : Update password
+Database --> App : Success
+App -> Email : Send confirmation email
+App --> User : Password changed message
+
+== Alt Flow: Forgot Password ==
+User -> App : Forgot password
+User -> App : Enter email
+App -> Email : Send OTP
+Email --> User : Receive OTP
+User -> App : Enter OTP
+User -> App : Enter new password
+App -> Database : Update password
+App --> User : Password reset
+@enduml
