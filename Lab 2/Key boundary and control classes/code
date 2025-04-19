@@ -1,0 +1,112 @@
+@startuml
+' Title and legend
+title Parking App - Boundary, Control, and Entity Class Diagram
+
+' Stereotypes
+skinparam class {
+    BackgroundColor<<Boundary>> HoneyDew
+    BackgroundColor<<Control>> LemonChiffon
+    BackgroundColor<<Entity>> LightCyan
+    BorderColor Black
+}
+
+' === Boundary Classes ===
+class UserInterface <<Boundary>> {
+    +login()
+    +register()
+    +updateProfile()
+    +viewProfile()
+}
+
+class CarParkSearchUI <<Boundary>> {
+    +searchCarParks()
+    +viewCarParkDetails()
+}
+
+class FavouriteUI <<Boundary>> {
+    +addToFavourites()
+    +removeFromFavourites()
+    +viewFavourites()
+}
+
+class ReviewUI <<Boundary>> {
+    +addReview()
+    +editReview()
+    +deleteReview()
+    +viewReviews()
+}
+
+' === Control Classes ===
+class UserController <<Control>> {
+    +handleLogin()
+    +handleRegistration()
+    +handleProfileUpdate()
+    +getUserProfile()
+}
+
+class CarParkController <<Control>> {
+    +searchCarParks(criteria)
+    +getCarParkDetails(id)
+}
+
+class FavouriteController <<Control>> {
+    +addFavourite(userId, carParkId)
+    +removeFavourite(userId, carParkId)
+    +getFavourites(userId)
+}
+
+class ReviewController <<Control>> {
+    +createReview(userId, carParkId, content, rating)
+    +editReview(reviewId)
+    +deleteReview(reviewId)
+    +getReviews(carParkId)
+}
+
+' === Entity Classes ===
+class User <<Entity>> {
+    -userId: String
+    -username: String
+    -password: String
+    -email: String
+    -profileInfo: String
+}
+
+class CarPark <<Entity>> {
+    -carParkId: String
+    -location: String
+    -availability: int
+    -pricing: double
+    -amenities: String[]
+}
+
+class Favourite <<Entity>> {
+    -favouriteId: String
+    -userId: String
+    -carParkId: String
+}
+
+class Review <<Entity>> {
+    -reviewId: String
+    -userId: String
+    -carParkId: String
+    -rating: int
+    -content: String
+    -timestamp: Date
+}
+
+' === Associations ===
+
+UserInterface --> UserController
+CarParkSearchUI --> CarParkController
+FavouriteUI --> FavouriteController
+ReviewUI --> ReviewController
+
+UserController --> User
+CarParkController --> CarPark
+FavouriteController --> Favourite
+FavouriteController --> User
+ReviewController --> Review
+ReviewController --> User
+ReviewController --> CarPark
+
+@enduml
