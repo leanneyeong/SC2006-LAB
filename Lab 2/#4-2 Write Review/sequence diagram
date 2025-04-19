@@ -1,0 +1,10 @@
+@startuml WriteReview
+actor User
+participant App
+participant Database
+
+User -> App : Leave review (stars + description)
+App -> Database : Save review
+Database --> App : Confirm save
+App --> User : Review appears
+@enduml
